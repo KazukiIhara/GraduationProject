@@ -1,0 +1,15 @@
+* text=auto
+
+*.bat text eol=crlf
+*.cpp text eol=crlf
+*.h text eol=crlf
+*.ini text eol=crlf
+*.lua text eol=crlf
+
+*.exe binary
+*.dll binary
+*.dds binary
+*.glb binary
+*.bin binary
+*.png binary
+*.jpg binary
