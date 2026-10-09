@@ -60,6 +60,7 @@ project(projectName)
         "../Src",
         "../../Dependencies/LaziealRuntime/Project/Include",
         "../../Dependencies/LaziealRuntime/Dependencies/LaziealGraphicsFramework/Project/Include",
+        "../../Dependencies/LaziealRuntime/Dependencies/LaziealGraphicsFramework/Project/Externals/imgui",
     }
 
     dependson {
