@@ -1,12 +1,15 @@
 #pragma once
 #include "BaseAnimal.h"
 
+/// <summary>
+/// 動物　-ウサギ-
+/// </summary>
 class Rabbit final : public BaseAnimal {
 public:
 	/// <summary>
 	/// 初期化処理
 	/// </summary>
-	void Init()override;
+	void Init(const LGF::Vector3& spownPos)override;
 	/// <summary>
 	/// 更新処理
 	/// </summary>
@@ -18,11 +21,8 @@ public:
 
 private:
 
-	LGF::Vector3 position_{ 0.0f,1.0f,20.0f };
-
-	const float kMoveSpeed_ = 1.0f;
-
 	const float kAttackRadius_ = 5.0f;//範囲に入ったら攻撃する
 
+	LGF::Vector3 rotate_ = {0,0,0};
 };
 

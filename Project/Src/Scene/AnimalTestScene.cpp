@@ -1,16 +1,17 @@
 #include "AnimalTestScene.h"
+#include "Animals/Rabbit.h"
 
 AnimalTestScene::AnimalTestScene(const InitData& init)
 	: SampleScene(init){
-	rabbit_ = std::make_unique<Rabbit>();
-	rabbit_->Init();
+	spawnAnimals_ = std::make_unique<SpawnAnimals>();
 }
 
 void AnimalTestScene::Update() {
-	rabbit_->Update();
+	spawnAnimals_->BornAnimals(std::make_unique<Rabbit>());
+	spawnAnimals_->Update();
 }
 
 void AnimalTestScene::Draw() const {
 	DrawStage();
-	rabbit_->Draw();
+	spawnAnimals_->Draw();
 }

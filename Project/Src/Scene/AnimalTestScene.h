@@ -1,7 +1,10 @@
 #pragma once
 #include "Scene/SampleScene.h"
-#include "Animals/Rabbit.h"
+#include "Animals/SpawnAnimals.h"
 
+/// <summary>
+/// 動物テストシーン
+/// </summary>
 class AnimalTestScene final : public SampleScene {
 public:
 	/// <summary>
@@ -21,7 +24,7 @@ public:
 	void Draw() const override;
 
 private:
-	std::unique_ptr<Rabbit> rabbit_;
+	std::unique_ptr<SpawnAnimals> spawnAnimals_;
 
 };
 
