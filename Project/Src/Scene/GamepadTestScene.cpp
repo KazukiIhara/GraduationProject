@@ -165,11 +165,17 @@ namespace {
 
 GamepadTestScene::GamepadTestScene(const InitData& init) :
 	SampleScene(init) {
+
+	calibration_ = std::make_unique<Calibration>();
+	calibration_->Initialize();
 }
 
 void GamepadTestScene::Update() {
+	calibration_->Update();
+
 	UpdateCamera();
 
+	// Joy-Conの接続状態が変化した場合は回転量をリセットする。
 	const std::optional<Gamepad> left = JoyCon::Left();
 	const std::optional<Gamepad> right = JoyCon::Right();
 	if (left.has_value() != wasLeftConnected_) {
@@ -178,9 +184,12 @@ void GamepadTestScene::Update() {
 	if (right.has_value() != wasRightConnected_) {
 		rightRotation_ = {};
 	}
+
+	// Joy-Conの接続状態を記録する。
 	wasLeftConnected_ = left.has_value();
 	wasRightConnected_ = right.has_value();
 
+	// Joy-Conの回転量を積算する。
 	if (left) {
 		leftRotation_ += left->RotationDelta();
 	}
@@ -250,4 +259,9 @@ void GamepadTestScene::Draw() const {
 		}
 	}
 	ImGui::End();
+
+	if (calibration_->GetShakeStrength(JoyConType::Left, DeadZoneType::Large)) {
+		ImGui::Begin("Left Joy-Con Shake Detected");
+		ImGui::End();
+	}
 }
