@@ -12,4 +12,6 @@ namespace SceneNames {
 	inline const std::string Main = "Main";
 	inline const std::string GamePadTest = "GamePadTest";
 	inline const std::string AnimalTest = "AnimalTest";
+	inline const std::string GamePlayScene = "GamePlayScene";
+
 }

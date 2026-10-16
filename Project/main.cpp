@@ -5,6 +5,8 @@
 #include "Scene/GamepadTestScene.h"
 #include "Scene/AnimalTestScene.h"
 
+#include "Scene/GamePlayScene.h"
+
 using namespace LGF;
 
 void Main() {
@@ -12,7 +14,8 @@ void Main() {
 	sceneManager.Register<MainScene>(SceneNames::Main);
 	sceneManager.Register<GamepadTestScene>(SceneNames::GamePadTest);
 	sceneManager.Register<AnimalTestScene>(SceneNames::AnimalTest);
-	sceneManager.Change(SceneNames::AnimalTest);
+	sceneManager.Register<GamePlayScene>(SceneNames::GamePlayScene);
+	sceneManager.Change(SceneNames::GamePlayScene);
 
 	while (System::Update()) {
 		sceneManager.Update();

@@ -2,6 +2,8 @@
 
 #include "Scene/SampleScene.h"
 
+#include "../Calibration/Calibration.h"
+
 class GamepadTestScene final : public SampleScene {
 public:
 	explicit GamepadTestScene(const InitData& init);
@@ -16,4 +18,6 @@ private:
 	LGF::Vector3 rightRotation_{};
 	bool wasLeftConnected_ = false;
 	bool wasRightConnected_ = false;
+
+	std::unique_ptr<Calibration> calibration_ = nullptr;
 };
