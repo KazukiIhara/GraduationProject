@@ -4,6 +4,7 @@
 
 // Application
 #include "CookingController/CookingController.h"
+#include "judge/JudgeManager.h"
 
 // =========================================================
 // ゲームプレイシーンクラス
@@ -27,5 +28,7 @@ private:
 
 	// 調理器具マネージャー
 	std::unique_ptr<CookingController> cookingController_;
+	// 審査員マネージャー
+	std::unique_ptr<JudgeManager> judgeManager_;
 };
 

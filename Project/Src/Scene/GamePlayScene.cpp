@@ -15,11 +15,15 @@ GamePlayScene::GamePlayScene(const InitData& init) :
 	camera_.pitch = 0.9f;
 
 	cookingController_ = std::make_unique<CookingController>();
+	judgeManager_ = std::make_unique<JudgeManager>();
 }
 
 void GamePlayScene::Update() {
 	// 調理器具マネージャーの更新
 	cookingController_->Update();
+	// 審査員マネージャーの更新
+	judgeManager_->Update();
+
 }
 
 void GamePlayScene::Draw() const {
@@ -48,6 +52,8 @@ void GamePlayScene::Draw() const {
 
 	// 調理器具マネージャーの描画
 	cookingController_->Draw();
+	// 審査員マネージャーの描画
+	judgeManager_->Draw();
 
 #ifdef _DEBUG
 	if (ImGui::Begin("GamePlay Debug")) {
@@ -58,5 +64,6 @@ void GamePlayScene::Draw() const {
 	ImGui::End();
 
 	cookingController_->DrawImGuiDebug();
+	judgeManager_->DrawImGuiDebug();
 #endif
 }
