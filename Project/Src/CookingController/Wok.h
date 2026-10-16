@@ -54,7 +54,7 @@ private:
 	std::unique_ptr<Calibration> calibration_ = nullptr; // キャリブレーション
 
 	bool isAnimationPlaying_ = false; // アニメーション再生中かどうか
-	const float animationDuration_ = 1.0f; // アニメーションの再生時間（秒）
+	const float animationDuration_ = 0.5f; // アニメーションの再生時間（秒）
 	float animationTime_ = 0.0f; // アニメーションの経過時間（秒）
 
 };
