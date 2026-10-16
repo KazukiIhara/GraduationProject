@@ -2,7 +2,7 @@
 
 #include "Scene/SampleScene.h"
 
-#include "../../Calibration.h"
+#include "../Calibration/Calibration.h"
 
 class GamepadTestScene final : public SampleScene {
 public:
