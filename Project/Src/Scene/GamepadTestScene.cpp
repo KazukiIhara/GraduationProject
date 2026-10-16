@@ -165,9 +165,14 @@ namespace {
 
 GamepadTestScene::GamepadTestScene(const InitData& init) :
 	SampleScene(init) {
+
+	calibration_ = std::make_unique<Calibration>();
+	calibration_->Initialize();
 }
 
 void GamepadTestScene::Update() {
+	calibration_->Update();
+
 	UpdateCamera();
 
 	// Joy-Conの接続状態が変化した場合は回転量をリセットする。
@@ -254,4 +259,9 @@ void GamepadTestScene::Draw() const {
 		}
 	}
 	ImGui::End();
+
+	if (calibration_->GetShakeStrength(JoyConType::Left, DeadZoneType::Large)) {
+		ImGui::Begin("Left Joy-Con Shake Detected");
+		ImGui::End();
+	}
 }

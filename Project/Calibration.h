@@ -32,9 +32,6 @@ struct GyroReference
 	LGF::Vector3 rotation = {};		// 回転
 };
 
-
-
-
 /// <summary>
 /// ジョイコンのキャリブレーションを行うクラス
 /// </summary>
@@ -61,9 +58,6 @@ public:
 		gyroReference_ = {};
 	}
 
-
-
-
 	///=====================================///
 	/// accessors
 	///=====================================/// 
@@ -72,6 +66,8 @@ public:
 	/// 振る強度(縦軸限定)を取得する
 	/// </summary>
 	/// <param name="joyConType">ジョイコンの左右</param>
+	/// <param name="deadZoneType">デッドゾーン</param>
+	/// <returns></returns>
 	bool GetShakeStrength(const JoyConType& joyConType, const DeadZoneType& deadZoneType);
 
 private:
@@ -87,6 +83,14 @@ private:
 
 	//前フレームのY軸のアクセラレーション
 	float previousYAcceleration_ = 0.0f;
+
+	//デッドゾーン
+	float deadZoneSmall_ = 5.0f;
+	float deadZoneMedium_ = 10.0f;
+	float deadZoneLarge_ =20.0f;
+
+	//重力
+	float gravity_ = 9.3f;
 
 };
 
