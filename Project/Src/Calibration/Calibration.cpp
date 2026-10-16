@@ -2,14 +2,6 @@
 
 using namespace LGF;
 
-void Calibration::Initialize()
-{
-}
-
-void Calibration::Update()
-{
-}
-
 bool Calibration::GetShakeStrength(const JoyConType& joyConType, const DeadZoneType& deadZoneType)
 {
 	bool result = false;
@@ -28,9 +20,6 @@ bool Calibration::GetShakeStrength(const JoyConType& joyConType, const DeadZoneT
 	float deadZone = 0.0f;
 	switch (deadZoneType)
 	{
-	case DeadZoneType::None:
-		deadZone = 0.0f;
-		break;
 	case DeadZoneType::Small:
 		deadZone = deadZoneSmall_;
 		break;

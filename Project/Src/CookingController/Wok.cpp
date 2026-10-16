@@ -4,11 +4,6 @@
 
 using namespace LGF;
 
-//線形補間
-auto Lerp = [](const Vector3& start, const Vector3& end, float t) -> Vector3 {
-	return start + (end - start) * t;
-	};
-
 Wok::Wok() {
 	position_ = kBasePosition;
 	rotation_ = kBaseRotation;

@@ -13,7 +13,6 @@ enum class JoyConType
 
 enum class DeadZoneType
 {
-	None,
 	Small,
 	Medium,
 	Large
@@ -41,15 +40,6 @@ public:
 	///=====================================///
 	/// public methods
 	///=====================================/// 
-
-	/// <summary>
-	/// 初期化
-	/// </summary>
-	void Initialize();
-	/// <summary>
-	/// 更新処理
-	/// </summary>
-	void Update();
 
 	/// <summary>
 	/// ジャイロの基準値をリセットする

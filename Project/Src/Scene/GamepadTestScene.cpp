@@ -167,11 +167,9 @@ GamepadTestScene::GamepadTestScene(const InitData& init) :
 	SampleScene(init) {
 
 	calibration_ = std::make_unique<Calibration>();
-	calibration_->Initialize();
 }
 
 void GamepadTestScene::Update() {
-	calibration_->Update();
 
 	UpdateCamera();
 
