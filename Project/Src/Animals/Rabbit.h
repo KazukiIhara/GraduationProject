@@ -23,6 +23,5 @@ private:
 
 	const float kAttackRadius_ = 5.0f;//範囲に入ったら攻撃する
 
-	LGF::Vector3 rotate_ = {0,0,0};
 };
 

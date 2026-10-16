@@ -5,19 +5,19 @@ using namespace LGF;
 void Rabbit::Init(const LGF::Vector3& spownPos) {
 	position_ = spownPos;
 	moveSpeed_ = 0.05f;
+	hp_ = 600;
 }
 
 void Rabbit::Update() {
-	GoToTarget();
-
-	if (hp_ <= 0 && rotate_.x <= 0.75f) {
-		rotate_.x += 0.05f;
-	}
+	BaseAnimal::Update();
+	hp_--;
 }
 
 void Rabbit::Draw() {
-	object_.Draw(Math::MakeAffineMatrix(
-		{ 1.0f, 1.0f, 1.0f },
-		{ rotate_.x,rotate_.y ,rotate_.z },
-		position_));
+
+	Matrix4x4 translate = Math::MakeTranslateMatrix(position_);
+	Matrix4x4 rotate = Math::MakeRotateXMatrix(rotate_.x) * Math::MakeRotateYMatrix(rotate_.y) * Math::MakeRotateZMatrix(rotate_.z);
+	Matrix4x4 scale = Math::MakeScaleMatrix({1,1,1});
+
+	object_.Draw(scale * rotate * translate, Vector4{ 0.0f,1.0f,0.0f,1.0f });
 }

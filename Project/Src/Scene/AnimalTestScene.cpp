@@ -7,7 +7,7 @@ AnimalTestScene::AnimalTestScene(const InitData& init)
 }
 
 void AnimalTestScene::Update() {
-	spawnAnimals_->BornAnimals(std::make_unique<Rabbit>());
+	spawnAnimals_->BornAnimals();
 	spawnAnimals_->Update();
 }
 

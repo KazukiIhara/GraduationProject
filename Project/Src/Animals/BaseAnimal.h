@@ -14,7 +14,7 @@ public:
 	/// <summary>
 	/// 更新処理
 	/// </summary>
-	virtual void Update() = 0;
+	virtual void Update();
 	/// <summary>
 	/// 描画処理
 	/// </summary>
@@ -34,20 +34,14 @@ public:
 		return deadAnimationTime_ >= kDeadAnimationMaxTime_;
 	}
 
-	void Dead();
-
-protected:
-
-	/// <summary>
-	/// ターゲットに向かう処理
-	/// </summary>
-	void GoToTarget();
+	void Damage();
 
 protected:
 
 	LGF::Box3D object_;
 
 	LGF::Vector3 position_;
+	LGF::Vector3 rotate_;
 
 	float moveSpeed_ = 0.0f;
 
@@ -57,5 +51,18 @@ protected:
 
 	float deadAnimationTime_ = 0.0f;
 	const float kDeadAnimationMaxTime_ = 2.0f;
+
+private:
+
+	/// <summary>
+	/// ターゲットに向かう処理
+	/// </summary>
+	void GoToTarget();
+
+	/// <summary>
+	/// 死んだときの処理
+	/// </summary>
+	void Dead();
+
 };
 
