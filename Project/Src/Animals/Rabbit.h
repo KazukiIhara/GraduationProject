@@ -21,7 +21,6 @@ public:
 
 private:
 
-	const float kAttackRadius_ = 5.0f;//範囲に入ったら攻撃する
 
 };
 

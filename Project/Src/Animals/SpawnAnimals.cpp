@@ -7,21 +7,22 @@
 void SpawnAnimals::Update() {
 
 	if (keyA_->Press()) {
-		playerPos.x -= 0.5f;
+		playerPos.x -= 0.25f;
 	}
 	else if (keyD_->Press()) {
-		playerPos.x += 0.5f;
+		playerPos.x += 0.25f;
 	}
 
 	if (keyW_->Press()) {
-		playerPos.z += 0.5f;
+		playerPos.z += 0.25f;
 	}
 	else if (keyS_->Press()) {
-		playerPos.z -= 0.5f;
+		playerPos.z -= 0.25f;
 	}
 
 
 	for (auto& animal : animals_) {
+		animal->SetCharHanPosition(charHanPos);
 		animal->SetPlayerPosition(playerPos);
 		animal->Update();
 	}
@@ -44,7 +45,8 @@ void SpawnAnimals::Draw() {
 	}
 
 	//ターゲット位置
-	targeetPointer_.Draw(LGF::Math::MakeAffineMatrix({ 0.5f,2.0f,0.5f }, { 0,0,0 }, playerPos));
+	targeetPointer_.Draw(LGF::Math::MakeAffineMatrix({ 0.5f,2.0f,0.5f }, { 0,0,0 }, charHanPos));
+	playerPointer_.Draw(LGF::Math::MakeAffineMatrix({ 1.0f,1.5f,1.0f }, { 0,0,0 }, playerPos));
 }
 
 void SpawnAnimals::BornAnimals() {

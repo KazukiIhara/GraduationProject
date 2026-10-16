@@ -26,6 +26,8 @@ public:
 	/// <param name="playerPos">現在のプレイヤーの位置を設定</param>
 	void SetPlayerPosition(const LGF::Vector3& playerPos);
 
+	void SetCharHanPosition(const LGF::Vector3& playerPos);
+
 	/// <summary>
 	/// 消滅処理
 	/// </summary>
@@ -45,9 +47,12 @@ protected:
 
 	float moveSpeed_ = 0.0f;
 
-	LGF::Vector3 targetPosition_;
+	LGF::Vector3 targetPosition_;//炒飯の位置
+	LGF::Vector3 playerPosition_;//プレイヤーの位置
 
-	int hp_ = 500;
+	int hp_ = 500;//体力
+
+	float attackRadius_ = 3.0f;//範囲に入ったら攻撃する
 
 	float deadAnimationTime_ = 0.0f;
 	const float kDeadAnimationMaxTime_ = 2.0f;

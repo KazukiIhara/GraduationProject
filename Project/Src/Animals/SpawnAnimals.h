@@ -51,8 +51,14 @@ private:
 	// -- ↓ 試し　プレイヤーできたら消す --
 
 
-	LGF::Vector3 playerPos = { 0,1.0f,0 };//ターゲット位置
+	LGF::Vector3 charHanPos = { 0,1.0f,0 };//ターゲット位置
+	LGF::Vector3 playerPos = { 2.0f,1.0f,0 };//ターゲット位置
+
 	LGF::Box3D targeetPointer_{ 0.5f,2.0f,0.5f };//可視化ターゲット
+	LGF::Box3D playerPointer_{ 1.0f,1.5f,1.0f };//可視化プレイヤー
+
+	float playerArea_ = 5.0f;//プレイヤーの間合い
+	float charHanArea_ = 5.0f;//炒飯の間合い
 
 	//操作キー
 	std::unique_ptr<LGF::KeyButton> keyA_ = std::make_unique<LGF::KeyButton>(LGF::KeyCode::A);
