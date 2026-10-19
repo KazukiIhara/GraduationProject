@@ -33,7 +33,7 @@ void GamePlayScene::Update() {
 	/* 調理器具マネージャーの更新 */
 	cookingController_->Update();
 	// 審査員マネージャーの更新
-	judgeManager_->Update();
+	judgeManager_->Update(camera_);
 
 
 #ifdef _DEBUG
