@@ -3,6 +3,7 @@
 #include "GameApp.h"
 #include "Scene/MainScene.h"
 #include "Scene/GamepadTestScene.h"
+#include "Scene/AnimalTestScene.h"
 
 #include "Scene/GamePlayScene.h"
 
@@ -12,6 +13,7 @@ void Main() {
 	GameApp sceneManager;
 	sceneManager.Register<MainScene>(SceneNames::Main);
 	sceneManager.Register<GamepadTestScene>(SceneNames::GamePadTest);
+	sceneManager.Register<AnimalTestScene>(SceneNames::AnimalTest);
 	sceneManager.Register<GamePlayScene>(SceneNames::GamePlayScene);
 	sceneManager.Change(SceneNames::GamePlayScene);
 
