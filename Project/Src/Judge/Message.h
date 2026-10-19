@@ -28,6 +28,8 @@ private:
 	// Private Methods
 	// =========================================================
 
+	void UpdateTransform();
+
 	void Updatebillboard(const LGF::DebugCamera3D& camera);
 
 
@@ -37,6 +39,7 @@ private:
 
 	const LGF::Vector3 kBasePosition = { 5.0f, 5.0f, 9.0f };
 	const LGF::Vector3 kBaseRotation = { 0.0f, 0.0f, 0.0f, };
+	const LGF::Vector3 kBaseScale = { 5.0f, 3.0f, 1.0f };
 
 	// =========================================================
 	// Member Variables
@@ -44,9 +47,19 @@ private:
 
 	//ひとつ分のメッセージ
 	LGF::Plane3D message_;
-	Material3D messageMaterial_;
+	LGF::Material3D messageMaterial_;
+
+	// メッセージアニメーションのための変数
+	bool isHalfway_ = false;
+	float animationTimer_ = 0.0f;
+	const float animationDuration_ = 0.2f; // アニメーションの総時間
+
+	// アニメーションの振れ幅（座標とスケール）
+	float positionAmplitude_ = 0.1f;
+	float scaleAmplitude_ = 0.08f;
 
 	LGF::Vector3 position_{}; // 現在の位置
 	LGF::Vector3 rotation_{}; // 現在の回転
+	LGF::Vector3 scale_{}; // 現在のスケール	
 };
 
