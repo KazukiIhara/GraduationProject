@@ -22,7 +22,7 @@ public:
 	/// <summary>
 	/// 更新処理
 	/// </summary>
-	void Update(const LGF::DebugCamera3D& camera);
+	void Update(const Player* player, const LGF::DebugCamera3D& camera);
 
 	/// <summary>
 	/// 描画処理

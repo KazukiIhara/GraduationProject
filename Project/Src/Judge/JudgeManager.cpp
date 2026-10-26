@@ -6,9 +6,9 @@ JudgeManager::JudgeManager() {
 	message_ = std::make_unique<Message>();
 }
 
-void JudgeManager::Update(const LGF::DebugCamera3D& camera) {
+void JudgeManager::Update(const Player* player, const LGF::DebugCamera3D& camera) {
 	// 各インスタンスの更新
-	man_->Update();
+	man_->Update(player);
 	table_->Update();
 	message_->Update(camera);
 }

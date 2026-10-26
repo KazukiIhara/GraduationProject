@@ -15,7 +15,6 @@ auto easeOutBack = [](float t) {
 		+ c1 * std::pow(t - 1.0f, 2.0f);
 	};
 
-
 Message::Message() {
 	messageMaterial_.baseColorTexture = Texture("../Assets/Textures/MessageTexture.png");
 	messageMaterial_.uvScale = { -1.0f, 1.0f };

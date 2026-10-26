@@ -4,7 +4,6 @@
 
 #include "LGF/Graphics/Plane3D.h"
 #include "LGF/Math/Vector3.h"
-#include "LGF/Collision.h"
 
 /// <summary>
 /// 3D空間のメッセージテキスト管理クラス
@@ -63,4 +62,3 @@ private:
 	LGF::Vector3 rotation_{}; // 現在の回転
 	LGF::Vector3 scale_{}; // 現在のスケール	
 };
-
