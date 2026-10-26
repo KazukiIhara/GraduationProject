@@ -72,5 +72,6 @@ private:
 	JudgeManState state_ = JudgeManState::JudgeManState_Idle; // 審査員の状態
 	const float talkDistance_ = 10.0f; // プレイヤーとの会話距離
 
+
 };
 

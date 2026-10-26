@@ -5,6 +5,8 @@
 #include "LGF/Input.h"
 #include "LGF/System.h"
 
+#include <algorithm>
+
 using namespace LGF;
 
 GamePlayScene::GamePlayScene(const InitData& init) :
