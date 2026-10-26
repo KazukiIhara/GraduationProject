@@ -16,7 +16,7 @@ std::unique_ptr<BaseAnimalState> MoveAnimalState::ChangeState() {
 	if (animal_->IsDead()) {
 		return std::make_unique<DeadAnimalState>();
 	}
-	return nullptr;
+	return std::make_unique<MoveAnimalState>();
 }
 
 
@@ -25,13 +25,13 @@ void AttackCharHanAnimalState::Update() {
 }
 
 std::unique_ptr<BaseAnimalState> AttackCharHanAnimalState::ChangeState() {
-	if (!animal_->IsAttackAreaInTarget(Target::charhan) && !animal_->IsAttacking()) {
+	if (!animal_->IsAttacking()) {
 		return std::make_unique<MoveAnimalState>();
 	}
 	if (animal_->IsDead()) {
 		return std::make_unique<DeadAnimalState>();
 	}
-	return nullptr;
+	return std::make_unique<AttackCharHanAnimalState>();
 }
 
 void AttackPlayerAnimalState::Update() {
@@ -39,13 +39,13 @@ void AttackPlayerAnimalState::Update() {
 }
 
 std::unique_ptr<BaseAnimalState> AttackPlayerAnimalState::ChangeState() {
-	if (!animal_->IsAttackAreaInTarget(Target::player) && !animal_->IsAttacking()) {
+	if (!animal_->IsAttacking()) {
 		return std::make_unique<MoveAnimalState>();
 	}
 	if (animal_->IsDead()) {
 		return std::make_unique<DeadAnimalState>();
 	}
-	return nullptr;
+	return std::make_unique<AttackPlayerAnimalState>();
 }
 
 void DeadAnimalState::Update() {
@@ -53,5 +53,5 @@ void DeadAnimalState::Update() {
 }
 
 std::unique_ptr<BaseAnimalState> DeadAnimalState::ChangeState() {
-	return nullptr;//変更なし
+	return std::make_unique<DeadAnimalState>();//変更なし
 }

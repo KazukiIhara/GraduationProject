@@ -100,12 +100,8 @@ private:
 
 	std::unique_ptr<BaseAnimalState> state_;
 
-
-	float p0 = 1.5f;
-	float p1 = 1.0f + p0;
 	float t = 0.0f;
 
-	bool reverce = false;
 	bool isAttack_ = false;
 };
 

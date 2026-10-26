@@ -8,18 +8,14 @@ void BaseAnimal::Update() {
 	state_->SetBaseAnimal(this);
 	state_->Update();
 
-	if (state_->ChangeState()) {
-		state_ = state_->ChangeState();
-	}
+	state_ = state_->ChangeState();
 }
 
 void BaseAnimal::SetPlayerPosition(const LGF::Vector3& playerPos) {
-	if (isAttack_) { return; }
 	playerPosition_ = playerPos;
 }
 
 void BaseAnimal::SetCharHanPosition(const LGF::Vector3& playerPos) {
-	if (isAttack_) { return; }
 	chaHanPosition_ = playerPos;
 }
 
@@ -32,27 +28,20 @@ void BaseAnimal::Move() {
 	rotate_.y = std::atan2(differenceCharHan.x, differenceCharHan.z);
 }
 
-void BaseAnimal::Attack(Target target) {	
-	if (reverce) {
-		t -= 1.0f / 60.0f;
-	}
-	else {
-		t += 1.0f / 60.0f;
-	}
-	float answer = p1 * t * t * t - p0 * t * t;
+void BaseAnimal::Attack(Target target) {
+
+	t += 1.0f / 60.0f;
 
 	if (target == Target::charhan) {
-		position_ += LGF::Math::Normalize(chaHanPosition_ - position_) * answer;
+		position_.y = cos(t);
 	}
 	else if (target == Target::player) {
-		position_ += LGF::Math::Normalize(playerPosition_ - position_) * answer;
+		position_.y = sin(t);
 	}
 
 	if (t >= 1.0f) {
-		reverce = true;
-	}
-	else if (t <= 0.0f) {
-		reverce = false;
+		t = 0.0f;
+		position_.y = 1.0f;
 		isAttack_ = false;
 	}
 }
