@@ -15,27 +15,48 @@ using namespace LGF;
 JudgeMan::JudgeMan() {
 	position_ = kBasePosition;
 	rotation_ = kBaseRotation;
+	message_ = std::make_unique<Message>();
 }
 
-void JudgeMan::Update(const Player* player) {
-	/* Joy-Con右スティック操作 */
-	auto rightJoyCon = JoyCon::Right();
-	if (rightJoyCon.has_value() && rightJoyCon->IsConnected()) {
-		// 審査員がIdle状態のとき
-		if (state_ == JudgeManState::JudgeManState_Idle) {
-			// プレイヤーの位置を取得
-			LGF::Vector3 playerPos = player->GetPosition();
+void JudgeMan::Update(const Player* player, const LGF::DebugCamera3D& camera) {
+	message_->Update(camera);
 
-			// プレイヤーと審査員の距離を計算
-			float distance = Math::Length(playerPos - position_);
+	isCanTalkUIVisible_ = false; // 会話可能UIの表示状態をリセット
 
-			// プレイヤーが一定距離以内にいる場合、審査員の状態をTalkingに切り替える
-			if (distance <= talkDistance_) {
-				// AボタンもしくはSpaceで会話
-				if (Key::Space.Press()) {
- 					state_ = JudgeManState::JudgeManState_Talking;
-				}
+	// 審査員がIdle状態のとき
+	if (state_ == JudgeManState::JudgeManState_Idle) {
+		// プレイヤーの位置を取得
+		LGF::Vector3 playerPos = player->GetPosition();
+
+		// プレイヤーと審査員の距離を計算
+		float distance = Math::Length(playerPos - position_);
+
+		// プレイヤーが一定距離以内にいる場合、審査員の状態をTalkingに切り替える
+		if (distance <= talkDistance_) {
+			// 会話可能UIを表示
+			isCanTalkUIVisible_ = true;
+
+
+			// UIを中央に配置
+			canTalkUI_.leftTop = { 640.0f - canTalkUI_.size.x / 2.0f,360.0f - canTalkUI_.size.y / 2.0f };
+
+			// AボタンもしくはSpaceで会話
+			if (Key::Space.Trigger()) {
+				// メッセージを表示
+				message_->SetIsDisplay(true);
+				// 審査員の状態をTalkingに切り替える
+				state_ = JudgeManState::JudgeManState_Talking;
 			}
+		}
+	}
+	// 審査員がTalking状態のとき
+	else if (state_ == JudgeManState::JudgeManState_Talking) {
+		// ここでは仮に会話が終了したらIdle状態に戻す処理を追加
+		if (Key::Space.Trigger()) {
+			// メッセージを表示
+			message_->SetIsDisplay(false);
+			// 審査員の状態をIdleに切り替える
+			state_ = JudgeManState::JudgeManState_Idle;
 		}
 	}
 }
@@ -54,6 +75,13 @@ void JudgeMan::Draw() const {
 
 		model_.Draw(worldMatrix, options);
 	}
+	// 会話可能UIの描画
+	if (isCanTalkUIVisible_) {
+		// 仮に矩形を描画する関数を呼び出す（実際には適切な描画関数を使用してください）
+		canTalkUI_.Draw(Color::White); // 黄色で描画
+	}
+	// メッセージの描画
+	message_->Draw();
 }
 
 void JudgeMan::DrawImGuiDebug()
@@ -66,4 +94,5 @@ void JudgeMan::DrawImGuiDebug()
 
 	ImGui::End();
 #endif
+	message_->DrawImGuiDebug();
 }

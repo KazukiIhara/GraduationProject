@@ -18,6 +18,7 @@ auto easeOutBack = [](float t) {
 Message::Message() {
 	messageMaterial_.baseColorTexture = Texture("../Assets/Textures/MessageTexture.png");
 	messageMaterial_.uvScale = { -1.0f, 1.0f };
+	messageMaterial_.unlit = true;
 
 	position_ = kBasePosition;
 	rotation_ = kBaseRotation;
@@ -33,13 +34,15 @@ void Message::Update(const LGF::DebugCamera3D& camera) {
 }
 
 void Message::Draw() const {
-	message_.Draw(
-		Math::MakeAffineMatrix(scale_,
-			Math::MakeQuaternion(rotation_), 
-			position_
-		),
-		messageMaterial_
-	);
+	if (isDisplay_) {
+		message_.Draw(
+			Math::MakeAffineMatrix(scale_,
+				Math::MakeQuaternion(rotation_),
+				position_
+			),
+			messageMaterial_
+		);
+	}
 }
 
 void Message::DrawImGuiDebug() {
@@ -56,12 +59,12 @@ void Message::UpdateTransform() {
 
 	if (!isHalfway_) {
 		// 座標
-		position_.y = AppMath::Lerp(kBasePosition.y-positionAmplitude_, kBasePosition.y + positionAmplitude_, easeOutBack(animationTimer_ / animationDuration_));
+		position_.y = AppMath::Lerp(kBasePosition.y - positionAmplitude_, kBasePosition.y + positionAmplitude_, easeOutBack(animationTimer_ / animationDuration_));
 
 		// スケール
-		scale_.x = AppMath::Lerp(kBaseScale.x-scaleAmplitude_, kBaseScale.x + scaleAmplitude_, easeOutBack(animationTimer_ / animationDuration_));
-		scale_.y = AppMath::Lerp(kBaseScale.y-scaleAmplitude_, kBaseScale.y + scaleAmplitude_, easeOutBack(animationTimer_ / animationDuration_));
-		scale_.z = AppMath::Lerp(kBaseScale.z-scaleAmplitude_, kBaseScale.z + scaleAmplitude_, easeOutBack(animationTimer_ / animationDuration_));
+		scale_.x = AppMath::Lerp(kBaseScale.x - scaleAmplitude_, kBaseScale.x + scaleAmplitude_, easeOutBack(animationTimer_ / animationDuration_));
+		scale_.y = AppMath::Lerp(kBaseScale.y - scaleAmplitude_, kBaseScale.y + scaleAmplitude_, easeOutBack(animationTimer_ / animationDuration_));
+		scale_.z = AppMath::Lerp(kBaseScale.z - scaleAmplitude_, kBaseScale.z + scaleAmplitude_, easeOutBack(animationTimer_ / animationDuration_));
 	}
 	else {
 		// 座標

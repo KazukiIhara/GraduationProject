@@ -23,6 +23,8 @@ public:
 
 	void DrawImGuiDebug();
 
+	void SetIsDisplay(bool isDisplay) { isDisplay_ = isDisplay; }
+
 private:
 	// =========================================================
 	// Private Methods
@@ -48,6 +50,7 @@ private:
 	//ひとつ分のメッセージ
 	LGF::Plane3D message_;
 	LGF::Material3D messageMaterial_;
+	bool isDisplay_ = false;
 
 	// メッセージアニメーションのための変数
 	bool isHalfway_ = false;

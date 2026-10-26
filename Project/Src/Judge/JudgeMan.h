@@ -2,6 +2,8 @@
 
 #include "LGF/Graphics/Model.h"
 #include "LGF/Math/Vector3.h"
+#include "LGF/Graphics/Sprite.h"
+#include "Message.h"
 
 class Player;
 
@@ -30,7 +32,7 @@ public:
 	/// <summary>
 	/// 更新処理
 	/// </summary>
-	void Update(const Player* player);
+	void Update(const Player* player, const LGF::DebugCamera3D& camera);
 
 	/// <summary>
 	/// 描画処理
@@ -52,6 +54,8 @@ private:
 	// Instance
 	// =========================================================
 
+	std::unique_ptr<Message> message_;
+
 	// =========================================================
 	// Constants
 	// =========================================================
@@ -70,8 +74,10 @@ private:
 
 	//会話変数
 	JudgeManState state_ = JudgeManState::JudgeManState_Idle; // 審査員の状態
-	const float talkDistance_ = 10.0f; // プレイヤーとの会話距離
-
+	const float talkDistance_ = 8.0f; // プレイヤーとの会話距離
+	LGF::Texture textureCanTalkUI_{ "../Assets/Textures/opeA.png" }; // 会話可能時のUIテクスチャ
+	LGF::Sprite canTalkUI_{ textureCanTalkUI_ };		// 会話可能時のUI
+	bool isCanTalkUIVisible_ = false; // 会話可能UIの表示状態
 
 };
 
