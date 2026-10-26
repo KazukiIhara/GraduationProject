@@ -2,19 +2,40 @@
 
 #include "cmath"
 
-#include "imgui.h"
 #include "LGF/Input.h"
 #include "LGF/System.h"
+#include "imgui.h"
+
+#include "DebugDraw/DebugDraw.h"
 
 using namespace LGF;
 
-Player::Player() { 
-	position_ = kInitPosition; 
+Player::Player() {}
+
+void Player::Initialize(LGF::Collision::ColliderWorld* colliderWorld) {
+	colliderWorld_ = colliderWorld;
+
+	// 初期位置
+	position_ = kInitPosition;
+
+	// コライダー設定
+	LGF::Collision::AABB initialBox{
+		// プレイヤーのサイズに合わせて幅1.0, 高さ2.0のボックスにする
+	    position_ + LGF::Vector3{-0.5f, 0.0f, -0.5f},
+        position_ + LGF::Vector3{0.5f,  2.0f, 0.5f }
+    };
+
+	LGF::Collision::ColliderOptions options{};
+	options.layer = 1u; // レイヤー設定
+
+	// コライダーワールドに追加してハンドルを保持
+	colliderHandle_ = colliderWorld_->Add(initialBox, options);
 }
 
-void Player::Update(float cameraYaw) { 
-	LGF::Vector3 moveDir = {0.0f, 0.0f, 0.0f}; 
-	
+void Player::Update(float cameraYaw) {
+	LGF::Vector3 moveDir = {0.0f, 0.0f, 0.0f};
+
+	/* 移動処理 */
 	if (ProcessInput(moveDir)) {
 		// カメラのYaw回転行列を作成
 		LGF::Matrix4x4 cameraRotMat = LGF::Math::MakeRotateYMatrix(cameraYaw);
@@ -27,14 +48,36 @@ void Player::Update(float cameraYaw) {
 		// 位置を更新
 		position_ += velocity;
 	}
+
+	/* コライダー更新処理 */
+	if (colliderWorld_) {
+		// 現在位置を基準にAABBの位置を再計算
+		LGF::Collision::AABB updateBox{
+		    position_ + LGF::Vector3{-1.0f, -2.0f, -1.0f},
+            position_ + LGF::Vector3{1.0f,  2.0f,  1.0f }
+        };
+
+		colliderWorld_->SetShape(colliderHandle_, updateBox);
+	}
 }
 
 void Player::Draw() const {
-	// モデル描画
+	// モデル描画（デバッグ）
 	/*if (model_.IsValid()) {
-		Matrix4x4 worldMatrix = Math::MakeAffineMatrix({1.0f, 1.0f, 1.0f}, Math::MakeQuaternion(rotation_), position_);
-		model_.Draw(worldMatrix);
+	    Matrix4x4 worldMatrix = Math::MakeAffineMatrix({1.0f, 1.0f, 1.0f}, Math::MakeQuaternion(rotation_), position_);
+	    model_.Draw(worldMatrix);
 	}*/
+
+#ifdef _DEBUG
+	// コライダー描画
+	if (colliderWorld_ && colliderWorld_->GetShape(colliderHandle_)) {
+		if (const auto* shape = colliderWorld_->GetShape(colliderHandle_)) {
+			if (std::holds_alternative<LGF::Collision::AABB>(*shape)) {
+				DebugDraw::DrawAABB(std::get<LGF::Collision::AABB>(*shape), {1.0f, 1.0f, 1.0f, 1.0f});
+			}
+		}
+	}
+#endif
 }
 
 void Player::DrawImGuiDebug() {
@@ -48,7 +91,7 @@ void Player::DrawImGuiDebug() {
 #endif
 }
 
-bool Player::ProcessInput(LGF::Vector3& outMoveDir) { 
+bool Player::ProcessInput(LGF::Vector3& outMoveDir) {
 	outMoveDir = {0.0f, 0.0f, 0.0f};
 	bool isPressed = false;
 
@@ -58,8 +101,10 @@ bool Player::ProcessInput(LGF::Vector3& outMoveDir) {
 		Vector2 stick = leftJoyCon->LeftStick();
 
 		// デッドゾーン処理
-		if (std::abs(stick.x) < kDeadZone) stick.x = 0.0f;
-		if (std::abs(stick.y) < kDeadZone) stick.y = 0.0f;
+		if (std::abs(stick.x) < kDeadZone)
+			stick.x = 0.0f;
+		if (std::abs(stick.y) < kDeadZone)
+			stick.y = 0.0f;
 
 		if (std::abs(stick.x) > 0.1f || std::abs(stick.y) > 0.1f) {
 			outMoveDir.x = stick.x;
