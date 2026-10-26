@@ -2,6 +2,7 @@
 
 #include "LGF/Graphics/Model.h"
 #include "LGF/Math/Vector3.h"
+#include "LGF/Collision/ColliderWorld.h"
 
 // =========================================================
 // プレイヤークラス
@@ -16,6 +17,11 @@ public:
 	/// コンストラクタ
 	/// </summary>
 	Player();
+
+	/// <summary>
+	/// 初期化処理
+	/// </summary>
+	void Initialize(LGF::Collision::ColliderWorld* colliderWorld);
 
 	/// <summary>
 	/// 更新処理
@@ -82,4 +88,10 @@ private:
 	LGF::Model model_{"../Assets/Models/player.gltf"}; // モデル（可視化デバッグ用）
 	LGF::Vector3 position_{0.0f, 0.0f, 0.0f}; // 位置
 	LGF::Vector3 rotation_{0.0f, 0.0f, 0.0f}; // 回転
+
+	// コライダー管理用
+	LGF::Collision::ColliderWorld* colliderWorld_;
+
+	// コライダーハンドル
+	LGF::Collision::ColliderHandle colliderHandle_;
 };
