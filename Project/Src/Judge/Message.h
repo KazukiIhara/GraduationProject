@@ -4,6 +4,7 @@
 
 #include "LGF/Graphics/Plane3D.h"
 #include "LGF/Math/Vector3.h"
+#include "LGF/Collision.h"
 
 /// <summary>
 /// 3D空間のメッセージテキスト管理クラス
