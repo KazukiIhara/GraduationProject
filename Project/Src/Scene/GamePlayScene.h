@@ -5,6 +5,7 @@
 // Application
 #include "Player/Player.h"
 #include "CookingController/CookingController.h"
+#include "Stage/StageManager.h"
 #include "judge/JudgeManager.h"
 
 // =========================================================
@@ -45,14 +46,21 @@ private:
 	LGF::DirectionalLight light_;
 	LGF::Grid3D grid_{ 20.0f, 1.0f };
 
-	// モデル
-	LGF::Model chineseRangeModel_{"../Assets/Models/chinese_range.gltf"}; // 中華レンジ
+	// 共通のコリジョンワールド（一括管理）
+	std::unique_ptr<LGF::Collision::ColliderWorld> colliderWorld_;
 
 	// プレイヤー
 	std::unique_ptr<Player> player_;
 	// 調理器具マネージャー
 	std::unique_ptr<CookingController> cookingController_;
+	// ステージオブジェクト管理クラス
+	std::unique_ptr<StageManager> stageManager_;
 	// 審査員マネージャー
 	std::unique_ptr<JudgeManager> judgeManager_;
+
+	// マウス入力による視点操作の有効状態
+	bool isMouseCameraEnabled_ = false;
+	// カメラのプレイヤー追従の有効状態
+	bool isCameraFollowEnabled_ = false;
 };
 
