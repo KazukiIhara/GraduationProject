@@ -15,7 +15,7 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"\u7acb\u65b9\u4f53"
+			"name":"\u5186\u67f1"
 		}
 	],
 	"materials":[
@@ -33,15 +33,16 @@
 	],
 	"meshes":[
 		{
-			"name":"\u7acb\u65b9\u4f53",
+			"name":"\u5186\u67f1.001",
 			"primitives":[
 				{
 					"attributes":{
 						"POSITION":0,
 						"NORMAL":1,
-						"TEXCOORD_0":2
+						"TEXCOORD_0":2,
+						"TEXCOORD_1":3
 					},
-					"indices":3,
+					"indices":4,
 					"material":0
 				}
 			]
@@ -64,61 +65,73 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":24,
+			"count":928,
 			"max":[
-				1,
-				1,
-				1
+				1.0499999523162842,
+				2.070000171661377,
+				1.0499999523162842
 			],
 			"min":[
-				-1,
-				-1,
-				-1
+				-1.0499999523162842,
+				-1.000000238418579,
+				-1.0499999523162842
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":24,
+			"count":928,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":24,
+			"count":928,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
+			"componentType":5126,
+			"count":928,
+			"type":"VEC2"
+		},
+		{
+			"bufferView":4,
 			"componentType":5123,
-			"count":36,
+			"count":1704,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":288,
+			"byteLength":11136,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":288,
-			"byteOffset":288,
+			"byteLength":11136,
+			"byteOffset":11136,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":192,
-			"byteOffset":576,
+			"byteLength":7424,
+			"byteOffset":22272,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":72,
-			"byteOffset":768,
+			"byteLength":7424,
+			"byteOffset":29696,
+			"target":34962
+		},
+		{
+			"buffer":0,
+			"byteLength":3408,
+			"byteOffset":37120,
 			"target":34963
 		}
 	],
@@ -130,7 +143,7 @@
 	],
 	"buffers":[
 		{
-			"byteLength":840,
+			"byteLength":40528,
 			"uri":"chinese_range.bin"
 		}
 	]

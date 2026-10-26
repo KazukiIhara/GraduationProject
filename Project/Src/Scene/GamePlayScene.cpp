@@ -81,6 +81,8 @@ void GamePlayScene::Update() {
 }
 
 void GamePlayScene::Draw() const {
+	skybox_.SetScene();
+
 	camera_.SetScene();
 	light_.SetScene();
 
