@@ -15,7 +15,7 @@ void Main() {
 	sceneManager.Register<GamepadTestScene>(SceneNames::GamePadTest);
 	sceneManager.Register<AnimalTestScene>(SceneNames::AnimalTest);
 	sceneManager.Register<GamePlayScene>(SceneNames::GamePlayScene);
-	sceneManager.Change(SceneNames::GamePlayScene);
+	sceneManager.Change(SceneNames::AnimalTest);
 
 	while (System::Update()) {
 		sceneManager.Update();

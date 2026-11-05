@@ -46,7 +46,7 @@ private:
 
 	int charhanLevel_ = 1;//レベルごとに登場する動物が変化
 
-	const uint32_t kMaxAnimalSpawn_ = 20;//動物最大配置数
+	const uint32_t kMaxAnimalSpawn_ = 10;//動物最大配置数
 
 	// -- ↓ 試し　プレイヤーできたら消す --
 

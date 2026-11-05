@@ -1,5 +1,11 @@
 #pragma once
 #include "GameApp.h"
+#include "BaseAnimalState.h"
+
+enum Target {
+	charhan,
+	player
+};
 
 /// <summary>
 /// 動物の基盤クラス
@@ -38,6 +44,39 @@ public:
 
 	void Damage();
 
+
+	/// <summary>
+	/// 移動処理(炒飯の匂いにつられる)
+	/// </summary>
+	virtual void Move() = 0;
+
+	/// <summary>
+	/// 攻撃処理
+	/// </summary>
+	void Attack(Target target);
+
+	/// <summary>
+	/// 死んだときの処理
+	/// </summary>
+	void Dead();
+
+	/// <summary>
+	/// フラグ_ターゲット(炒飯、プレイヤー)が攻撃範囲に入った場合
+	/// </summary>
+	/// <param name="target"></param>
+	/// <returns></returns>
+	bool IsAttackAreaInTarget(Target target);
+
+	/// <summary>
+	/// フラグ_攻撃中であるか
+	/// </summary>
+	/// <returns></returns>
+	bool IsAttacking() { return isAttack_; }
+
+	bool IsDead() {
+		return hp_ <= 0;
+	}
+
 protected:
 
 	LGF::Box3D object_;
@@ -47,7 +86,7 @@ protected:
 
 	float moveSpeed_ = 0.0f;
 
-	LGF::Vector3 targetPosition_;//炒飯の位置
+	LGF::Vector3 chaHanPosition_;//炒飯の位置
 	LGF::Vector3 playerPosition_;//プレイヤーの位置
 
 	int hp_ = 500;//体力
@@ -59,15 +98,10 @@ protected:
 
 private:
 
-	/// <summary>
-	/// ターゲットに向かう処理
-	/// </summary>
-	void GoToTarget();
+	std::unique_ptr<BaseAnimalState> state_;
 
-	/// <summary>
-	/// 死んだときの処理
-	/// </summary>
-	void Dead();
+	float t = 0.0f;
 
+	bool isAttack_ = false;
 };
 

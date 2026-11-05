@@ -20,3 +20,12 @@ void Deer::Draw() {
 
 	object_.Draw(scale * rotate * translate, Vector4{ 1.0f,0.0f,0.0f,1.0f });
 }
+
+void Deer::Move() {
+	//炒飯との位置関係
+	LGF::Vector3 differenceCharHan = chaHanPosition_ - position_;//ターゲットと現在位置の差分ベクトル
+	//進む
+	position_ += LGF::Math::Normalize(differenceCharHan) * moveSpeed_;//ベクトル正規化、スピードに合わせ移動
+	//向き
+	rotate_.y = std::atan2(differenceCharHan.x, differenceCharHan.z);
+}
