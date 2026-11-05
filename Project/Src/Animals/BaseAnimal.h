@@ -48,7 +48,7 @@ public:
 	/// <summary>
 	/// 移動処理(炒飯の匂いにつられる)
 	/// </summary>
-	void Move();
+	virtual void Move() = 0;
 
 	/// <summary>
 	/// 攻撃処理

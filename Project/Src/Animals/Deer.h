@@ -20,5 +20,6 @@ public:
 	/// </summary>
 	void Draw() override;
 
+	void Move() override;
 };
 

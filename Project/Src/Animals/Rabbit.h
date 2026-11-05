@@ -19,8 +19,20 @@ public:
 	/// </summary>
 	void Draw()override;
 
+	void Move() override;
+
 private:
 
+	const float kJumpCurvePointY_ = 5.0f;
 
+	float jumpTimer_ = 0.0f;
+	const float kJumpMoveFrequency_ = 2.0f;
+
+
+	LGF::Vector3 startPoint;
+
+	LGF::Vector3 halfPoint;
+
+	LGF::Vector3 endPoint;
 };
 

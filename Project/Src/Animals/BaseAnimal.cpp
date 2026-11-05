@@ -19,15 +19,6 @@ void BaseAnimal::SetCharHanPosition(const LGF::Vector3& playerPos) {
 	chaHanPosition_ = playerPos;
 }
 
-void BaseAnimal::Move() {
-	//炒飯との位置関係
-	LGF::Vector3 differenceCharHan = chaHanPosition_ - position_;//ターゲットと現在位置の差分ベクトル
-	//進む
-	position_ += LGF::Math::Normalize(differenceCharHan) * moveSpeed_;//ベクトル正規化、スピードに合わせ移動
-	//向き
-	rotate_.y = std::atan2(differenceCharHan.x, differenceCharHan.z);
-}
-
 void BaseAnimal::Attack(Target target) {
 
 	t += 1.0f / 60.0f;
@@ -37,6 +28,8 @@ void BaseAnimal::Attack(Target target) {
 	}
 	else if (target == Target::player) {
 		position_.y = sin(t);
+		//向き
+		rotate_.y = std::atan2(LGF::Math::Normalize(playerPosition_ - position_).x, LGF::Math::Normalize(playerPosition_ - position_).z);
 	}
 
 	if (t >= 1.0f) {

@@ -21,7 +21,7 @@ public:
 
 protected:
 
-	BaseAnimal* animal_;
+	BaseAnimal* animal_ = nullptr;
 
 };
 
