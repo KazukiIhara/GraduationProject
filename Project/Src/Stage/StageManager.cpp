@@ -18,7 +18,6 @@ void StageManager::Initialize(LGF::Collision::ColliderWorld* colliderWorld) {
             {1.0f,  2.0f, 1.0f }
         };
 		LGF::Collision::ColliderOptions rangeOptions{};
-		rangeOptions.layer = 1u;
 		rangeColliderHandle_ = colliderWorld_->Add(rangeBox, rangeOptions);
 	}
 }

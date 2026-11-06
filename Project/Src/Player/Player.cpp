@@ -26,7 +26,6 @@ void Player::Initialize(LGF::Collision::ColliderWorld* colliderWorld) {
     };
 
 	LGF::Collision::ColliderOptions options{};
-	options.layer = 1u; // レイヤー設定
 
 	// コライダーワールドに追加してハンドルを保持
 	colliderHandle_ = colliderWorld_->Add(initialBox, options);
