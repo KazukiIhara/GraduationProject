@@ -18,7 +18,6 @@ void StageManager::Initialize(LGF::Collision::ColliderWorld* colliderWorld) {
             {1.0f,  2.0f, 1.0f }
         };
 		LGF::Collision::ColliderOptions rangeOptions{};
-		rangeOptions.layer = 1u;
 		rangeColliderHandle_ = colliderWorld_->Add(rangeBox, rangeOptions);
 	}
 }
@@ -47,13 +46,13 @@ void StageManager::Draw() {
 	/* コライダー描画 */
 
 	// 中華レンジ
-	if (colliderWorld_ && colliderWorld_->GetShape(rangeColliderHandle_)) {
+	/*if (colliderWorld_ && colliderWorld_->GetShape(rangeColliderHandle_)) {
 		if (const auto* shape = colliderWorld_->GetShape(rangeColliderHandle_)) {
 			if (std::holds_alternative<LGF::Collision::AABB>(*shape)) {
 				DebugDraw::DrawAABB(std::get<LGF::Collision::AABB>(*shape), {1.0f, 1.0f, 1.0f, 1.0f});
 			}	
 		}
-	}
+	}*/
 #endif
 }
 

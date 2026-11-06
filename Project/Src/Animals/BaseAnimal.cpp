@@ -21,7 +21,7 @@ void BaseAnimal::SetCharHanPosition(const LGF::Vector3& playerPos) {
 
 void BaseAnimal::Attack(Target target) {
 
-	t += 1.0f / 60.0f;
+	t += (float)LGF::System::DeltaTime();
 
 	if (target == Target::charhan) {
 		position_.y = cos(t);
@@ -41,9 +41,9 @@ void BaseAnimal::Attack(Target target) {
 
 void BaseAnimal::Dead() {
 	if (rotate_.x >= -1.25f) {
-		rotate_.x -= 0.05f;
+		rotate_.x -= 1.25f * (float)LGF::System::DeltaTime();
 	}
-	deadAnimationTime_ += 1.0f / 60.0f;
+	deadAnimationTime_ += (float)LGF::System::DeltaTime();
 }
 
 

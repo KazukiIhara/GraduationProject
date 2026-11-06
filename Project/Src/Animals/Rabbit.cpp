@@ -5,13 +5,8 @@ using namespace LGF;
 
 void Rabbit::Init(const LGF::Vector3& spownPos) {
 	position_ = spownPos;
-	moveSpeed_ = 0.05f;
+	moveSpeed_ = 2.0f;
 	hp_ = 600;
-}
-
-void Rabbit::Update() {
-	BaseAnimal::Update();
-	hp_--;
 }
 
 void Rabbit::Draw() {
@@ -24,6 +19,11 @@ void Rabbit::Draw() {
 }
 
 void Rabbit::Move() {
+	jumpDelayTimer_ += (float)LGF::System::DeltaTime();
+	if (jumpDelayTimer_ <= kJumpDelayTimeFinish_) {
+		return;
+	}
+
 	//炒飯との位置関係
 	LGF::Vector3 differenceCharHan = chaHanPosition_ - position_;//ターゲットと現在位置の差分ベクトル
 	
@@ -31,9 +31,9 @@ void Rabbit::Move() {
 		startPoint = position_;
 		halfPoint = position_ + Math::Normalize(differenceCharHan);
 		halfPoint.y = kJumpCurvePointY_;
-		endPoint = (position_ + Math::Normalize(differenceCharHan)) / 1.2f;
+		endPoint = position_ + (Math::Normalize(differenceCharHan) * moveSpeed_);
 	}
-	jumpTimer_ += 1.0f / 60.0f;
+	jumpTimer_ += (float)LGF::System::DeltaTime();
 
 	Vector3 p0p1 = AppMath::Lerp(startPoint, halfPoint, jumpTimer_);
 		
@@ -45,8 +45,9 @@ void Rabbit::Move() {
 	//向き
 	rotate_.y = std::atan2(differenceCharHan.x, differenceCharHan.z);
 
-	if (jumpTimer_ >= 1.0f) {
+	if (jumpTimer_ >= kJumpTimeFinish_) {
 		jumpTimer_ = 0.0f;
+		jumpDelayTimer_ = 0.0f;
 	}
 }
 

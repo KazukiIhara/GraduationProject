@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "GameApp.h"
+#include "LGF/Graphics/Skybox.h"
 
 // Application
 #include "Player/Player.h"
@@ -45,6 +46,9 @@ private:
 	mutable LGF::DebugCamera3D camera_;
 	LGF::DirectionalLight light_;
 	LGF::Grid3D grid_{ 20.0f, 1.0f };
+
+	// スカイボックス
+	LGF::Skybox skybox_{"../Assets/Textures/skybox.png"};
 
 	// 共通のコリジョンワールド（一括管理）
 	std::unique_ptr<LGF::Collision::ColliderWorld> colliderWorld_;

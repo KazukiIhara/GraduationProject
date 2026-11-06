@@ -20,18 +20,21 @@ public:
 	/// <summary>
 	/// 更新処理
 	/// </summary>
-	virtual void Update();
+	void Update();
 	/// <summary>
 	/// 描画処理
 	/// </summary>
 	virtual void Draw() = 0;
 
 	/// <summary>
-	/// Setter_炒飯がある中華鍋の位置
+	/// Setter_プレイヤー位置
 	/// </summary>
 	/// <param name="playerPos">現在のプレイヤーの位置を設定</param>
 	void SetPlayerPosition(const LGF::Vector3& playerPos);
-
+	/// <summary>
+	/// Setter_炒飯がある中華鍋の位置
+	/// </summary>
+	/// <param name="playerPos">中華鍋の位置を設定</param>
 	void SetCharHanPosition(const LGF::Vector3& playerPos);
 
 	/// <summary>
@@ -42,8 +45,12 @@ public:
 		return deadAnimationTime_ >= kDeadAnimationMaxTime_;
 	}
 
-	void Damage();
-
+	/// <summary>
+	/// ダメージ (現在は即死)
+	/// </summary>
+	void Damage() {
+		hp_ = 0;
+	}
 
 	/// <summary>
 	/// 移動処理(炒飯の匂いにつられる)
@@ -73,6 +80,10 @@ public:
 	/// <returns></returns>
 	bool IsAttacking() { return isAttack_; }
 
+	/// <summary>
+	/// 死亡判定
+	/// </summary>
+	/// <returns>Hpが0の時、死亡状態である</returns>
 	bool IsDead() {
 		return hp_ <= 0;
 	}
