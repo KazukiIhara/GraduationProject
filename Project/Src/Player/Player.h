@@ -39,7 +39,7 @@ public:
 	void DrawImGuiDebug();
 
 	// =========================================================
-	// Getter / Setter
+	// Accessor
 	// =========================================================
 
 	/// <summary>
@@ -59,6 +59,12 @@ public:
 	/// </summary>
 	/// <returns></returns>
 	LGF::Vector3 GetEyePosition() const { return position_ + LGF::Vector3{0.0f, 2.8f, 0.0f}; };
+
+	/// <summary>
+	/// 料理モード中かどうかを取得
+	/// </summary>
+	/// <returns></returns>
+	bool IsCookingMode() const { return isCookingMode_; }
 
 private:
 	// =========================================================
@@ -93,4 +99,7 @@ private:
 	LGF::Vector3 rotation_{0.0f, 0.0f, 0.0f}; // 回転
 
 	LGF::Collision::ColliderHandle colliderHandle_; // コライダーハンドル
+
+	bool isNearChineseRange_ = false; // 中華レンジの範囲内にいるか
+	bool isCookingMode_ = false; // 料理モード中かどうか（移動不可・視点移動不可）
 };

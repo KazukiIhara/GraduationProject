@@ -10,17 +10,29 @@ StageManager::~StageManager() {}
 void StageManager::Update() {}
 
 void StageManager::Initialize() {
-#pragma region 中華レンジのコライダー設定
-	LGF::Collision::ColliderOptions options{};
-	options.tag = "ChineseRange";
-	options.targetTags = {};
+	// 中華レンジのコライダー設定
+	LGF::Collision::ColliderOptions chineseRangeOptions{};
+	chineseRangeOptions.tag = "Solid";
+	chineseRangeOptions.targetTags = {};
 
-	LGF::Collision::AABB colliderAABB{
+	LGF::Collision::AABB chineseRangeAABB{
 		positionChineseRange_ + kColliderChineseRangeMin, 
 		positionChineseRange_ + kColliderChineseRangeMax
 	};
 
-	colliderHandleChineseRange_ = CollisionManager::GetInstance()->AddCollider(colliderAABB, options);
+	colliderHandleChineseRange_ = CollisionManager::GetInstance()->AddCollider(chineseRangeAABB, chineseRangeOptions);
+	
+	// インタラクト用センサーのコライダー設定
+	LGF::Collision::ColliderOptions InteractionSensorOptions{};
+	InteractionSensorOptions.tag = "InteractionSensor";
+	InteractionSensorOptions.targetTags = {};
+
+	LGF::Collision::AABB sensorAABB{
+	    positionChineseRange_ + LGF::Vector3{-3.0f, -1.0f, -3.0f}, 
+		positionChineseRange_ + LGF::Vector3{3.0f,  2.0f,  3.0f }
+	};
+
+	colliderHandleInteractionSensor_ = CollisionManager::GetInstance()->AddCollider(sensorAABB, InteractionSensorOptions);
 #pragma endregion
 }
 
@@ -46,14 +58,22 @@ void StageManager::Draw() {
 
 #ifdef _DEBUG
 	/* コライダーデバッグ描画 */
-#pragma region 中華レンジのコライダーデバッグ描画
-	auto stateOpt = CollisionManager::GetInstance()->GetColliderState(colliderHandleChineseRange_);
-	if (stateOpt.has_value()) {
-		if (std::holds_alternative<LGF::Collision::AABB>(stateOpt->shape)) {
-			DebugDraw::DrawAABB(std::get<LGF::Collision::AABB>(stateOpt->shape), {0.0f, 1.0f, 0.0f, 1.0f});
+
+	// 中華レンジ
+	auto ChineseRangeStateOpt = CollisionManager::GetInstance()->GetColliderState(colliderHandleChineseRange_);
+	if (ChineseRangeStateOpt.has_value()) {
+		if (std::holds_alternative<LGF::Collision::AABB>(ChineseRangeStateOpt->shape)) {
+			DebugDraw::DrawAABB(std::get<LGF::Collision::AABB>(ChineseRangeStateOpt->shape), {0.0f, 1.0f, 0.0f, 1.0f});
 		}
 	}
-#pragma endregion
+
+	// インタラクト用センサー
+	auto InteractionSensorStateOpt = CollisionManager::GetInstance()->GetColliderState(colliderHandleInteractionSensor_);
+	if (InteractionSensorStateOpt.has_value()) {
+		if (std::holds_alternative<LGF::Collision::AABB>(InteractionSensorStateOpt->shape)) {
+			DebugDraw::DrawAABB(std::get<LGF::Collision::AABB>(InteractionSensorStateOpt->shape), {1.0f, 0.0f, 1.0f, 1.0f});
+		}
+	}
 
 #endif
 }

@@ -25,24 +25,39 @@ GamePlayScene::GamePlayScene(const InitData& init) :
 	// 一応クリア
 	collisionManager->Clear();
 	// タグの登録
-	collisionManager->RegisterTag("Player");
-	collisionManager->RegisterTag("ChineseRange");
-	collisionManager->RegisterTag("Empty2");
+	collisionManager->RegisterTag("Player"); // プレイヤー
+	collisionManager->RegisterTag("Solid"); // 固体（プレイヤーとの押し戻しを行うオブジェクト）
+	collisionManager->RegisterTag("InteractionSensor"); // インタラクト用センサー（プレイヤーの中華レンジ周辺でのモード切替用）
 
 	player_ = std::make_unique<Player>();
-	player_->Initialize();
 
 	cookingController_ = std::make_unique<CookingController>();
 
 	stageManager_ = std::make_unique<StageManager>();
-	stageManager_->Initialize();
 
 	judgeManager_ = std::make_unique<JudgeManager>();
 }
 
 void GamePlayScene::Update() {
 	/* カメラ操作 */
-	UpdateCamera();
+	static bool prevCookingMode = false;
+	bool currentCookingMode = player_->IsCookingMode();
+
+	if (!player_->IsCookingMode()) {
+		// 料理モード中でなければ追従カメラ
+		UpdateCamera();
+
+		// 料理モードが解除された瞬間、pitchを調整
+		if (prevCookingMode && !currentCookingMode) {
+			camera_.pitch = 0.3f;
+		}
+	} else {
+		// 料理モード中はカメラ固定
+		camera_.translation = {0.0f, 4.7f, -2.6f};
+		camera_.yaw = 0.0f;
+		camera_.pitch = 0.7f;
+	}
+	prevCookingMode = currentCookingMode;
 
 	/* プレイヤー更新 */
 	player_->Update(camera_.yaw);

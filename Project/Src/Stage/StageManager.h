@@ -59,4 +59,5 @@ private:
 
 	// コライダーハンドル
 	LGF::Collision::ColliderHandle colliderHandleChineseRange_; // 中華レンジ
+	LGF::Collision::ColliderHandle colliderHandleInteractionSensor_; // インタラクト用センサー
 };

@@ -11,7 +11,7 @@
 
 using namespace LGF;
 
-Player::Player() {}
+Player::Player() { Initialize(); }
 
 void Player::Initialize() {
 	// 初期位置
@@ -20,7 +20,7 @@ void Player::Initialize() {
 	// コライダー設定
 	LGF::Collision::ColliderOptions options{};
 	options.tag = "Player";
-	options.targetTags = {};
+	options.targetTags = {"Solid", "InteractionSensor"};
 
 	LGF::Collision::AABB colliderAABB{
 		// プレイヤーのサイズに合わせて幅1.0, 高さ2.0のボックスにする
@@ -32,9 +32,57 @@ void Player::Initialize() {
 }
 
 void Player::Update(float cameraYaw) {
-	LGF::Vector3 moveDir = {0.0f, 0.0f, 0.0f};
+	/* 中華レンジのインタラクト用センサー判定 */
+	auto events = CollisionManager::GetInstance()->GetEvents(colliderHandle_);
+
+	isNearChineseRange_ = false; // 毎フレームリセット
+
+	auto checkSensor = [&](const auto& eventList) {
+		for (const auto& collision : eventList) {
+			if (collision.tag == "InteractionSensor") {
+				isNearChineseRange_ = true;
+			}
+		}
+	};
+	checkSensor(events.enter);
+	checkSensor(events.stay);
+
+	// 範囲内にいる状態でのボタン入力でモード切り替え
+	bool isInteractTriggerd = false;
+	if (Key::Enter.Trigger()) {
+		isInteractTriggerd = true;
+	}
+
+	auto rightJoyCon = JoyCon::Right();
+	if (rightJoyCon.has_value() && rightJoyCon->IsConnected()) {
+		const LGF::GamepadButton aButton = rightJoyCon->Button(GamepadButtonCode::East);
+		if (aButton.Trigger()) {
+			isInteractTriggerd = true;
+		}
+	}
+
+	bool wasCookingMode = isCookingMode_; // 前フレームのモード状態を保持
+
+	if (isNearChineseRange_ && isInteractTriggerd) {
+		isCookingMode_ = !isCookingMode_;
+	}
+
+	// 料理モードが解除された瞬間の位置変更（ちょっと後ろに配置）
+	if (wasCookingMode && !isCookingMode_) {
+		position_ = {0.0f, 2.0f, -10.0f}; 
+	}
+
+	if (isCookingMode_) {
+		position_ = {0.0f, 2.0f, -2.0f}; // プレイヤーの位置を固定
+
+		// 移動処理は行わず、コライダーの位置だけ現在の位置に固定して抜ける
+		LGF::Collision::AABB finalAABB{position_ + kColliderMin, position_ + kColliderMax};
+		CollisionManager::GetInstance()->SetShape(colliderHandle_, finalAABB);
+		return;
+	}
 
 	/* 移動処理 */
+	LGF::Vector3 moveDir = {0.0f, 0.0f, 0.0f};
 	if (ProcessInput(moveDir)) {
 		// カメラのYaw回転行列を作成
 		LGF::Matrix4x4 cameraRotMat = LGF::Math::MakeRotateYMatrix(cameraYaw);
@@ -54,14 +102,29 @@ void Player::Update(float cameraYaw) {
 		position_ + kColliderMax
 	};
 	CollisionManager::GetInstance()->SetShape(colliderHandle_, updateAABB);
+
+	auto applyPushBack = [&](const auto& eventList) {
+		// タグを捜査して押し戻しを行う
+		for (const auto& collision : eventList) {
+			if (collision.tag == "Solid") {
+				position_ -= collision.contact.normal * collision.contact.penetrationDepth;
+			}
+		}
+	};
+
+	applyPushBack(events.enter);
+	applyPushBack(events.stay);
+
+	LGF::Collision::AABB finalAABB{position_ + kColliderMin, position_ + kColliderMax};
+	CollisionManager::GetInstance()->SetShape(colliderHandle_, finalAABB);
 }
 
 void Player::Draw() const {
 	// モデル描画（デバッグ）
-	if (model_.IsValid()) {
+	/*if (model_.IsValid()) {
 	    Matrix4x4 worldMatrix = Math::MakeAffineMatrix({1.0f, 1.0f, 1.0f}, Math::MakeQuaternion(rotation_), position_);
 	    model_.Draw(worldMatrix);
-	}
+	}*/
 
 #ifdef _DEBUG
 	// コライダーデバッグ描画
@@ -80,6 +143,8 @@ void Player::DrawImGuiDebug() {
 
 	ImGui::DragFloat3("Position", &position_.x, 0.01f);
 	ImGui::DragFloat3("Rotation", &rotation_.x, 0.01f);
+
+	ImGui::Checkbox("IsCookingMode", &isCookingMode_);
 
 	ImGui::End();
 #endif
