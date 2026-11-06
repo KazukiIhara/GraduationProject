@@ -8,7 +8,10 @@
 #include "../Player/Player.h"
 #include "LGF/Input.h"
 
+#include "ConversationData.h"
+
 #include <cassert>
+#include <random>
 
 using namespace LGF;
 
@@ -21,8 +24,6 @@ JudgeMan::JudgeMan() {
 void JudgeMan::Update(const Player* player, const LGF::DebugCamera3D& camera) {
 	message_->Update(camera);
 
-	isCanTalkUIVisible_ = false; // 会話可能UIの表示状態をリセット
-
 	// 審査員がIdle状態のとき
 	if (state_ == JudgeManState::JudgeManState_Idle) {
 		// プレイヤーの位置を取得
@@ -34,29 +35,42 @@ void JudgeMan::Update(const Player* player, const LGF::DebugCamera3D& camera) {
 		// プレイヤーが一定距離以内にいる場合、審査員の状態をTalkingに切り替える
 		if (distance <= talkDistance_) {
 			// 会話可能UIを表示
-			isCanTalkUIVisible_ = true;
+			message_->SetIsTalkUIVisible(true);
 
-
-			// UIを中央に配置
-			canTalkUI_.leftTop = { 640.0f - canTalkUI_.size.x / 2.0f,360.0f - canTalkUI_.size.y / 2.0f };
-
-			// AボタンもしくはSpaceで会話
+			// Spaceで会話開始
 			if (Key::Space.Trigger()) {
 				// メッセージを表示
 				message_->SetIsDisplay(true);
 				// 審査員の状態をTalkingに切り替える
 				state_ = JudgeManState::JudgeManState_Talking;
+				//会話の内容を登録（ランダム）
+				std::vector<std::string> group = {
+					"demoA",
+					"demoB",
+					"demoC"
+				};
+				//ランダムエンジン
+				std::random_device seedGenerator;
+				std::mt19937 randomEngine(seedGenerator());
+				int randomIndex = std::uniform_int_distribution<int>(0, static_cast<int>(group.size()) - 1)(randomEngine);
+
+				message_->RegisterConversationData({ ConversationData::demos.at(group[randomIndex]) });
 			}
+		}
+		else {
+			message_->SetIsTalkUIVisible(false);
 		}
 	}
 	// 審査員がTalking状態のとき
 	else if (state_ == JudgeManState::JudgeManState_Talking) {
-		// ここでは仮に会話が終了したらIdle状態に戻す処理を追加
+		// 会話を進める処理
 		if (Key::Space.Trigger()) {
-			// メッセージを表示
-			message_->SetIsDisplay(false);
-			// 審査員の状態をIdleに切り替える
-			state_ = JudgeManState::JudgeManState_Idle;
+			if (!message_->Next()) {
+				// 会話が終了した場合、審査員の状態をIdleに切り替える
+				state_ = JudgeManState::JudgeManState_Idle;
+				// メッセージを非表示にする
+				message_->SetIsDisplay(false);
+			}
 		}
 	}
 }
@@ -75,11 +89,7 @@ void JudgeMan::Draw() const {
 
 		model_.Draw(worldMatrix, options);
 	}
-	// 会話可能UIの描画
-	if (isCanTalkUIVisible_) {
-		// 仮に矩形を描画する関数を呼び出す（実際には適切な描画関数を使用してください）
-		canTalkUI_.Draw(Color::White); // 黄色で描画
-	}
+	
 	// メッセージの描画
 	message_->Draw();
 }

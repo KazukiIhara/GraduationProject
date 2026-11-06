@@ -75,9 +75,5 @@ private:
 	//会話変数
 	JudgeManState state_ = JudgeManState::JudgeManState_Idle; // 審査員の状態
 	const float talkDistance_ = 8.0f; // プレイヤーとの会話距離
-	LGF::Texture textureCanTalkUI_{ "../Assets/Textures/opeA.png" }; // 会話可能時のUIテクスチャ
-	LGF::Sprite canTalkUI_{ textureCanTalkUI_ };		// 会話可能時のUI
-	bool isCanTalkUIVisible_ = false; // 会話可能UIの表示状態
-
 };
 
