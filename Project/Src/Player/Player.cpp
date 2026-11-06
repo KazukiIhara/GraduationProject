@@ -26,7 +26,7 @@ void Player::Initialize(LGF::Collision::ColliderWorld* colliderWorld) {
     };
 
 	LGF::Collision::ColliderOptions options{};
-	options.layer = 1u; // レイヤー設定
+	//options.layer = 1u; // レイヤー設定
 
 	// コライダーワールドに追加してハンドルを保持
 	colliderHandle_ = colliderWorld_->Add(initialBox, options);
@@ -70,13 +70,13 @@ void Player::Draw() const {
 
 #ifdef _DEBUG
 	// コライダー描画
-	if (colliderWorld_ && colliderWorld_->GetShape(colliderHandle_)) {
+	/*if (colliderWorld_ && colliderWorld_->GetShape(colliderHandle_)) {
 		if (const auto* shape = colliderWorld_->GetShape(colliderHandle_)) {
 			if (std::holds_alternative<LGF::Collision::AABB>(*shape)) {
 				DebugDraw::DrawAABB(std::get<LGF::Collision::AABB>(*shape), {1.0f, 1.0f, 1.0f, 1.0f});
 			}
 		}
-	}
+	}*/
 #endif
 }
 
