@@ -27,6 +27,8 @@ private:
 	std::vector<LGF::Collision::ColliderCollision> enterEvents_;
 	std::vector<LGF::Collision::ColliderCollision> stayEvents_;
 	std::vector<LGF::Collision::ColliderCollision> exitEvents_;
+	std::vector<LGF::Collision::ColliderCollision> sensorEvents_;
 	std::optional<LGF::Collision::WorldRaycastHit> raycastHit_;
 	bool detectSensor_ = true;
+	bool sensorEnabled_ = true;
 };

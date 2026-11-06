@@ -55,6 +55,10 @@ void ColliderWorldDemoScene::Update() {
 	if (Key::Space.Trigger()) {
 		detectSensor_ = !detectSensor_;
 	}
+	if (Key::F.Trigger()) {
+		sensorEnabled_ = !sensorEnabled_;
+		colliderWorld_.SetEnabled(sensorCollider_, sensorEnabled_);
+	}
 
 	const float moveSpeed = 4.0f * static_cast<float>(System::DeltaTime());
 	if (Key::A.Press()) {
@@ -86,6 +90,13 @@ void ColliderWorldDemoScene::Update() {
 	CopyEvents(events.enter, enterEvents_);
 	CopyEvents(events.stay, stayEvents_);
 	CopyEvents(events.exit, exitEvents_);
+	const Collision::ColliderEvents sensorEvents =
+		colliderWorld_.GetEvents(sensorCollider_);
+	sensorEvents_.assign(sensorEvents.enter.begin(), sensorEvents.enter.end());
+	sensorEvents_.insert(
+		sensorEvents_.end(),
+		sensorEvents.stay.begin(),
+		sensorEvents.stay.end());
 	raycastHit_ = colliderWorld_.RaycastClosest(
 		kRay,
 		16.0f,
@@ -136,8 +147,10 @@ void ColliderWorldDemoScene::Reset() {
 	enterEvents_.clear();
 	stayEvents_.clear();
 	exitEvents_.clear();
+	sensorEvents_.clear();
 	playerPosition_ = { -5.0f, 1.0f, 0.0f };
 	detectSensor_ = true;
+	sensorEnabled_ = true;
 
 	playerCollider_ = colliderWorld_.Add(
 		Collision::Sphere{
@@ -170,9 +183,21 @@ void ColliderWorldDemoScene::DrawDebugWindow() {
 	ImGui::SetNextWindowPos(ImVec2(20.0f, 20.0f), ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowSize(ImVec2(440.0f, 0.0f), ImGuiCond_FirstUseEver);
 	if (ImGui::Begin("ColliderWorld Demo")) {
-		ImGui::TextUnformatted("WASD: move sphere | Space: toggle Sensor target");
-		ImGui::TextUnformatted("R: reset | L / Escape: return to GamePlayScene");
+		ImGui::TextUnformatted("WASD: move sphere | Space: toggle Player -> Sensor target");
+		ImGui::TextUnformatted("F: enable/disable Sensor | R: reset");
+		ImGui::TextUnformatted("L / Escape: return | Arrow keys/Q/E: camera");
 		ImGui::Checkbox("Detect Sensor tag", &detectSensor_);
+		ImGui::SameLine();
+		if (ImGui::Checkbox("Sensor enabled", &sensorEnabled_)) {
+			colliderWorld_.SetEnabled(sensorCollider_, sensorEnabled_);
+		}
+		ImGui::Text(
+			"Registered tags: %zu  Colliders: %zu",
+			colliderWorld_.GetTags().size(),
+			colliderWorld_.GetColliderCount());
+		ImGui::Text(
+			"Sensor receives Player: %s",
+			sensorEvents_.empty() ? "NO" : "YES");
 
 		ImGui::SeparatorText("Collision events");
 		ImGui::Text(
@@ -208,6 +233,7 @@ void ColliderWorldDemoScene::DrawDebugWindow() {
 		ImGui::TextDisabled("Blue/red sphere: Player tag");
 		ImGui::TextDisabled("Gray/orange box: Solid tag");
 		ImGui::TextDisabled("Purple capsule: Sensor tag");
+		ImGui::TextDisabled("Target tags are directional; Sensor can receive Player while Player ignores Sensor.");
 	}
 	ImGui::End();
 }
