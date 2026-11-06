@@ -7,11 +7,6 @@ void Boar::Init(const LGF::Vector3& spownPos) {
 	hp_ = 700;
 }
 
-void Boar::Update() {
-	BaseAnimal::Update();
-	hp_--;
-}
-
 void Boar::Draw() {
 	Matrix4x4 translate = Math::MakeTranslateMatrix(position_);
 	Matrix4x4 rotate = Math::MakeRotateXMatrix(rotate_.x) * Math::MakeRotateYMatrix(rotate_.y) * Math::MakeRotateZMatrix(rotate_.z);

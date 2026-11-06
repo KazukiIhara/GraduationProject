@@ -11,10 +11,6 @@ public:
 	/// </summary>
 	void Init(const LGF::Vector3& spownPos)override;
 	/// <summary>
-	/// 更新処理
-	/// </summary>
-	void Update()override;
-	/// <summary>
 	/// 描画処理
 	/// </summary>
 	void Draw()override;
@@ -25,17 +21,19 @@ public:
 	void Move() override;
 
 private:
-
+	//線形補間の中間のY軸を上にする
 	const float kJumpCurvePointY_ = 5.0f;
-
+	
+	//ジャンプ時間
 	float jumpTimer_ = 0.0f;
-	const float kJumpMoveFrequency_ = 2.0f;
+	const float kJumpTimeFinish_ = 1.0f;
+	//ジャンプ猶予
+	float jumpDelayTimer_ = 0.0f;
+	const float kJumpDelayTimeFinish_ = 0.25f;
 
-
-	LGF::Vector3 startPoint;
-
-	LGF::Vector3 halfPoint;
-
-	LGF::Vector3 endPoint;
+	//線形補間
+	LGF::Vector3 startPoint;//始点
+	LGF::Vector3 halfPoint;//中間
+	LGF::Vector3 endPoint;//終点
 };
 

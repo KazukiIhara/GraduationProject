@@ -9,11 +9,6 @@ void Rabbit::Init(const LGF::Vector3& spownPos) {
 	hp_ = 600;
 }
 
-void Rabbit::Update() {
-	BaseAnimal::Update();
-	hp_--;
-}
-
 void Rabbit::Draw() {
 
 	Matrix4x4 translate = Math::MakeTranslateMatrix(position_);
@@ -24,6 +19,11 @@ void Rabbit::Draw() {
 }
 
 void Rabbit::Move() {
+	jumpDelayTimer_ += (float)LGF::System::DeltaTime();
+	if (jumpDelayTimer_ <= kJumpDelayTimeFinish_) {
+		return;
+	}
+
 	//炒飯との位置関係
 	LGF::Vector3 differenceCharHan = chaHanPosition_ - position_;//ターゲットと現在位置の差分ベクトル
 	
@@ -45,8 +45,9 @@ void Rabbit::Move() {
 	//向き
 	rotate_.y = std::atan2(differenceCharHan.x, differenceCharHan.z);
 
-	if (jumpTimer_ >= 1.0f) {
+	if (jumpTimer_ >= kJumpTimeFinish_) {
 		jumpTimer_ = 0.0f;
+		jumpDelayTimer_ = 0.0f;
 	}
 }
 

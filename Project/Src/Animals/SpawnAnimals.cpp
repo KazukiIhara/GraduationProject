@@ -25,6 +25,9 @@ void SpawnAnimals::Update() {
 	for (auto& animal : animals_) {
 		animal->SetCharHanPosition(charHanPos);
 		animal->SetPlayerPosition(playerPos);
+		if (keySpace_->Press()) { 
+			animal->Damage();// とりあえずspaceでダメージを食らう判定をとっている
+		}
 		animal->Update();
 	}
 
