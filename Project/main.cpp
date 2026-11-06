@@ -4,6 +4,8 @@
 #include "Scene/MainScene.h"
 #include "Scene/GamepadTestScene.h"
 #include "Scene/AnimalTestScene.h"
+#include "Scene/ColliderWorldDemoScene.h"
+#include "Scene/PhysicsWorldDemoScene.h"
 
 #include "Scene/GamePlayScene.h"
 
@@ -15,6 +17,8 @@ void Main() {
 	sceneManager.Register<GamepadTestScene>(SceneNames::GamePadTest);
 	sceneManager.Register<AnimalTestScene>(SceneNames::AnimalTest);
 	sceneManager.Register<GamePlayScene>(SceneNames::GamePlayScene);
+	sceneManager.Register<ColliderWorldDemoScene>(SceneNames::ColliderWorldDemo);
+	sceneManager.Register<PhysicsWorldDemoScene>(SceneNames::PhysicsWorldDemo);
 	sceneManager.Change(SceneNames::GamePlayScene);
 
 	while (System::Update()) {
