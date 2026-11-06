@@ -19,6 +19,9 @@ public:
 	/// </summary>
 	void Draw()override;
 
+	/// <summary>
+	/// 移動方法
+	/// </summary>
 	void Move() override;
 
 private:
