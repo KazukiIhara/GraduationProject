@@ -7,6 +7,8 @@
 
 #include <algorithm>
 
+#include "Collision/CollisionManager.h"
+
 using namespace LGF;
 
 GamePlayScene::GamePlayScene(const InitData& init) :
@@ -18,15 +20,22 @@ GamePlayScene::GamePlayScene(const InitData& init) :
 	camera_.yaw = 0.0f;
 	camera_.pitch = 0.3f;
 
-	colliderWorld_ = std::make_unique<LGF::Collision::ColliderWorld>();
+	/* コリジョンマネージャー設定 */
+	auto* collisionManager = CollisionManager::GetInstance();
+	// 一応クリア
+	collisionManager->Clear();
+	// タグの登録
+	collisionManager->RegisterTag("Player");
+	collisionManager->RegisterTag("ChineseRange");
+	collisionManager->RegisterTag("Empty2");
 
 	player_ = std::make_unique<Player>();
-	player_->Initialize(colliderWorld_.get());
+	player_->Initialize();
 
 	cookingController_ = std::make_unique<CookingController>();
 
 	stageManager_ = std::make_unique<StageManager>();
-	stageManager_->Initialize(colliderWorld_.get());
+	stageManager_->Initialize();
 
 	judgeManager_ = std::make_unique<JudgeManager>();
 }
@@ -51,10 +60,8 @@ void GamePlayScene::Update() {
 	// 審査員マネージャーの更新
 	judgeManager_->Update(player_.get(), camera_);
 
-	// コリジョンワールドのステップ進行
-	if (colliderWorld_) {
-		colliderWorld_->Step();
-	}
+	/* コリジョンマネージャー更新 */
+	CollisionManager::GetInstance()->Step();
 
 #ifdef _DEBUG
 	if (ImGui::Begin("GamePlay Debug")) {
@@ -79,6 +86,8 @@ void GamePlayScene::Update() {
 	player_->DrawImGuiDebug();
 	cookingController_->DrawImGuiDebug();
 	stageManager_->DrawImGuiDebug();
+
+	CollisionManager::GetInstance()->DrawImGuiDebug();
 #endif
 }
 

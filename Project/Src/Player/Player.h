@@ -21,7 +21,7 @@ public:
 	/// <summary>
 	/// 初期化処理
 	/// </summary>
-	void Initialize(LGF::Collision::ColliderWorld* colliderWorld);
+	void Initialize();
 
 	/// <summary>
 	/// 更新処理
@@ -81,6 +81,9 @@ private:
 	const float kMoveSpeed = 8.0f; // 移動速度
 	const float kDeadZone = 0.15f; // スティックのデッドゾーン
 
+	const LGF::Vector3 kColliderMin = {-1.0f, -2.0f, -1.0f};
+	const LGF::Vector3 kColliderMax = {1.0f, 2.0f, 1.0f};
+
 	// =========================================================
 	// Member Variables
 	// =========================================================
@@ -89,9 +92,5 @@ private:
 	LGF::Vector3 position_{0.0f, 0.0f, 0.0f}; // 位置
 	LGF::Vector3 rotation_{0.0f, 0.0f, 0.0f}; // 回転
 
-	// コライダー管理用
-	LGF::Collision::ColliderWorld* colliderWorld_;
-
-	// コライダーハンドル
-	LGF::Collision::ColliderHandle colliderHandle_;
+	LGF::Collision::ColliderHandle colliderHandle_; // コライダーハンドル
 };

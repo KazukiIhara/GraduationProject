@@ -7,28 +7,28 @@
 #include "imgui.h"
 
 #include "DebugDraw/DebugDraw.h"
+#include "Collision/CollisionManager.h"
 
 using namespace LGF;
 
 Player::Player() {}
 
-void Player::Initialize(LGF::Collision::ColliderWorld* colliderWorld) {
-	colliderWorld_ = colliderWorld;
-
+void Player::Initialize() {
 	// 初期位置
 	position_ = kInitPosition;
 
 	// コライダー設定
-	LGF::Collision::AABB initialBox{
+	LGF::Collision::ColliderOptions options{};
+	options.tag = "Player";
+	options.targetTags = {};
+
+	LGF::Collision::AABB colliderAABB{
 		// プレイヤーのサイズに合わせて幅1.0, 高さ2.0のボックスにする
-	    position_ + LGF::Vector3{-0.5f, 0.0f, -0.5f},
-        position_ + LGF::Vector3{0.5f,  2.0f, 0.5f }
+	    position_ + kColliderMin, 
+		position_ + kColliderMax
     };
 
-	LGF::Collision::ColliderOptions options{};
-
-	// コライダーワールドに追加してハンドルを保持
-	colliderHandle_ = colliderWorld_->Add(initialBox, options);
+	colliderHandle_ = CollisionManager::GetInstance()->AddCollider(colliderAABB, options);
 }
 
 void Player::Update(float cameraYaw) {
@@ -49,33 +49,28 @@ void Player::Update(float cameraYaw) {
 	}
 
 	/* コライダー更新処理 */
-	if (colliderWorld_) {
-		// 現在位置を基準にAABBの位置を再計算
-		LGF::Collision::AABB updateBox{
-		    position_ + LGF::Vector3{-1.0f, -2.0f, -1.0f},
-            position_ + LGF::Vector3{1.0f,  2.0f,  1.0f }
-        };
-
-		colliderWorld_->SetShape(colliderHandle_, updateBox);
-	}
+	LGF::Collision::AABB updateAABB{
+		position_ + kColliderMin, 
+		position_ + kColliderMax
+	};
+	CollisionManager::GetInstance()->SetShape(colliderHandle_, updateAABB);
 }
 
 void Player::Draw() const {
 	// モデル描画（デバッグ）
-	/*if (model_.IsValid()) {
+	if (model_.IsValid()) {
 	    Matrix4x4 worldMatrix = Math::MakeAffineMatrix({1.0f, 1.0f, 1.0f}, Math::MakeQuaternion(rotation_), position_);
 	    model_.Draw(worldMatrix);
-	}*/
+	}
 
 #ifdef _DEBUG
-	// コライダー描画
-	/*if (colliderWorld_ && colliderWorld_->GetShape(colliderHandle_)) {
-		if (const auto* shape = colliderWorld_->GetShape(colliderHandle_)) {
-			if (std::holds_alternative<LGF::Collision::AABB>(*shape)) {
-				DebugDraw::DrawAABB(std::get<LGF::Collision::AABB>(*shape), {1.0f, 1.0f, 1.0f, 1.0f});
-			}
+	// コライダーデバッグ描画
+	auto stateOpt = CollisionManager::GetInstance()->GetColliderState(colliderHandle_);
+	if (stateOpt.has_value()) {
+		if (std::holds_alternative<LGF::Collision::AABB>(stateOpt->shape)) {
+			DebugDraw::DrawAABB(std::get<LGF::Collision::AABB>(stateOpt->shape), {0.0f, 1.0f, 0.0f, 1.0f});
 		}
-	}*/
+	}
 #endif
 }
 

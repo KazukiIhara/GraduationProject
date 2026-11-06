@@ -22,7 +22,7 @@ public:
 	/// 初期化処理
 	/// </summary>
 	/// <param name="colliderWorld"></param>
-	void Initialize(LGF::Collision::ColliderWorld* colliderWorld);
+	void Initialize();
 
 	/// <summary>
 	/// 更新処理
@@ -40,12 +40,23 @@ public:
 	void DrawImGuiDebug();
 
 private:
-	// モデル
-	LGF::Model chineseRangeModel_{"../Assets/Models/chinese_range.gltf"}; // 中華レンジ
+	// =========================================================
+	// Constants
+	// =========================================================
 
-	// コライダー管理
-	LGF::Collision::ColliderWorld* colliderWorld_ = nullptr;
+	const LGF::Vector3 kColliderChineseRangeMin = {-1.0f, -1.0f, -1.0f};
+	const LGF::Vector3 kColliderChineseRangeMax = {1.0f, 1.0f, 1.0f};
+
+	// =========================================================
+	// Member Variables
+	// =========================================================
+
+	// 位置
+	LGF::Vector3 positionChineseRange_ = {0.0f, 1.0f, 0.0f};
+
+	// モデル
+	LGF::Model modelChineseRange_{"../Assets/Models/chinese_range.gltf"}; // 中華レンジ
 
 	// コライダーハンドル
-	LGF::Collision::ColliderHandle rangeColliderHandle_; // 中華レンジ
+	LGF::Collision::ColliderHandle colliderHandleChineseRange_; // 中華レンジ
 };
