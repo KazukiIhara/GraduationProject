@@ -32,6 +32,15 @@ GamePlayScene::GamePlayScene(const InitData& init) :
 }
 
 void GamePlayScene::Update() {
+	if (Key::L.Trigger()) {
+		ChangeScene(SceneNames::ColliderWorldDemo);
+		return;
+	}
+	if (Key::P.Trigger()) {
+		ChangeScene(SceneNames::PhysicsWorldDemo);
+		return;
+	}
+
 	/* カメラ操作 */
 	UpdateCamera();
 
