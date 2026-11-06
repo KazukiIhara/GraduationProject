@@ -3,6 +3,7 @@
 
 #include "Rabbit.h"
 #include "Deer.h"
+#include "Boar.h"
 
 void SpawnAnimals::Update() {
 
@@ -95,6 +96,9 @@ std::unique_ptr<BaseAnimal> SpawnAnimals::RandomAnimalsClass(int level) {
 	}
 	else if (level == AnimalLevel::deer) {
 		return std::make_unique<Deer>();
+	}
+	else if (level == AnimalLevel::boar) {
+		return std::make_unique<Boar>();
 	}
 
 	return nullptr;

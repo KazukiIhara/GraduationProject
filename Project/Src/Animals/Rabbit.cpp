@@ -5,7 +5,7 @@ using namespace LGF;
 
 void Rabbit::Init(const LGF::Vector3& spownPos) {
 	position_ = spownPos;
-	moveSpeed_ = 0.05f;
+	moveSpeed_ = 2.0f;
 	hp_ = 600;
 }
 
@@ -31,9 +31,9 @@ void Rabbit::Move() {
 		startPoint = position_;
 		halfPoint = position_ + Math::Normalize(differenceCharHan);
 		halfPoint.y = kJumpCurvePointY_;
-		endPoint = (position_ + Math::Normalize(differenceCharHan)) / 1.2f;
+		endPoint = position_ + (Math::Normalize(differenceCharHan) * moveSpeed_);
 	}
-	jumpTimer_ += 1.0f / 60.0f;
+	jumpTimer_ += (float)LGF::System::DeltaTime();
 
 	Vector3 p0p1 = AppMath::Lerp(startPoint, halfPoint, jumpTimer_);
 		
