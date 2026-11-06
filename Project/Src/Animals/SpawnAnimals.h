@@ -63,5 +63,6 @@ private:
 	std::unique_ptr<LGF::KeyButton> keyD_ = std::make_unique<LGF::KeyButton>(LGF::KeyCode::D);
 	std::unique_ptr<LGF::KeyButton> keyW_ = std::make_unique<LGF::KeyButton>(LGF::KeyCode::W);
 	std::unique_ptr<LGF::KeyButton> keyS_ = std::make_unique<LGF::KeyButton>(LGF::KeyCode::S);
+	std::unique_ptr<LGF::KeyButton> keySpace_ = std::make_unique<LGF::KeyButton>(LGF::KeyCode::Space);
 };
 

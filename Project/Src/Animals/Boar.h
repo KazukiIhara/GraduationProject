@@ -2,14 +2,10 @@
 #include "BaseAnimal.h"
 class Boar : public BaseAnimal {
 	/// <summary>
-/// 初期化処理
-/// </summary>
-/// <param name="spownPos">召喚位置</param>
-	void Init(const LGF::Vector3& spownPos) override;
-	/// <summary>
-	/// 更新処理
+	/// 初期化処理
 	/// </summary>
-	void Update() override;
+	/// <param name="spownPos">召喚位置</param>
+	void Init(const LGF::Vector3& spownPos) override;
 	/// <summary>
 	/// 描画処理
 	/// </summary>

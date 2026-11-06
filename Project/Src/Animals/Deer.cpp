@@ -8,11 +8,6 @@ void Deer::Init(const LGF::Vector3& spownPos) {
 	hp_ = 400;
 }
 
-void Deer::Update() {
-	BaseAnimal::Update();
-	hp_--;
-}
-
 void Deer::Draw() {
 	Matrix4x4 translate = Math::MakeTranslateMatrix(position_);
 	Matrix4x4 rotate = Math::MakeRotateXMatrix(rotate_.x) * Math::MakeRotateYMatrix(rotate_.y) * Math::MakeRotateZMatrix(rotate_.z);
