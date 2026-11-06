@@ -50,9 +50,6 @@ private:
 	// スカイボックス
 	LGF::Skybox skybox_{"../Assets/Textures/skybox.png"};
 
-	// 共通のコリジョンワールド（一括管理）
-	std::unique_ptr<LGF::Collision::ColliderWorld> colliderWorld_;
-
 	// プレイヤー
 	std::unique_ptr<Player> player_;
 	// 調理器具マネージャー
