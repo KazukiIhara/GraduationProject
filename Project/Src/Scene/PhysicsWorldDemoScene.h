@@ -7,7 +7,7 @@
 #include <vector>
 
 /// <summary>
-/// PhysicsWorldの重力、静的OBBとの衝突、速度変更を確認するシーン。
+/// PhysicsWorldの動的・静的・キネマティックオブジェクトと物理粒子を確認するシーン。
 /// </summary>
 class PhysicsWorldDemoScene final : public SampleScene {
 public:
@@ -19,17 +19,23 @@ public:
 private:
 	void Reset();
 	void SpawnSpheres(std::size_t count);
+	void SpawnParticles(std::size_t count);
 	void LaunchSpheres();
 	void UpdatePlayer();
+	void UpdateKinematicPlatform(float deltaTime);
 	void DrawDebugWindow();
 	std::size_t GetFallingSphereCount() const;
 
 	LGF::Physics::PhysicsWorld physicsWorld_;
 	LGF::Physics::DynamicObjectHandle playerHandle_{};
+	LGF::Physics::KinematicObjectHandle platformHandle_{};
 	std::vector<LGF::Physics::StaticObjectState> staticObjectStates_;
+	std::vector<LGF::Physics::KinematicObjectState> kinematicObjectStates_;
 	std::vector<LGF::Physics::DynamicObjectState> dynamicObjectStates_;
-	uint64_t nextObjectId_ = 1u;
+	std::vector<LGF::Physics::PhysicsParticleState> particleStates_;
+	uint32_t nextObjectIndex_ = 100u;
 	float spawnTimer_ = 0.0f;
+	float platformTime_ = 0.0f;
 	bool autoSpawn_ = true;
 	bool isPaused_ = false;
 };
