@@ -106,6 +106,22 @@ void StageManager::Draw() {
 		modelRock_01_.Draw(worldMatrix, options);
 	}
 
+	// 草01
+	if (modelGrass_01_.IsValid()) {
+		LGF::Matrix4x4 worldMatrix = LGF::Math::MakeAffineMatrix(
+		    {1.0f, 1.0f, 1.0f},                                       // スケール (X, Y, Z)
+		    LGF::Math::MakeRotateAxisAngle({0.0f, 1.0f, 0.0f}, 0.0f), // 回転
+		    {-5.0f, 0.0f, 5.0f}                                      // 位置
+		);
+
+		// 描画オプション
+		LGF::ModelDrawOptions options{};
+		options.color = LGF::Color::White;
+
+		// モデル自身のDraw関数を呼び出す
+		modelGrass_01_.Draw(worldMatrix, options);
+	}
+
 	// 中華レンジ
 	if (modelChineseRange_.IsValid()) {
 		// ワールド行列の作成

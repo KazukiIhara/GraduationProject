@@ -59,6 +59,7 @@ private:
 	LGF::Model modelTree_01_{"../Assets/Models/environment/tree/tree_01.gltf"};  // 木01
 	LGF::Model modelTree_02_{"../Assets/Models/environment/tree/tree_02.gltf"}; // 木02
 	LGF::Model modelRock_01_{"../Assets/Models/environment/rock/rock_01.gltf"}; // 岩01
+	LGF::Model modelGrass_01_{"../Assets/Models/environment/grass/grass_01.gltf"}; // 草01
 	LGF::Model modelChineseRange_{"../Assets/Models/chinese_range.gltf"}; // 中華レンジ
 
 	// コライダーハンドル
