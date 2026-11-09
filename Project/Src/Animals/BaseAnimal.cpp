@@ -1,4 +1,7 @@
 #include "BaseAnimal.h"
+#include "DropFoodManager.h"
+
+using namespace LGF;
 
 void BaseAnimal::Update() {
 	if (!state_) {
@@ -9,6 +12,11 @@ void BaseAnimal::Update() {
 	state_->Update();
 
 	state_ = state_->ChangeState();
+}
+
+void BaseAnimal::Draw() {
+	Matrix4x4 worldMatrix = Math::MakeAffineMatrix(Vector3{ 1.0f,1.0f,1.0f }, Math::MakeQuaternion(rotate_), position_);
+	object_.Draw(worldMatrix, color_);
 }
 
 void BaseAnimal::SetPlayerPosition(const LGF::Vector3& playerPos) {
@@ -44,6 +52,10 @@ void BaseAnimal::Dead() {
 		rotate_.x -= 1.25f * (float)LGF::System::DeltaTime();
 	}
 	deadAnimationTime_ += (float)LGF::System::DeltaTime();
+
+	if(IsDelete()) {
+		DropFoodManager::GetInstance()->ActivationDropFood(position_);
+	}
 }
 
 
