@@ -1,7 +1,7 @@
 ﻿#include "CookingController.h"
 
-CookingController::CookingController() {
-	wok_ = std::make_unique<Wok>();
+CookingController::CookingController(LGF::Physics::PhysicsWorld& physicsWorld) {
+	wok_ = std::make_unique<Wok>(physicsWorld);
 	ladle_ = std::make_unique<Ladle>();
 }
 
@@ -21,4 +21,8 @@ void CookingController::DrawImGuiDebug() {
 	// 各調理器具のデバッグ描画
 	wok_->DrawImGuiDebug();
 	ladle_->DrawImGuiDebug();
+}
+
+const Wok& CookingController::GetWok() const {
+	return *wok_;
 }

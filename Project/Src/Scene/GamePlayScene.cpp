@@ -11,10 +11,27 @@
 
 using namespace LGF;
 
+namespace {
+
+	Physics::PhysicsWorldSettings MakePhysicsWorldSettings() {
+		Physics::PhysicsWorldSettings settings{};
+		settings.worldBounds = {
+			.min = { -20.0f, -10.0f, -20.0f },
+			.max = { 20.0f, 20.0f, 20.0f },
+		};
+		settings.substepCount = 8u;
+		settings.solverIterationCount = 8u;
+		settings.linearDamping = 0.2f;
+		return settings;
+	}
+
+}
+
 GamePlayScene::GamePlayScene(const InitData& init) :
 	IScene(init),
 	camera_(15.0f),
-	light_({ 0.5f, -1.0f, 0.35f }, Color::White, 1.5f) {
+	light_({ 0.5f, -1.0f, 0.35f }, Color::White, 1.5f),
+	physicsWorld_(MakePhysicsWorldSettings()) {
 
 	camera_.translation = { 0.0f, 7.0f, -20.0f };
 	camera_.yaw = 0.0f;
@@ -31,7 +48,18 @@ GamePlayScene::GamePlayScene(const InitData& init) :
 
 	player_ = std::make_unique<Player>();
 
-	cookingController_ = std::make_unique<CookingController>();
+	floorPhysicsHandle_ = physicsWorld_.AddStaticObject(
+		Collision::AABB{
+			.min = { -20.0f, -0.5f, -20.0f },
+			.max = { 20.0f, 0.0f, 20.0f },
+		},
+		Physics::StaticObjectOptions{
+			.material = { .restitution = 0.05f, .friction = 0.9f },
+			.objectHandle = { 1u, 1u },
+		});
+
+	cookingController_ = std::make_unique<CookingController>(physicsWorld_);
+	ingredientManager_ = std::make_unique<IngredientManager>(physicsWorld_);
 
 	stageManager_ = std::make_unique<StageManager>();
 
@@ -79,6 +107,10 @@ void GamePlayScene::Update() {
 	}
 	/* 調理器具マネージャーの更新 */
 	cookingController_->Update();
+	/* 食材マネージャーの更新 */
+	ingredientManager_->Update(cookingController_->GetWok().GetRiceSpawnPosition());
+	/* 物理ワールドの更新 */
+	physicsWorld_.Update(static_cast<float>(System::DeltaTime()));
 	/* ステージオブジェクト管理クラスの更新 */
 	stageManager_->Update();
 	// 審査員マネージャーの更新
@@ -109,6 +141,7 @@ void GamePlayScene::Update() {
 
 	player_->DrawImGuiDebug();
 	cookingController_->DrawImGuiDebug();
+	ingredientManager_->DrawImGuiDebug();
 	stageManager_->DrawImGuiDebug();
 
 	CollisionManager::GetInstance()->DrawImGuiDebug();
@@ -128,6 +161,8 @@ void GamePlayScene::Draw() const {
 	player_->Draw();
 	// 調理器具マネージャーの描画
 	cookingController_->Draw();
+	// 食材マネージャーの描画
+	ingredientManager_->Draw();
 	// ステージオブジェクト管理クラスの描画
 	stageManager_->Draw();
 	// 審査員マネージャーの描画
