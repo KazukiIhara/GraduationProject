@@ -23,6 +23,15 @@ public:
 
 	void DrawImGuiDebug();
 
+	// 会話データの登録
+	void RegisterConversationData(const std::vector<std::string>& conversationData);
+	// 会話次へ
+	bool Next();
+
+	void SetIsTalkUIVisible(bool isVisible) { isTalkUIVisible_ = isVisible; }
+
+	void SetIsDisplay(bool isDisplay) { isDisplay_ = isDisplay; }
+
 private:
 	// =========================================================
 	// Private Methods
@@ -39,15 +48,21 @@ private:
 
 	const LGF::Vector3 kBasePosition = { 5.0f, 5.0f, 9.0f };
 	const LGF::Vector3 kBaseRotation = { 0.0f, 0.0f, 0.0f, };
-	const LGF::Vector3 kBaseScale = { 5.0f, 3.0f, 1.0f };
+	const LGF::Vector3 kBaseScale = { 8.0f, 3.0f, 1.0f };
 
 	// =========================================================
 	// Member Variables
 	// =========================================================
 
+	//テクスチャファイルのパス
+	const std::string texturePath_ = "../Assets/Textures/";
+
 	//ひとつ分のメッセージ
 	LGF::Plane3D message_;
 	LGF::Material3D messageMaterial_;
+	bool isDisplay_ = false;
+	std::vector<std::string> conversationData_;
+	size_t currentConversationIndex_ = 0;
 
 	// メッセージアニメーションのための変数
 	bool isHalfway_ = false;
@@ -61,5 +76,10 @@ private:
 	LGF::Vector3 position_{}; // 現在の位置
 	LGF::Vector3 rotation_{}; // 現在の回転
 	LGF::Vector3 scale_{}; // 現在のスケール	
-};
 
+	// 会話可能UIのための変数
+	LGF::Texture textureTalkUIAvailable_{ "../Assets/Textures/opeA.png" }; // 会話可能時のUIテクスチャ
+	LGF::Sprite canTalkUI_{ textureTalkUIAvailable_ };		// 会話可能時のUI
+	bool isTalkUIVisible_ = false; // 会話可能UIの表示状態
+
+};

@@ -7,35 +7,82 @@
 #include "imgui.h"
 
 #include "DebugDraw/DebugDraw.h"
+#include "Collision/CollisionManager.h"
 
 using namespace LGF;
 
-Player::Player() {}
+Player::Player() { Initialize(); }
 
-void Player::Initialize(LGF::Collision::ColliderWorld* colliderWorld) {
-	colliderWorld_ = colliderWorld;
-
+void Player::Initialize() {
 	// 初期位置
 	position_ = kInitPosition;
 
 	// コライダー設定
-	LGF::Collision::AABB initialBox{
+	LGF::Collision::ColliderOptions options{};
+	options.tag = "Player";
+	options.targetTags = {"Solid", "InteractionSensor"};
+
+	LGF::Collision::AABB colliderAABB{
 		// プレイヤーのサイズに合わせて幅1.0, 高さ2.0のボックスにする
-	    position_ + LGF::Vector3{-0.5f, 0.0f, -0.5f},
-        position_ + LGF::Vector3{0.5f,  2.0f, 0.5f }
+	    position_ + kColliderMin, 
+		position_ + kColliderMax
     };
 
-	LGF::Collision::ColliderOptions options{};
-	options.layer = 1u; // レイヤー設定
-
-	// コライダーワールドに追加してハンドルを保持
-	colliderHandle_ = colliderWorld_->Add(initialBox, options);
+	colliderHandle_ = CollisionManager::GetInstance()->AddCollider(colliderAABB, options);
 }
 
 void Player::Update(float cameraYaw) {
-	LGF::Vector3 moveDir = {0.0f, 0.0f, 0.0f};
+	/* 中華レンジのインタラクト用センサー判定 */
+	auto events = CollisionManager::GetInstance()->GetEvents(colliderHandle_);
+
+	isNearChineseRange_ = false; // 毎フレームリセット
+
+	auto checkSensor = [&](const auto& eventList) {
+		for (const auto& collision : eventList) {
+			if (collision.tag == "InteractionSensor") {
+				isNearChineseRange_ = true;
+			}
+		}
+	};
+	checkSensor(events.enter);
+	checkSensor(events.stay);
+
+	// 範囲内にいる状態でのボタン入力でモード切り替え
+	bool isInteractTriggerd = false;
+	if (Key::Enter.Trigger()) {
+		isInteractTriggerd = true;
+	}
+
+	auto rightJoyCon = JoyCon::Right();
+	if (rightJoyCon.has_value() && rightJoyCon->IsConnected()) {
+		const LGF::GamepadButton aButton = rightJoyCon->Button(GamepadButtonCode::East);
+		if (aButton.Trigger()) {
+			isInteractTriggerd = true;
+		}
+	}
+
+	bool wasCookingMode = isCookingMode_; // 前フレームのモード状態を保持
+
+	if (isNearChineseRange_ && isInteractTriggerd) {
+		isCookingMode_ = !isCookingMode_;
+	}
+
+	// 料理モードが解除された瞬間の位置変更（ちょっと後ろに配置）
+	if (wasCookingMode && !isCookingMode_) {
+		position_ = {0.0f, 2.0f, -10.0f}; 
+	}
+
+	if (isCookingMode_) {
+		position_ = {0.0f, 2.0f, -2.0f}; // プレイヤーの位置を固定
+
+		// 移動処理は行わず、コライダーの位置だけ現在の位置に固定して抜ける
+		LGF::Collision::AABB finalAABB{position_ + kColliderMin, position_ + kColliderMax};
+		CollisionManager::GetInstance()->SetShape(colliderHandle_, finalAABB);
+		return;
+	}
 
 	/* 移動処理 */
+	LGF::Vector3 moveDir = {0.0f, 0.0f, 0.0f};
 	if (ProcessInput(moveDir)) {
 		// カメラのYaw回転行列を作成
 		LGF::Matrix4x4 cameraRotMat = LGF::Math::MakeRotateYMatrix(cameraYaw);
@@ -50,15 +97,26 @@ void Player::Update(float cameraYaw) {
 	}
 
 	/* コライダー更新処理 */
-	if (colliderWorld_) {
-		// 現在位置を基準にAABBの位置を再計算
-		LGF::Collision::AABB updateBox{
-		    position_ + LGF::Vector3{-1.0f, -2.0f, -1.0f},
-            position_ + LGF::Vector3{1.0f,  2.0f,  1.0f }
-        };
+	LGF::Collision::AABB updateAABB{
+		position_ + kColliderMin, 
+		position_ + kColliderMax
+	};
+	CollisionManager::GetInstance()->SetShape(colliderHandle_, updateAABB);
 
-		colliderWorld_->SetShape(colliderHandle_, updateBox);
-	}
+	auto applyPushBack = [&](const auto& eventList) {
+		// タグを捜査して押し戻しを行う
+		for (const auto& collision : eventList) {
+			if (collision.tag == "Solid") {
+				position_ -= collision.contact.normal * collision.contact.penetrationDepth;
+			}
+		}
+	};
+
+	applyPushBack(events.enter);
+	applyPushBack(events.stay);
+
+	LGF::Collision::AABB finalAABB{position_ + kColliderMin, position_ + kColliderMax};
+	CollisionManager::GetInstance()->SetShape(colliderHandle_, finalAABB);
 }
 
 void Player::Draw() const {
@@ -69,12 +127,11 @@ void Player::Draw() const {
 	}*/
 
 #ifdef _DEBUG
-	// コライダー描画
-	if (colliderWorld_ && colliderWorld_->GetShape(colliderHandle_)) {
-		if (const auto* shape = colliderWorld_->GetShape(colliderHandle_)) {
-			if (std::holds_alternative<LGF::Collision::AABB>(*shape)) {
-				DebugDraw::DrawAABB(std::get<LGF::Collision::AABB>(*shape), {1.0f, 1.0f, 1.0f, 1.0f});
-			}
+	// コライダーデバッグ描画
+	auto stateOpt = CollisionManager::GetInstance()->GetColliderState(colliderHandle_);
+	if (stateOpt.has_value()) {
+		if (std::holds_alternative<LGF::Collision::AABB>(stateOpt->shape)) {
+			DebugDraw::DrawAABB(std::get<LGF::Collision::AABB>(stateOpt->shape), {0.0f, 1.0f, 0.0f, 1.0f});
 		}
 	}
 #endif
@@ -86,6 +143,8 @@ void Player::DrawImGuiDebug() {
 
 	ImGui::DragFloat3("Position", &position_.x, 0.01f);
 	ImGui::DragFloat3("Rotation", &rotation_.x, 0.01f);
+
+	ImGui::Checkbox("IsCookingMode", &isCookingMode_);
 
 	ImGui::End();
 #endif

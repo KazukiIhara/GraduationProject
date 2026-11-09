@@ -3,6 +3,7 @@
 
 #include "Rabbit.h"
 #include "Deer.h"
+#include "Boar.h"
 
 void SpawnAnimals::Update() {
 
@@ -24,6 +25,9 @@ void SpawnAnimals::Update() {
 	for (auto& animal : animals_) {
 		animal->SetCharHanPosition(charHanPos);
 		animal->SetPlayerPosition(playerPos);
+		if (keySpace_->Press()) { 
+			animal->Damage();// とりあえずspaceでダメージを食らう判定をとっている
+		}
 		animal->Update();
 	}
 
@@ -95,6 +99,9 @@ std::unique_ptr<BaseAnimal> SpawnAnimals::RandomAnimalsClass(int level) {
 	}
 	else if (level == AnimalLevel::deer) {
 		return std::make_unique<Deer>();
+	}
+	else if (level == AnimalLevel::boar) {
+		return std::make_unique<Boar>();
 	}
 
 	return nullptr;

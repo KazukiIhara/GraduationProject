@@ -2,6 +2,17 @@
 
 #include "LGF/Graphics/Model.h"
 #include "LGF/Math/Vector3.h"
+#include "LGF/Graphics/Sprite.h"
+#include "Message.h"
+
+class Player;
+
+
+enum class JudgeManState
+{
+	JudgeManState_Idle,			// 待機状態
+	JudgeManState_Talking,		// 会話中
+};
 
 // =========================================================
 // 審査員クラス
@@ -21,7 +32,7 @@ public:
 	/// <summary>
 	/// 更新処理
 	/// </summary>
-	void Update();
+	void Update(const Player* player, const LGF::DebugCamera3D& camera);
 
 	/// <summary>
 	/// 描画処理
@@ -38,8 +49,13 @@ private:
 	// Internal Methods
 	// =========================================================
 
-
 private:
+	// =========================================================
+	// Instance
+	// =========================================================
+
+	std::unique_ptr<Message> message_;
+
 	// =========================================================
 	// Constants
 	// =========================================================
@@ -56,5 +72,8 @@ private:
 	LGF::Vector3 position_{}; // 現在の位置
 	LGF::Vector3 rotation_{}; // 現在の回転
 
+	//会話変数
+	JudgeManState state_ = JudgeManState::JudgeManState_Idle; // 審査員の状態
+	const float talkDistance_ = 8.0f; // プレイヤーとの会話距離
 };
 

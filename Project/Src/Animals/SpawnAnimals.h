@@ -36,17 +36,15 @@ private:
 	enum AnimalLevel {
 		rabbit,   //兎
 		deer,     //鹿
-		chicken,  //鶏
-		pig,      //豚
 		boar      //猪
 	};
 
 	//動物たちクラス
 	std::list<std::unique_ptr<BaseAnimal>> animals_;
 
-	int charhanLevel_ = 1;//レベルごとに登場する動物が変化
+	int charhanLevel_ = 2;//レベルごとに登場する動物が変化
 
-	const uint32_t kMaxAnimalSpawn_ = 20;//動物最大配置数
+	const uint32_t kMaxAnimalSpawn_ = 10;//動物最大配置数
 
 	// -- ↓ 試し　プレイヤーできたら消す --
 
@@ -65,5 +63,6 @@ private:
 	std::unique_ptr<LGF::KeyButton> keyD_ = std::make_unique<LGF::KeyButton>(LGF::KeyCode::D);
 	std::unique_ptr<LGF::KeyButton> keyW_ = std::make_unique<LGF::KeyButton>(LGF::KeyCode::W);
 	std::unique_ptr<LGF::KeyButton> keyS_ = std::make_unique<LGF::KeyButton>(LGF::KeyCode::S);
+	std::unique_ptr<LGF::KeyButton> keySpace_ = std::make_unique<LGF::KeyButton>(LGF::KeyCode::Space);
 };
 

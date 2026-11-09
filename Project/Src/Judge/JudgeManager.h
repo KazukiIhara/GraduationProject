@@ -2,7 +2,7 @@
 
 #include "JudgeMan.h"
 #include "JudgeTable.h"
-#include "Message.h"
+
 
 // =========================================================
 // 審査員周り管理クラス
@@ -22,7 +22,7 @@ public:
 	/// <summary>
 	/// 更新処理
 	/// </summary>
-	void Update(const LGF::DebugCamera3D& camera);
+	void Update(const Player* player, const LGF::DebugCamera3D& camera);
 
 	/// <summary>
 	/// 描画処理
@@ -42,6 +42,6 @@ private:
 	// インスタンス
 	std::unique_ptr<JudgeMan> man_;
 	std::unique_ptr<JudgeTable> table_;
-	std::unique_ptr<Message> message_;
+	
 };
 

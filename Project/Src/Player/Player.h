@@ -21,7 +21,7 @@ public:
 	/// <summary>
 	/// 初期化処理
 	/// </summary>
-	void Initialize(LGF::Collision::ColliderWorld* colliderWorld);
+	void Initialize();
 
 	/// <summary>
 	/// 更新処理
@@ -39,7 +39,7 @@ public:
 	void DrawImGuiDebug();
 
 	// =========================================================
-	// Getter / Setter
+	// Accessor
 	// =========================================================
 
 	/// <summary>
@@ -59,6 +59,12 @@ public:
 	/// </summary>
 	/// <returns></returns>
 	LGF::Vector3 GetEyePosition() const { return position_ + LGF::Vector3{0.0f, 2.8f, 0.0f}; };
+
+	/// <summary>
+	/// 料理モード中かどうかを取得
+	/// </summary>
+	/// <returns></returns>
+	bool IsCookingMode() const { return isCookingMode_; }
 
 private:
 	// =========================================================
@@ -81,6 +87,9 @@ private:
 	const float kMoveSpeed = 8.0f; // 移動速度
 	const float kDeadZone = 0.15f; // スティックのデッドゾーン
 
+	const LGF::Vector3 kColliderMin = {-1.0f, -2.0f, -1.0f};
+	const LGF::Vector3 kColliderMax = {1.0f, 2.0f, 1.0f};
+
 	// =========================================================
 	// Member Variables
 	// =========================================================
@@ -89,9 +98,8 @@ private:
 	LGF::Vector3 position_{0.0f, 0.0f, 0.0f}; // 位置
 	LGF::Vector3 rotation_{0.0f, 0.0f, 0.0f}; // 回転
 
-	// コライダー管理用
-	LGF::Collision::ColliderWorld* colliderWorld_;
+	LGF::Collision::ColliderHandle colliderHandle_; // コライダーハンドル
 
-	// コライダーハンドル
-	LGF::Collision::ColliderHandle colliderHandle_;
+	bool isNearChineseRange_ = false; // 中華レンジの範囲内にいるか
+	bool isCookingMode_ = false; // 料理モード中かどうか（移動不可・視点移動不可）
 };

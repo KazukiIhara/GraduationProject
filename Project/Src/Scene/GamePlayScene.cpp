@@ -5,6 +5,10 @@
 #include "LGF/Input.h"
 #include "LGF/System.h"
 
+#include <algorithm>
+
+#include "Collision/CollisionManager.h"
+
 using namespace LGF;
 
 GamePlayScene::GamePlayScene(const InitData& init) :
@@ -16,22 +20,53 @@ GamePlayScene::GamePlayScene(const InitData& init) :
 	camera_.yaw = 0.0f;
 	camera_.pitch = 0.3f;
 
-	colliderWorld_ = std::make_unique<LGF::Collision::ColliderWorld>();
+	/* コリジョンマネージャー設定 */
+	auto* collisionManager = CollisionManager::GetInstance();
+	// 一応クリア
+	collisionManager->Clear();
+	// タグの登録
+	collisionManager->RegisterTag("Player"); // プレイヤー
+	collisionManager->RegisterTag("Solid"); // 固体（プレイヤーとの押し戻しを行うオブジェクト）
+	collisionManager->RegisterTag("InteractionSensor"); // インタラクト用センサー（プレイヤーの中華レンジ周辺でのモード切替用）
 
 	player_ = std::make_unique<Player>();
-	player_->Initialize(colliderWorld_.get());
 
 	cookingController_ = std::make_unique<CookingController>();
 
 	stageManager_ = std::make_unique<StageManager>();
-	stageManager_->Initialize(colliderWorld_.get());
 
 	judgeManager_ = std::make_unique<JudgeManager>();
 }
 
 void GamePlayScene::Update() {
+	if (Key::L.Trigger()) {
+		ChangeScene(SceneNames::ColliderWorldDemo);
+		return;
+	}
+	if (Key::P.Trigger()) {
+		ChangeScene(SceneNames::PhysicsWorldDemo);
+		return;
+	}
+
 	/* カメラ操作 */
-	UpdateCamera();
+	static bool prevCookingMode = false;
+	bool currentCookingMode = player_->IsCookingMode();
+
+	if (!player_->IsCookingMode()) {
+		// 料理モード中でなければ追従カメラ
+		UpdateCamera();
+
+		// 料理モードが解除された瞬間、pitchを調整
+		if (prevCookingMode && !currentCookingMode) {
+			camera_.pitch = 0.3f;
+		}
+	} else {
+		// 料理モード中はカメラ固定
+		camera_.translation = {0.0f, 4.7f, -2.6f};
+		camera_.yaw = 0.0f;
+		camera_.pitch = 0.7f;
+	}
+	prevCookingMode = currentCookingMode;
 
 	/* プレイヤー更新 */
 	player_->Update(camera_.yaw);
@@ -47,12 +82,10 @@ void GamePlayScene::Update() {
 	/* ステージオブジェクト管理クラスの更新 */
 	stageManager_->Update();
 	// 審査員マネージャーの更新
-	judgeManager_->Update(camera_);
+	judgeManager_->Update(player_.get(), camera_);
 
-	// コリジョンワールドのステップ進行
-	if (colliderWorld_) {
-		colliderWorld_->Step();
-	}
+	/* コリジョンマネージャー更新 */
+	CollisionManager::GetInstance()->Step();
 
 #ifdef _DEBUG
 	if (ImGui::Begin("GamePlay Debug")) {
@@ -77,10 +110,14 @@ void GamePlayScene::Update() {
 	player_->DrawImGuiDebug();
 	cookingController_->DrawImGuiDebug();
 	stageManager_->DrawImGuiDebug();
+
+	CollisionManager::GetInstance()->DrawImGuiDebug();
 #endif
 }
 
 void GamePlayScene::Draw() const {
+	skybox_.SetScene();
+
 	camera_.SetScene();
 	light_.SetScene();
 
