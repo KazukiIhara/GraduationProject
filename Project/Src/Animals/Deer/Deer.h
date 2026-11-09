@@ -1,5 +1,5 @@
 #pragma once
-#include "BaseAnimal.h"
+#include "Animals/Base/BaseAnimal.h"
 
 /// <summary>
 /// 動物 -シカ-

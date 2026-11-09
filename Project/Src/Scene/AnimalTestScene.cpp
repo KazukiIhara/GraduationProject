@@ -1,5 +1,5 @@
 #include "AnimalTestScene.h"
-#include "Animals/DropFoodManager.h"
+#include "Animals/SetUp/DropFoodManager.h"
 
 AnimalTestScene::AnimalTestScene(const InitData& init)
 	: SampleScene(init){

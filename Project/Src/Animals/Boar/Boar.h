@@ -1,5 +1,5 @@
 #pragma once
-#include "BaseAnimal.h"
+#include "Animals/Base/BaseAnimal.h"
 class Boar : public BaseAnimal {
 	/// <summary>
 	/// 初期化処理

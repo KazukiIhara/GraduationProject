@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include "Animals/BaseAnimal.h"
+#include "Animals/Base/BaseAnimal.h"
 #include "LGF/Input.h"
 
 /// <summary>
