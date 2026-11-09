@@ -4,11 +4,35 @@
 
 using namespace LGF;
 
-Wok::Wok() {
+namespace {
+
+	constexpr Vector3 kWokOuterApexOffset = { 0.0f, -0.37f, 0.0f };
+	constexpr float kWokOuterRadius = 1.1f;
+	constexpr float kWokInnerRadius = 1.0f;
+	constexpr float kWokHeight = 0.75f;
+
+}
+
+Wok::Wok(Physics::PhysicsWorld& physicsWorld) :
+	physicsWorld_(&physicsWorld) {
 	position_ = kBasePosition;
 	rotation_ = kBaseRotation;
 
 	calibration_ = std::make_unique<Calibration>();
+
+	physicsHandle_ = physicsWorld_->AddKinematicObject(
+		Collision::SphericalShellCap{},
+		Physics::KinematicObjectOptions{
+			.material = { .restitution = 0.05f, .friction = 0.8f },
+			.objectHandle = { 10u, 1u },
+		});
+	UpdatePhysicsShape();
+}
+
+Wok::~Wok() {
+	if (physicsWorld_ != nullptr) {
+		physicsWorld_->RemoveKinematicObject(physicsHandle_);
+	}
 }
 
 void Wok::Update() {
@@ -61,6 +85,8 @@ void Wok::Update() {
             rotation_ = kBaseRotation;
         }
     }
+
+	UpdatePhysicsShape();
 }
 
 void Wok::Draw() const {
@@ -88,4 +114,37 @@ void Wok::DrawImGuiDebug() {
 
 	ImGui::End();
 #endif	
+}
+
+Vector3 Wok::GetRiceSpawnPosition() const {
+	const Matrix4x4 rotationMatrix = Math::MakeRotateMatrix(
+		Math::MakeQuaternion(rotation_));
+	return position_ + Math::TransformNormal(
+		{ 0.0f, 0.65f, 0.0f },
+		rotationMatrix);
+}
+
+void Wok::UpdatePhysicsShape() {
+	if (physicsWorld_ == nullptr) {
+		return;
+	}
+
+	const Matrix4x4 rotationMatrix = Math::MakeRotateMatrix(
+		Math::MakeQuaternion(rotation_));
+	const Vector3 outerApex = position_ + Math::TransformNormal(
+		kWokOuterApexOffset,
+		rotationMatrix);
+	const Vector3 axis = Math::TransformNormal(
+		{ 0.0f, 1.0f, 0.0f },
+		rotationMatrix);
+
+	physicsWorld_->SetKinematicObjectShape(
+		physicsHandle_,
+		Collision::SphericalShellCap{
+			.outerApex = outerApex,
+			.axis = axis,
+			.outerRadius = kWokOuterRadius,
+			.innerRadius = kWokInnerRadius,
+			.height = kWokHeight,
+		});
 }

@@ -2,6 +2,7 @@
 
 #include "Wok.h"
 #include "Ladle.h"
+#include "LGF/Physics.h"
 
 // =========================================================
 // 調理器具管理クラス
@@ -16,7 +17,7 @@ public:
 	/// <summary>
 	/// コンストラクタ
 	/// </summary>
-	CookingController();
+	explicit CookingController(LGF::Physics::PhysicsWorld& physicsWorld);
 
 	/// <summary>
 	/// 更新処理
@@ -32,6 +33,11 @@ public:
 	/// ImGuiデバッグ描画
 	/// </summary>
 	void DrawImGuiDebug();
+
+	/// <summary>
+	/// 中華鍋を取得
+	/// </summary>
+	const Wok& GetWok() const;
 
 private:
 	// =========================================================
