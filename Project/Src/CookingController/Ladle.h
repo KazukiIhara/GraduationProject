@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "LGF/Graphics/Model.h"
 #include "LGF/Math/Vector3.h"
@@ -32,6 +32,33 @@ public:
 	/// ImGuiデバッグ描画
 	/// </summary>
 	void DrawImGuiDebug();
+
+	// =========================================================
+	// Accessor
+	// =========================================================
+
+	/// <summary>
+	/// おたまの位置を取得
+	/// </summary>
+	const LGF::Vector3& GetPosition() const { return position_; }
+
+	/// <summary>
+	/// おたまの回転を取得
+	/// </summary>
+	const LGF::Vector3& GetRotation() const { return rotation_; }
+
+	/// <summary>
+	/// 前後スイングの現在のオフセット値を取得 (-kMaxBackwardLimit ～ kMaxForwardLimit)
+	/// </summary>
+	float GetCurrentSwingOffsetZ() const { return currentSwingOffsetZ_; }
+
+	/// <summary>
+	/// 前後スイングの正規化された強度 (-1.0f ～ 1.0f)
+	/// </summary>
+	float GetSwingNormalized() const
+	{
+		return (kMaxForwardLimit > 0.0f) ? (currentSwingOffsetZ_ / kMaxForwardLimit) : 0.0f;
+	}
 
 private:
 	// =========================================================

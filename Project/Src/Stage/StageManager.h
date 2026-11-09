@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "LGF/Graphics/Model.h"
 #include "LGF/Collision/ColliderWorld.h"
@@ -38,6 +38,15 @@ public:
 	/// デバッグ描画処理
 	/// </summary>
 	void DrawImGuiDebug();
+
+	// =========================================================
+	// Accessor
+	// =========================================================
+
+	/// <summary>
+	/// 中華レンジ（コンロ）の位置を取得
+	/// </summary>
+	const LGF::Vector3& GetChineseRangePosition() const { return positionChineseRange_; }
 
 private:
 	// =========================================================

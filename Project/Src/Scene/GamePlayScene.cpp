@@ -1,4 +1,4 @@
-﻿#include "GamePlayScene.h"
+#include "GamePlayScene.h"
 
 #include <imgui.h>
 
@@ -36,6 +36,9 @@ GamePlayScene::GamePlayScene(const InitData& init) :
 	stageManager_ = std::make_unique<StageManager>();
 
 	judgeManager_ = std::make_unique<JudgeManager>();
+
+	// 中華レンジの配置位置を調理システムの火元位置に同期
+	cookingController_->GetCookingSystem().SetHeatSourcePosition(stageManager_->GetChineseRangePosition());
 }
 
 void GamePlayScene::Update() {
@@ -77,8 +80,8 @@ void GamePlayScene::Update() {
 	if (isCameraFollowEnabled_) {
 		camera_.translation = player_->GetEyePosition();
 	}
-	/* 調理器具マネージャーの更新 */
-	cookingController_->Update();
+	/* 調理器具マネージャーの更新（プレイヤーの料理モード状態を伝達） */
+	cookingController_->Update(player_->IsCookingMode());
 	/* ステージオブジェクト管理クラスの更新 */
 	stageManager_->Update();
 	// 審査員マネージャーの更新
@@ -110,6 +113,7 @@ void GamePlayScene::Update() {
 	player_->DrawImGuiDebug();
 	cookingController_->DrawImGuiDebug();
 	stageManager_->DrawImGuiDebug();
+	judgeManager_->DrawImGuiDebug();
 
 	CollisionManager::GetInstance()->DrawImGuiDebug();
 #endif
@@ -162,9 +166,6 @@ void GamePlayScene::UpdateCamera() {
 		yawDelta += mouseDelta.x * kMouseSensitivity * static_cast<float>(System::DeltaTime());
 		pitchDelta += mouseDelta.y * kMouseSensitivity * static_cast<float>(System::DeltaTime());
 	}
-
-	cookingController_->DrawImGuiDebug();
-	judgeManager_->DrawImGuiDebug();
 
 	// 最終的なカメラ角度に反映
 	camera_.yaw += yawDelta;

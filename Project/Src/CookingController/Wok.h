@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "LGF/Graphics/Model.h"
 #include "LGF/Math/Vector3.h"
@@ -34,6 +34,33 @@ public:
 	/// ImGuiデバッグ描画
 	/// </summary>
 	void DrawImGuiDebug();
+
+	// =========================================================
+	// Accessor
+	// =========================================================
+
+	/// <summary>
+	/// 鍋のワールド座標を取得
+	/// </summary>
+	const LGF::Vector3& GetPosition() const { return position_; }
+
+	/// <summary>
+	/// 鍋の回転を取得
+	/// </summary>
+	const LGF::Vector3& GetRotation() const { return rotation_; }
+
+	/// <summary>
+	/// 鍋振りアニメーション中かどうか
+	/// </summary>
+	bool IsAnimationPlaying() const { return isAnimationPlaying_; }
+
+	/// <summary>
+	/// 鍋振りアニメーションの進行度 (0.0f ～ 1.0f)
+	/// </summary>
+	float GetAnimationProgress() const
+	{
+		return animationDuration_ > 0.0f ? std::min(animationTime_ / animationDuration_, 1.0f) : 0.0f;
+	}
 
 private:
 	// =========================================================

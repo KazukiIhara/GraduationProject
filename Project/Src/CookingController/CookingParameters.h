@@ -37,12 +37,33 @@ struct Ingredient
 };
 
 /// <summary>
+/// 鍋振りの向き
+/// </summary>
+enum class WokShakeDirection
+{
+	None,
+	Vertical,   // 縦振り（あおり・浮かし）：宙に舞い、パラパラ度UP・水分蒸発・香り拡散
+	Horizontal, // 横振り（水平回し・鍋肌）：鍋肌で全体を均一化、旨味UP・焦げ防止
+};
+
+/// <summary>
+/// 鍋振りの強さレベル（閾値段階）
+/// </summary>
+enum class ShakeStrengthLevel
+{
+	None,
+	Weak,   // 弱
+	Medium, // 中
+	Strong, // 強
+};
+
+/// <summary>
 /// 炒飯の5大パラメータおよび調理状態
 /// </summary>
 struct CookingParameters
 {
 	// -----------------------------------------------------
-	// スライド12記載の5大パラメータ (0.0f ～ 100.0f)
+	// 5大パラメータ (0.0f ～ 100.0f)
 	// -----------------------------------------------------
 
 	float fluffiness = 10.0f;    // パラパラ度（鍋振り・適切な水分蒸発でUP）
@@ -58,7 +79,9 @@ struct CookingParameters
 	float moisture = 60.0f;      // 水分量（高いとベチャベチャ、適度でパラパラ、ゼロになると焦げやすい）
 	float burnt = 0.0f;          // 焦げ度（高温で放置するとUP、減点対象）
 
-	int shakeCount = 0;          // 鍋振り回数
+	int shakeCount = 0;          // 鍋振り総回数
+	int verticalShakeCount = 0;  // 縦振り（あおり）回数
+	int horizontalShakeCount = 0;// 横振り（水平回し）回数
 	int stirCount = 0;           // おたま炒め回数
 	std::vector<IngredientType> addedIngredients; // 投入された具材履歴
 
@@ -124,8 +147,12 @@ struct CookingParameters
 	{
 		JudgeGrade grade;
 		int totalScore;             // 100点満点
-		std::string comment;        // 評論家のセリフ
+		std::string comment;        // 評論家のセリフ（日本語・会話UI用）
+		std::string commentEn;      // 評論家のセリフ（英語・ImGui等のASCII環境用）
 		bool isAccepted;            // 合格かどうか
+
+		// Messageクラス（テクスチャ会話表示）に渡すテクスチャ名リスト
+		std::vector<std::string> messageTextures;
 	};
 
 	JudgeEvaluation Evaluate() const
@@ -143,27 +170,37 @@ struct CookingParameters
 
 		eval.totalScore = std::clamp(static_cast<int>(std::round(score)), 0, 100);
 
-		// 判定
+		// 判定とセリフ・テクスチャ（Message::RegisterConversationDataにそのまま渡せる）
 		if (burnt >= 60.0f) {
 			eval.grade = JudgeGrade::Unacceptable;
 			eval.isAccepted = false;
 			eval.comment = "丸焦げじゃないか！こんな炒飯、認められるか！";
+			eval.commentEn = "Completely burnt! This is not acceptable at all!";
+			eval.messageTextures = { "demoC1.png" }; // 将来専用画像に差し替え可能
 		} else if (eval.totalScore >= 85) {
 			eval.grade = JudgeGrade::Masterpiece;
 			eval.isAccepted = true;
 			eval.comment = "こ、これは究極の炒飯…！やるじゃないか…！";
+			eval.commentEn = "Incredible... this is the Ultimate Golden Fried Rice!";
+			eval.messageTextures = { "demoA1.png", "demoA2.png" };
 		} else if (eval.totalScore >= 65) {
 			eval.grade = JudgeGrade::Delicious;
 			eval.isAccepted = true;
 			eval.comment = "パラパラで旨味も十分、なかなかの腕前だな！";
+			eval.commentEn = "Fluffy and rich in umami! Splendid cooking skill!";
+			eval.messageTextures = { "demoA1.png" };
 		} else if (eval.totalScore >= 45) {
 			eval.grade = JudgeGrade::Acceptable;
 			eval.isAccepted = true;
 			eval.comment = "ふむ、悪くはないが…まだ改善の余地があるな。";
+			eval.commentEn = "Not bad, but there is still room for improvement.";
+			eval.messageTextures = { "demoB1.png" };
 		} else {
 			eval.grade = JudgeGrade::Unacceptable;
 			eval.isAccepted = false;
 			eval.comment = "こんな炒飯、認められるか！出直してこい！";
+			eval.commentEn = "Unacceptable! Practice more and try again!";
+			eval.messageTextures = { "demoC1.png" };
 		}
 
 		return eval;
