@@ -45,7 +45,6 @@ private:
 
 	mutable LGF::DebugCamera3D camera_;
 	LGF::DirectionalLight light_;
-	LGF::Grid3D grid_{ 20.0f, 1.0f };
 
 	// スカイボックス
 	LGF::Skybox skybox_{"../Assets/Textures/skybox.png"};

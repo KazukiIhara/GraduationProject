@@ -71,7 +71,7 @@ void GamePlayScene::Update() {
 	/* プレイヤー更新 */
 	player_->Update(camera_.yaw);
 	// カメラの位置をプレイヤーに追従させる
-	if (Key::O.Trigger()) { // Oキーで有効状態切替
+	if (Key::Num1.Trigger()) { // Num1キーで有効状態切替
 		isCameraFollowEnabled_ = !isCameraFollowEnabled_;
 	}
 	if (isCameraFollowEnabled_) {
@@ -89,14 +89,15 @@ void GamePlayScene::Update() {
 
 #ifdef _DEBUG
 	if (ImGui::Begin("GamePlay Debug")) {
-		// 現在の設定状態
-		ImGui::Text("P : Toggle Mouse Camera"); 
-		ImGui::SameLine();
-		ImGui::Text("[%s]", isMouseCameraEnabled_ ? "Enabled" : "Disabled");
 
-		ImGui::Text("O : Toggle Camera Follow");
+		ImGui::Text("Num1 : Toggle Camera Follow");
 		ImGui::SameLine();
 		ImGui::Text("[%s]", isCameraFollowEnabled_ ? "Enabled" : "Disabled");
+
+		// 現在の設定状態
+		ImGui::Text("Num2 : Toggle Mouse Camera"); 
+		ImGui::SameLine();
+		ImGui::Text("[%s]", isMouseCameraEnabled_ ? "Enabled" : "Disabled");
 
 		ImGui::Separator();
 
@@ -120,9 +121,6 @@ void GamePlayScene::Draw() const {
 
 	camera_.SetScene();
 	light_.SetScene();
-
-	// グリッドの描画
-	grid_.Draw(Math::MakeTranslateMatrix({ 0.0f, 0.0f, 0.0f }));
 
 	// プレイヤー描画
 	player_->Draw();
@@ -154,7 +152,7 @@ void GamePlayScene::UpdateCamera() {
 	}
 
 	/* マウスによる視点操作（デバッグ） */
-	if (Key::P.Trigger()) { // Pキーで入力有効状態切替
+	if (Key::Num2.Trigger()) { // Num2キーで入力有効状態切替
 		isMouseCameraEnabled_ = !isMouseCameraEnabled_; 
 	}
 	if (isMouseCameraEnabled_) {
