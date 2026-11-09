@@ -8,6 +8,7 @@
 #include <algorithm>
 
 #include "Collision/CollisionManager.h"
+#include "Input/XboxController.h"
 
 using namespace LGF;
 
@@ -172,11 +173,10 @@ void GamePlayScene::Draw() const {
 void GamePlayScene::UpdateCamera() {
 	float yawDelta = 0.0f;
 	float pitchDelta = 0.0f;
+	const float deltaTime = static_cast<float>(System::DeltaTime());
 
-	/* 右スティックによる視点操作 */
-	auto rightJoyCon = JoyCon::Right();
-	if (rightJoyCon.has_value() && rightJoyCon->IsConnected()) {
-		Vector2 rightStick = rightJoyCon->RightStick();
+	auto processStickInput = [&](const Gamepad& gamepad) {
+		Vector2 rightStick = gamepad.RightStick();
 
 		// デッドゾーン処理
 		if (std::abs(rightStick.x) < kDeadZone)
@@ -184,8 +184,19 @@ void GamePlayScene::UpdateCamera() {
 		if (std::abs(rightStick.y) < kDeadZone)
 			rightStick.y = 0.0f;
 
-		yawDelta += rightStick.x * kStickSensitivity * static_cast<float>(System::DeltaTime());
-		pitchDelta -= rightStick.y * kStickSensitivity * static_cast<float>(System::DeltaTime());
+		yawDelta += rightStick.x * kStickSensitivity * deltaTime;
+		pitchDelta -= rightStick.y * kStickSensitivity * deltaTime;
+	};
+
+	/* 右スティックによる視点操作 */
+	auto rightJoyCon = JoyCon::Right();
+	if (rightJoyCon.has_value() && rightJoyCon->IsConnected()) {
+		processStickInput(*rightJoyCon);
+	}
+
+	const auto xboxController = XboxController::Get();
+	if (xboxController.has_value()) {
+		processStickInput(*xboxController);
 	}
 
 	/* マウスによる視点操作（デバッグ） */
@@ -194,8 +205,8 @@ void GamePlayScene::UpdateCamera() {
 	}
 	if (isMouseCameraEnabled_) {
 		Vector2 mouseDelta = Mouse::Delta();
-		yawDelta += mouseDelta.x * kMouseSensitivity * static_cast<float>(System::DeltaTime());
-		pitchDelta += mouseDelta.y * kMouseSensitivity * static_cast<float>(System::DeltaTime());
+		yawDelta += mouseDelta.x * kMouseSensitivity * deltaTime;
+		pitchDelta += mouseDelta.y * kMouseSensitivity * deltaTime;
 	}
 
 	cookingController_->DrawImGuiDebug();

@@ -9,6 +9,7 @@
 #include "LGF/Input.h"
 
 #include "ConversationData.h"
+#include "Input/XboxController.h"
 
 #include <cassert>
 #include <random>
@@ -23,6 +24,10 @@ JudgeMan::JudgeMan() {
 
 void JudgeMan::Update(const Player* player, const LGF::DebugCamera3D& camera) {
 	message_->Update(camera);
+	const auto xboxController = XboxController::Get();
+	const bool isTalkTriggered = Key::Space.Trigger() ||
+		(xboxController.has_value() &&
+			xboxController->Button(GamepadButtonCode::South).Trigger());
 
 	// 審査員がIdle状態のとき
 	if (state_ == JudgeManState::JudgeManState_Idle) {
@@ -37,8 +42,8 @@ void JudgeMan::Update(const Player* player, const LGF::DebugCamera3D& camera) {
 			// 会話可能UIを表示
 			message_->SetIsTalkUIVisible(true);
 
-			// Spaceで会話開始
-			if (Key::Space.Trigger()) {
+			// SpaceまたはXbox Aボタンで会話開始
+			if (isTalkTriggered) {
 				// メッセージを表示
 				message_->SetIsDisplay(true);
 				// 審査員の状態をTalkingに切り替える
@@ -64,7 +69,7 @@ void JudgeMan::Update(const Player* player, const LGF::DebugCamera3D& camera) {
 	// 審査員がTalking状態のとき
 	else if (state_ == JudgeManState::JudgeManState_Talking) {
 		// 会話を進める処理
-		if (Key::Space.Trigger()) {
+		if (isTalkTriggered) {
 			if (!message_->Next()) {
 				// 会話が終了した場合、審査員の状態をIdleに切り替える
 				state_ = JudgeManState::JudgeManState_Idle;
