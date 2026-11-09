@@ -1,15 +1,11 @@
 #pragma once
-#include "BaseAnimal.h"
+#include "Animals/Base/BaseAnimal.h"
 class Boar : public BaseAnimal {
 	/// <summary>
 	/// 初期化処理
 	/// </summary>
 	/// <param name="spownPos">召喚位置</param>
 	void Init(const LGF::Vector3& spownPos) override;
-	/// <summary>
-	/// 描画処理
-	/// </summary>
-	void Draw() override;
 
 	/// <summary>
 	/// 移動方法

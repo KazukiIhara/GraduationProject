@@ -1,5 +1,5 @@
 #pragma once
-#include "BaseAnimal.h"
+#include "Animals/Base/BaseAnimal.h"
 
 /// <summary>
 /// 動物　-ウサギ-
@@ -10,11 +10,6 @@ public:
 	/// 初期化処理
 	/// </summary>
 	void Init(const LGF::Vector3& spownPos)override;
-	/// <summary>
-	/// 描画処理
-	/// </summary>
-	void Draw()override;
-
 	/// <summary>
 	/// 移動方法
 	/// </summary>
