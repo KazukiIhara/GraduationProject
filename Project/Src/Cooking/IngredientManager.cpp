@@ -1,6 +1,7 @@
 #include "IngredientManager.h"
 
 #include "LGF/Input.h"
+#include "Input/XboxController.h"
 
 #include <imgui.h>
 
@@ -17,7 +18,10 @@ IngredientManager::IngredientManager(Physics::PhysicsWorld& physicsWorld) :
 	physicsWorld_(&physicsWorld) {}
 
 void IngredientManager::Update(const Vector3& riceSpawnPosition) {
-	if (Key::Space.Trigger()) {
+	const auto xboxController = XboxController::Get();
+	const bool isXboxAddRiceTriggered = xboxController.has_value() &&
+		xboxController->Button(GamepadButtonCode::West).Trigger();
+	if (Key::Space.Trigger() || isXboxAddRiceTriggered) {
 		AddRice(riceSpawnPosition);
 	}
 }
@@ -31,7 +35,7 @@ void IngredientManager::Draw() const {
 void IngredientManager::DrawImGuiDebug() {
 #ifdef _DEBUG
 	if (ImGui::Begin("Cooking Fried Rice")) {
-		ImGui::Text("Space : Add Rice");
+		ImGui::Text("Space / Xbox X : Add Rice");
 		ImGui::Text("Rice Amount : %.0f g", cookingFriedRice_.GetRiceAmount());
 		ImGui::Text("Rice Particles : %zu", riceObjects_.size());
 		ImGui::Text("Ingredients : %zu", cookingFriedRice_.GetIngredients().size());

@@ -2,6 +2,8 @@
 
 #include "imgui.h"
 
+#include "Input/XboxController.h"
+
 using namespace LGF;
 
 namespace {
@@ -10,6 +12,9 @@ namespace {
 	constexpr float kWokOuterRadius = 1.1f;
 	constexpr float kWokInnerRadius = 1.0f;
 	constexpr float kWokHeight = 0.75f;
+	constexpr float kLiftHeight = 0.5f;
+	constexpr float kTiltAngle = 0.4f;
+	constexpr float kXboxTriggerThreshold = 0.5f;
 
 }
 
@@ -36,55 +41,53 @@ Wok::~Wok() {
 }
 
 void Wok::Update() {
-	float pi = 3.14159265f;
+	const auto xboxController = XboxController::Get();
+	const bool isXboxShakeTriggered = xboxController.has_value() &&
+		xboxController->LeftTrigger() >= kXboxTriggerThreshold;
+	const bool isJoyConShakeTriggered = calibration_->GetShakeStrength(
+		JoyConType::Left,
+		DeadZoneType::Large);
 
-    // アニメーション未稼働＆上下判定取得したら
-    if (!isAnimationPlaying_ &&
-        calibration_->GetShakeStrength(
-            JoyConType::Left, DeadZoneType::Large)) {
+	// アニメーション未稼働＆上下判定取得したら
+	if (!isAnimationPlaying_ &&
+		(isJoyConShakeTriggered || isXboxShakeTriggered)) {
+		isAnimationPlaying_ = true;
+		animationTime_ = 0.0f;
+	}
 
-        isAnimationPlaying_ = true;
-        animationTime_ = 0.0f;
-    }
+	// アニメーション稼働中なら
+	if (isAnimationPlaying_) {
+		const float pi = 3.14159265f;
 
-    // アニメーション稼働中なら
-    if (isAnimationPlaying_) {
-        // アニメーション時間を加算
-        animationTime_ += static_cast<float>(System::DeltaTime());
+		// アニメーション時間を加算
+		animationTime_ += static_cast<float>(System::DeltaTime());
 
-        // 進行度を0.0～1.0に制限
-        float progress = animationTime_ / animationDuration_;
-        progress = std::min(progress, 1.0f);
+		// 進行度を0.0～1.0に制限
+		float progress = animationTime_ / animationDuration_;
+		progress = std::min(progress, 1.0f);
 
-        // 初期位置・初期回転
-        position_ = kBasePosition;
-        rotation_ = kBaseRotation;
+		// 初期位置・初期回転
+		position_ = kBasePosition;
+		rotation_ = kBaseRotation;
 
-        // 上下移動量
-        constexpr float kLiftHeight = 0.5f;
+		// 0 → 1 → 0 の上下移動
+		position_.y = kBasePosition.y + kLiftHeight * std::sin(
+			progress * pi
+		);
 
-        // 0 → 1 → 0 の上下移動
-        position_.y = kBasePosition.y + kLiftHeight * std::sin(
-            progress * pi
-        );
+		// 回転を変化させる
+		const float angle = kTiltAngle * std::sin(
+			progress * 2.0f * pi
+		);
+		rotation_.x = kBaseRotation.x + angle;
 
-        // 回転角度（ラジアン）
-        constexpr float kTiltAngle = 0.4f;
-
-        // 回転を変化させる
-        float angle = kTiltAngle * std::sin(
-            progress * 2.0f * pi
-        );
-
-        rotation_.x = kBaseRotation.x + angle;
-
-        // アニメーション終了
-        if (animationTime_ >= animationDuration_) {
-            isAnimationPlaying_ = false;
-            position_ = kBasePosition;
-            rotation_ = kBaseRotation;
-        }
-    }
+		// アニメーション終了
+		if (animationTime_ >= animationDuration_) {
+			isAnimationPlaying_ = false;
+			position_ = kBasePosition;
+			rotation_ = kBaseRotation;
+		}
+	}
 
 	UpdatePhysicsShape();
 }
