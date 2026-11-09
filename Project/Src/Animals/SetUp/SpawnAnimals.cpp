@@ -1,24 +1,24 @@
 #include "SpawnAnimals.h"
 #include <random>
 
-#include "Rabbit.h"
-#include "Deer.h"
-#include "Boar.h"
+#include "Animals/Rabbit/Rabbit.h"
+#include "Animals/Deer/Deer.h"
+#include "Animals/Boar/Boar.h"
 
 void SpawnAnimals::Update() {
 
 	if (keyA_->Press()) {
-		playerPos.x -= 0.25f;
+		playerPos.x -= 2.0f * (float)LGF::System::DeltaTime();
 	}
 	else if (keyD_->Press()) {
-		playerPos.x += 0.25f;
+		playerPos.x += 2.0f * (float)LGF::System::DeltaTime();
 	}
 
 	if (keyW_->Press()) {
-		playerPos.z += 0.25f;
+		playerPos.z += 2.0f * (float)LGF::System::DeltaTime();
 	}
 	else if (keyS_->Press()) {
-		playerPos.z -= 0.25f;
+		playerPos.z -= 2.0f * (float)LGF::System::DeltaTime();
 	}
 
 

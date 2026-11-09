@@ -2,10 +2,12 @@
 
 #include "GameApp.h"
 #include "LGF/Graphics/Skybox.h"
+#include "LGF/Physics.h"
 
 // Application
 #include "Player/Player.h"
 #include "CookingController/CookingController.h"
+#include "Cooking/IngredientManager.h"
 #include "Stage/StageManager.h"
 #include "judge/JudgeManager.h"
 
@@ -45,6 +47,9 @@ private:
 
 	mutable LGF::DebugCamera3D camera_;
 	LGF::DirectionalLight light_;
+	LGF::Grid3D grid_{ 20.0f, 1.0f };
+	LGF::Physics::PhysicsWorld physicsWorld_;
+	LGF::Physics::StaticObjectHandle floorPhysicsHandle_{};
 
 	// スカイボックス
 	LGF::Skybox skybox_{"../Assets/Textures/skybox.png"};
@@ -53,6 +58,8 @@ private:
 	std::unique_ptr<Player> player_;
 	// 調理器具マネージャー
 	std::unique_ptr<CookingController> cookingController_;
+	// 食材マネージャー
+	std::unique_ptr<IngredientManager> ingredientManager_;
 	// ステージオブジェクト管理クラス
 	std::unique_ptr<StageManager> stageManager_;
 	// 審査員マネージャー

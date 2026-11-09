@@ -24,7 +24,7 @@ public:
 	/// <summary>
 	/// 描画処理
 	/// </summary>
-	virtual void Draw() = 0;
+	void Draw();
 
 	/// <summary>
 	/// Setter_プレイヤー位置
@@ -94,6 +94,8 @@ protected:
 
 	LGF::Vector3 position_;
 	LGF::Vector3 rotate_;
+
+	LGF::Vector4 color_;
 
 	float moveSpeed_ = 0.0f;
 
