@@ -68,6 +68,11 @@ GamePlayScene::GamePlayScene(const InitData& init) :
 }
 
 void GamePlayScene::Update() {
+	if (openUIWorldDemoCommand_.Trigger()) {
+		GetData().previousScene = GetState();
+		ChangeScene(SceneNames::UIWorldDemo);
+		return;
+	}
 	if (Key::L.Trigger()) {
 		ChangeScene(SceneNames::ColliderWorldDemo);
 		return;
