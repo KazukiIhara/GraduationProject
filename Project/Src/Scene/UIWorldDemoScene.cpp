@@ -10,6 +10,84 @@ namespace {
 
 	constexpr const char* kFontPath = "../Assets/Fonts/NotoSansJP/NotoSansJP-wght.ttf";
 
+	struct DemoButton2DDrawer {
+		const Font2D* font{};
+		std::string text;
+
+		void operator()(const UIButtonDrawContext& context) const {
+			const Vector4 color = context.state.isHeld
+				? Color::HotPink
+				: context.state.isHovered
+					? Color::RoyalBlue
+					: Vector4{ 0.05f, 0.08f, 0.16f, 0.94f };
+			context.rect.Draw(color);
+			font->Draw(
+				text,
+				context.rect.leftTop + context.rect.size * 0.5f,
+				{
+					.color = Color::White,
+					.anchor = { 0.5f, 0.5f },
+				});
+		}
+	};
+
+	struct DemoButton3DDrawer {
+		const UIPanel3D* panel{};
+		const Font3D* font{};
+		std::string text;
+
+		void operator()(const UIButtonDrawContext3D& context) const {
+			Vector4 color{ 0.12f, 0.18f, 0.32f, 1.0f };
+			if (context.state.isSelected) {
+				color = { 0.95f, 0.42f, 0.04f, 1.0f };
+			}
+			if (context.state.isHovered) {
+				color = { 0.05f, 0.42f, 1.0f, 1.0f };
+			}
+			if (context.state.isHeld) {
+				color = { 1.0f, 0.08f, 0.48f, 1.0f };
+			}
+
+			if (context.state.isSelected || context.state.isHovered ||
+				context.state.isHeld) {
+				Vector4 outlineColor = context.state.isSelected
+					? Color::Yellow
+					: Color::Cyan;
+				if (context.state.isHovered) {
+					outlineColor = Color::Cyan;
+				}
+				if (context.state.isHeld) {
+					outlineColor = Color::White;
+				}
+
+				const Matrix4x4 outlineMatrix = Math::MakeAffineMatrix(
+					{ 1.04f, 1.18f, 1.0f },
+					{},
+					{ 0.0f, 0.0f, 0.01f }) * context.worldMatrix;
+				panel->Draw(outlineMatrix, outlineColor);
+			}
+
+			panel->Draw(context.worldMatrix, color);
+			font->Draw(
+				text,
+				Math::Transform({ 0.0f, 0.0f, -0.01f }, context.worldMatrix),
+				{
+					.color = Color::White,
+					.anchor = { 0.5f, 0.5f },
+					.worldUnitsPerPixel = 0.008f,
+					.mode = Font3DMode::World,
+				});
+		}
+	};
+
+	struct InputCommandPress {
+		InputCommand command;
+
+		bool operator()() const {
+			return command.Press();
+		}
+	};
+
 }
 
 UIWorldDemoScene::UIWorldDemoScene(const InitData& init) :
@@ -28,9 +106,7 @@ UIWorldDemoScene::UIWorldDemoScene(const InitData& init) :
 		-1.2f,
 		false,
 		false,
-		[this] {
-			return directButtonCommand_.Press();
-		});
+		InputCommandPress{ directButtonCommand_ });
 	AddButton2D("2D Overlay Button", { 24.0f, 184.0f }, true, false);
 
 	const Window::Size windowSize = Window::GetSize();
@@ -96,6 +172,25 @@ void UIWorldDemoScene::Update() {
 		.isNavigationPressed = submitCommand_.Press(),
 		.cursor3D = MakeUICursor3D(camera_, cursorPosition_, 100.0f),
 	});
+
+	for (const DemoButton& button : buttons_) {
+		const UIButtonEvents events = uiWorld_.GetEvents(button.handle);
+		if (events.triggered) {
+			++triggerCount_;
+			triggerMessage_ = "Trigger: " + button.text +
+				" (" + std::to_string(triggerCount_) + ")";
+		}
+		if (events.held) {
+			++holdCount_;
+			holdMessage_ = "Hold: " + button.text +
+				" (" + std::to_string(holdCount_) + ")";
+		}
+		if (events.released) {
+			++releaseCount_;
+			releaseMessage_ = "Release: " + button.text +
+				" (" + std::to_string(releaseCount_) + ")";
+		}
+	}
 }
 
 void UIWorldDemoScene::Draw() const {
@@ -159,26 +254,13 @@ UIButtonHandle UIWorldDemoScene::AddButton2D(
 		.position = position,
 		.size = { 240.0f, 48.0f },
 	};
-	desc.callbacks = MakeCallbacks(text);
-	desc.draw = [this, text](const UIButtonDrawContext& context) {
-		const Vector4 color = context.state.isHeld
-			? Color::HotPink
-			: context.state.isHovered
-				? Color::RoyalBlue
-				: Vector4{ 0.05f, 0.08f, 0.16f, 0.94f };
-		context.rect.Draw(color);
-		buttonFont2D_.Draw(
-			text,
-			context.rect.leftTop + context.rect.size * 0.5f,
-			{
-				.color = Color::White,
-				.anchor = { 0.5f, 0.5f },
-			});
-	};
+	desc.draw = DemoButton2DDrawer{ &buttonFont2D_, text };
 	desc.isDirectPressed = std::move(isDirectPressed);
 	desc.isCursorEnabled = cursorEnabled;
 	desc.isNavigationEnabled = navigationEnabled;
-	return uiWorld_.AddButton(desc);
+	const UIButtonHandle handle = uiWorld_.AddButton(desc);
+	buttons_.push_back({ handle, std::move(text) });
+	return handle;
 }
 
 UIButtonHandle UIWorldDemoScene::AddButton3D(
@@ -192,71 +274,11 @@ UIButtonHandle UIWorldDemoScene::AddButton3D(
 		.position = { 0.0f, positionY, 0.0f },
 		.size = { 3.6f, 0.65f },
 	};
-	desc.callbacks = MakeCallbacks(text);
-	desc.draw = [this, text](const UIButtonDrawContext3D& context) {
-		Vector4 color{ 0.12f, 0.18f, 0.32f, 1.0f };
-		if (context.state.isSelected) {
-			color = { 0.95f, 0.42f, 0.04f, 1.0f };
-		}
-		if (context.state.isHovered) {
-			color = { 0.05f, 0.42f, 1.0f, 1.0f };
-		}
-		if (context.state.isHeld) {
-			color = { 1.0f, 0.08f, 0.48f, 1.0f };
-		}
-
-		if (context.state.isSelected || context.state.isHovered ||
-			context.state.isHeld) {
-			Vector4 outlineColor = context.state.isSelected
-				? Color::Yellow
-				: Color::Cyan;
-			if (context.state.isHovered) {
-				outlineColor = Color::Cyan;
-			}
-			if (context.state.isHeld) {
-				outlineColor = Color::White;
-			}
-
-			const Matrix4x4 outlineMatrix = Math::MakeAffineMatrix(
-				{ 1.04f, 1.18f, 1.0f },
-				{},
-				{ 0.0f, 0.0f, 0.01f }) * context.worldMatrix;
-			buttonPanel_.Draw(outlineMatrix, outlineColor);
-		}
-
-		buttonPanel_.Draw(context.worldMatrix, color);
-		buttonFont3D_.Draw(
-			text,
-			Math::Transform({ 0.0f, 0.0f, -0.01f }, context.worldMatrix),
-			{
-				.color = Color::White,
-				.anchor = { 0.5f, 0.5f },
-				.worldUnitsPerPixel = 0.008f,
-				.mode = Font3DMode::World,
-			});
-	};
+	desc.draw = DemoButton3DDrawer{ &buttonPanel_, &buttonFont3D_, text };
 	desc.isDirectPressed = std::move(isDirectPressed);
 	desc.isCursorEnabled = cursorEnabled;
 	desc.isNavigationEnabled = navigationEnabled;
-	return uiWorld_.AddButton3D(desc);
-}
-
-UIButtonCallbacks UIWorldDemoScene::MakeCallbacks(const std::string& text) {
-	return {
-		.onTrigger = [this, text] {
-			++triggerCount_;
-			triggerMessage_ = "Trigger: " + text +
-				" (" + std::to_string(triggerCount_) + ")";
-		},
-		.onHold = [this, text] {
-			++holdCount_;
-			holdMessage_ = "Hold: " + text +
-				" (" + std::to_string(holdCount_) + ")";
-		},
-		.onRelease = [this, text] {
-			++releaseCount_;
-			releaseMessage_ = "Release: " + text +
-				" (" + std::to_string(releaseCount_) + ")";
-		},
-	};
+	const UIButtonHandle handle = uiWorld_.AddButton3D(desc);
+	buttons_.push_back({ handle, std::move(text) });
+	return handle;
 }

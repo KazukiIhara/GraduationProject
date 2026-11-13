@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <functional>
 #include <string>
+#include <vector>
 
 class UIWorldDemoScene final : public GameApp::Scene {
 public:
@@ -14,6 +15,11 @@ public:
 	void Draw() const override;
 
 private:
+	struct DemoButton {
+		LGF::UIButtonHandle handle{};
+		std::string text;
+	};
+
 	LGF::UIButtonHandle AddButton2D(
 		std::string text,
 		const LGF::Vector2& position,
@@ -26,7 +32,6 @@ private:
 		bool cursorEnabled,
 		bool navigationEnabled,
 		std::function<bool()> isDirectPressed = {});
-	LGF::UIButtonCallbacks MakeCallbacks(const std::string& text);
 
 	LGF::Font2D titleFont_;
 	LGF::Font2D buttonFont2D_;
@@ -46,6 +51,7 @@ private:
 	LGF::InputCommand toggleHitboxesCommand_{ "UI.Demo.ToggleHitboxes" };
 
 	LGF::UIWorld uiWorld_;
+	std::vector<DemoButton> buttons_;
 	LGF::Vector2 cursorPosition_{};
 	std::string triggerMessage_ = "Trigger: -";
 	std::string holdMessage_ = "Hold: -";
