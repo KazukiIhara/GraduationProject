@@ -1,92 +1,10 @@
 #include "Scene/UIWorldDemoScene.h"
 
-#include <algorithm>
-#include <cmath>
-#include <utility>
-
 using namespace LGF;
 
 namespace {
 
 	constexpr const char* kFontPath = "../Assets/Fonts/NotoSansJP/NotoSansJP-wght.ttf";
-
-	struct DemoButton2DDrawer {
-		const Font2D* font{};
-		std::string text;
-
-		void operator()(const UIButtonDrawContext& context) const {
-			const Vector4 color = context.state.isHeld
-				? Color::HotPink
-				: context.state.isHovered
-					? Color::RoyalBlue
-					: Vector4{ 0.05f, 0.08f, 0.16f, 0.94f };
-			context.rect.Draw(color);
-			font->Draw(
-				text,
-				context.rect.leftTop + context.rect.size * 0.5f,
-				{
-					.color = Color::White,
-					.anchor = { 0.5f, 0.5f },
-				});
-		}
-	};
-
-	struct DemoButton3DDrawer {
-		const UIPanel3D* panel{};
-		const Font3D* font{};
-		std::string text;
-
-		void operator()(const UIButtonDrawContext3D& context) const {
-			Vector4 color{ 0.12f, 0.18f, 0.32f, 1.0f };
-			if (context.state.isSelected) {
-				color = { 0.95f, 0.42f, 0.04f, 1.0f };
-			}
-			if (context.state.isHovered) {
-				color = { 0.05f, 0.42f, 1.0f, 1.0f };
-			}
-			if (context.state.isHeld) {
-				color = { 1.0f, 0.08f, 0.48f, 1.0f };
-			}
-
-			if (context.state.isSelected || context.state.isHovered ||
-				context.state.isHeld) {
-				Vector4 outlineColor = context.state.isSelected
-					? Color::Yellow
-					: Color::Cyan;
-				if (context.state.isHovered) {
-					outlineColor = Color::Cyan;
-				}
-				if (context.state.isHeld) {
-					outlineColor = Color::White;
-				}
-
-				const Matrix4x4 outlineMatrix = Math::MakeAffineMatrix(
-					{ 1.04f, 1.18f, 1.0f },
-					{},
-					{ 0.0f, 0.0f, 0.01f }) * context.worldMatrix;
-				panel->Draw(outlineMatrix, outlineColor);
-			}
-
-			panel->Draw(context.worldMatrix, color);
-			font->Draw(
-				text,
-				Math::Transform({ 0.0f, 0.0f, -0.01f }, context.worldMatrix),
-				{
-					.color = Color::White,
-					.anchor = { 0.5f, 0.5f },
-					.worldUnitsPerPixel = 0.008f,
-					.mode = Font3DMode::World,
-				});
-		}
-	};
-
-	struct InputCommandPress {
-		InputCommand command;
-
-		bool operator()() const {
-			return command.Press();
-		}
-	};
 
 }
 
@@ -98,22 +16,51 @@ UIWorldDemoScene::UIWorldDemoScene(const InitData& init) :
 	captionFont_(kFontPath, 16u),
 	buttonFont3D_(kFontPath, 32u),
 	light_({ 0.3f, -1.0f, 0.5f }, Color::White, 1.5f) {
-	AddButton3D("Cursor + Navigation", 1.2f, true, true);
-	AddButton3D("Cursor Only", 0.4f, true, false);
-	AddButton3D("Navigation Only", -0.4f, false, true);
-	AddButton3D(
-		"Direct Input: 1 / Pad East",
-		-1.2f,
-		false,
-		false,
-		InputCommandPress{ directButtonCommand_ });
-	AddButton2D("2D Overlay Button", { 24.0f, 184.0f }, true, false);
+	buttons3D_.push_back(uiWorld_.AddButton3D({
+		.text = "Cursor + Navigation",
+		.transform = {
+			.position = { 0.0f, 1.2f, 0.0f },
+			.size = { 3.6f, 0.65f },
+		},
+		.isNavigationEnabled = true,
+	}));
+	buttons3D_.push_back(uiWorld_.AddButton3D({
+		.text = "Cursor Only",
+		.transform = {
+			.position = { 0.0f, 0.4f, 0.0f },
+			.size = { 3.6f, 0.65f },
+		},
+	}));
+	buttons3D_.push_back(uiWorld_.AddButton3D({
+		.text = "Navigation Only",
+		.transform = {
+			.position = { 0.0f, -0.4f, 0.0f },
+			.size = { 3.6f, 0.65f },
+		},
+		.isCursorEnabled = false,
+		.isNavigationEnabled = true,
+	}));
+	buttons3D_.push_back(uiWorld_.AddButton3D({
+		.text = "Direct Input: 1 / Pad East",
+		.transform = {
+			.position = { 0.0f, -1.2f, 0.0f },
+			.size = { 3.6f, 0.65f },
+		},
+		.directInputCommand = "UI.Demo.DirectButton",
+		.isCursorEnabled = false,
+	}));
 
-	const Window::Size windowSize = Window::GetSize();
-	cursorPosition_ = {
-		static_cast<float>(windowSize.width) * 0.5f,
-		static_cast<float>(windowSize.height) * 0.5f,
-	};
+	overlayButton_ = uiWorld_.AddButton({
+		.text = "2D Overlay Button",
+		.transform = {
+			.position = { 24.0f, 184.0f },
+			.size = { 240.0f, 48.0f },
+		},
+	});
+
+	buttons_ = buttons3D_;
+	buttons_.push_back(overlayButton_);
+
 }
 
 void UIWorldDemoScene::Update() {
@@ -125,35 +72,8 @@ void UIWorldDemoScene::Update() {
 		return;
 	}
 
-	const Gamepad gamepad{ 0u };
-	const Vector2 stick = gamepad.LeftStick();
-	constexpr float kStickDeadZone = 0.18f;
-	constexpr float kCursorSpeed = 720.0f;
-	if (std::abs(stick.x) >= kStickDeadZone ||
-		std::abs(stick.y) >= kStickDeadZone) {
-		isPadCursor_ = true;
-		const float deltaTime = static_cast<float>(System::DeltaTime());
-		cursorPosition_ += Vector2{ stick.x, -stick.y } *
-			(kCursorSpeed * deltaTime);
-	}
-
-	const Vector2 mouseCursorDelta = Cursor::Delta();
-	if (mouseCursorDelta.x != 0.0f || mouseCursorDelta.y != 0.0f) {
-		isPadCursor_ = false;
-	}
-	if (!isPadCursor_) {
-		cursorPosition_ = Cursor::Pos();
-	}
-
-	const Window::Size windowSize = Window::GetSize();
-	cursorPosition_.x = std::clamp(
-		cursorPosition_.x,
-		0.0f,
-		static_cast<float>(windowSize.width));
-	cursorPosition_.y = std::clamp(
-		cursorPosition_.y,
-		0.0f,
-		static_cast<float>(windowSize.height));
+	uiPointer_.Update();
+	const Vector2& cursorPosition = uiPointer_.GetPosition();
 
 	int32_t navigationOffset = 0;
 	if (previousCommand_.Trigger()) {
@@ -166,28 +86,28 @@ void UIWorldDemoScene::Update() {
 	}
 
 	uiWorld_.Update({
-		.cursorPosition = cursorPosition_,
+		.cursorPosition = cursorPosition,
 		.isCursorPressed = pointerSubmitCommand_.Press(),
 		.navigationOffset = navigationOffset,
 		.isNavigationPressed = submitCommand_.Press(),
-		.cursor3D = MakeUICursor3D(camera_, cursorPosition_, 100.0f),
+		.cursor3D = MakeUICursor3D(camera_, cursorPosition, 100.0f),
 	});
 
-	for (const DemoButton& button : buttons_) {
-		const UIButtonEvents events = uiWorld_.GetEvents(button.handle);
-		if (events.triggered) {
+	for (const UIButton& button : buttons_) {
+		const std::string text = button.GetText();
+		if (button.Trigger()) {
 			++triggerCount_;
-			triggerMessage_ = "Trigger: " + button.text +
+			triggerMessage_ = "Trigger: " + text +
 				" (" + std::to_string(triggerCount_) + ")";
 		}
-		if (events.held) {
+		if (button.Press()) {
 			++holdCount_;
-			holdMessage_ = "Hold: " + button.text +
+			holdMessage_ = "Press: " + text +
 				" (" + std::to_string(holdCount_) + ")";
 		}
-		if (events.released) {
+		if (button.Release()) {
 			++releaseCount_;
-			releaseMessage_ = "Release: " + button.text +
+			releaseMessage_ = "Release: " + text +
 				" (" + std::to_string(releaseCount_) + ")";
 		}
 	}
@@ -199,7 +119,9 @@ void UIWorldDemoScene::Draw() const {
 	camera_.SetScene();
 	light_.SetScene();
 	grid_.Draw();
-	uiWorld_.Draw3D();
+	for (const UIButton& button : buttons3D_) {
+		button.Draw(buttonPanel_, buttonFont3D_);
+	}
 	if (areHitboxesVisible_) {
 		uiWorld_.DrawHitboxes3D(Color::Lime);
 	}
@@ -224,7 +146,7 @@ void UIWorldDemoScene::Draw() const {
 		{ 24.0f, 134.0f },
 		{ .color = Color::LightGray });
 
-	uiWorld_.Draw();
+	overlayButton_.Draw(buttonFont2D_);
 	if (areHitboxesVisible_) {
 		uiWorld_.DrawHitboxes({ 0.0f, 1.0f, 0.0f, 0.22f });
 	}
@@ -236,49 +158,5 @@ void UIWorldDemoScene::Draw() const {
 	bodyFont_.Draw(holdMessage_, { 42.0f, statusTop + 40.0f });
 	bodyFont_.Draw(releaseMessage_, { 42.0f, statusTop + 68.0f });
 
-	const Vector4 cursorColor = isPadCursor_ ? Color::HotPink : Color::Cyan;
-	Rect2D{
-		cursorPosition_ - Vector2{ 7.0f, 7.0f },
-		{ 14.0f, 14.0f },
-	}.Draw(cursorColor);
-}
-
-UIButtonHandle UIWorldDemoScene::AddButton2D(
-	std::string text,
-	const Vector2& position,
-	bool cursorEnabled,
-	bool navigationEnabled,
-	std::function<bool()> isDirectPressed) {
-	UIButtonDesc desc{};
-	desc.transform = {
-		.position = position,
-		.size = { 240.0f, 48.0f },
-	};
-	desc.draw = DemoButton2DDrawer{ &buttonFont2D_, text };
-	desc.isDirectPressed = std::move(isDirectPressed);
-	desc.isCursorEnabled = cursorEnabled;
-	desc.isNavigationEnabled = navigationEnabled;
-	const UIButtonHandle handle = uiWorld_.AddButton(desc);
-	buttons_.push_back({ handle, std::move(text) });
-	return handle;
-}
-
-UIButtonHandle UIWorldDemoScene::AddButton3D(
-	std::string text,
-	float positionY,
-	bool cursorEnabled,
-	bool navigationEnabled,
-	std::function<bool()> isDirectPressed) {
-	UIButtonDesc3D desc{};
-	desc.transform = {
-		.position = { 0.0f, positionY, 0.0f },
-		.size = { 3.6f, 0.65f },
-	};
-	desc.draw = DemoButton3DDrawer{ &buttonPanel_, &buttonFont3D_, text };
-	desc.isDirectPressed = std::move(isDirectPressed);
-	desc.isCursorEnabled = cursorEnabled;
-	desc.isNavigationEnabled = navigationEnabled;
-	const UIButtonHandle handle = uiWorld_.AddButton3D(desc);
-	buttons_.push_back({ handle, std::move(text) });
-	return handle;
+	uiPointer_.Draw();
 }
