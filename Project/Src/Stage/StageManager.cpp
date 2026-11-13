@@ -1,154 +1,83 @@
 ﻿#include "StageManager.h"
 
+#include "fstream"
+#include "assert.h"
+
+#include "../../Dependencies/LaziealGraphicsFramework/Project/Externals/nlohmann/json.hpp"
+
 #include "Collision/CollisionManager.h"
 #include "DebugDraw/DebugDraw.h"
 
-StageManager::StageManager() { Initialize(); }
+StageManager::StageManager(const std::string& jsonFilePath) { Initialize(jsonFilePath); }
 
 StageManager::~StageManager() {}
 
-void StageManager::Update() {}
+void StageManager::Update() {
+	// ステージオブジェクトの更新
+	for (auto& obj : objects_) {
+		obj->Update();
+	}
+}
 
-void StageManager::Initialize() {
-	// 木01のコライダー設定
+void StageManager::Initialize(const std::string& jsonFilePath) {
+	// JSONファイルを開く
+	std::ifstream file(jsonFilePath);
+	if (!file.is_open()) {
+		assert(false);
+		return;
+	}
 
+	nlohmann::json jsonRoot;
+	file >> jsonRoot;
 
-	// 中華レンジのコライダー設定
-	LGF::Collision::ColliderOptions chineseRangeOptions{};
-	chineseRangeOptions.tag = "Solid";
-	chineseRangeOptions.targetTags = {};
+	// 各オブジェクトを生成
+	if (jsonRoot.contains("objects") && jsonRoot["objects"].is_array()) {
+		for (const auto& jsonObj : jsonRoot["objects"]) {
+			StageObjectData data{};
+			data.type = jsonObj["type"].get<std::string>();
+			std::string modelName = jsonObj["name"].get<std::string>();
 
-	LGF::Collision::AABB chineseRangeAABB{
-		positionChineseRange_ + kColliderChineseRangeMin, 
-		positionChineseRange_ + kColliderChineseRangeMax
-	};
+			// Position
+			auto pos = jsonObj["position"];
+			data.position = {pos[0].get<float>(), pos[1].get<float>(), pos[2].get<float>()};
 
-	colliderHandleChineseRange_ = CollisionManager::GetInstance()->AddCollider(chineseRangeAABB, chineseRangeOptions);
-	
+			// Rotation
+			auto rot = jsonObj["rotation"];
+			data.rotation = {rot[0].get<float>(), rot[1].get<float>(), rot[2].get<float>()};
+
+			// Scale
+			auto scl = jsonObj["scale"];
+			data.scale = {scl[0].get<float>(), scl[1].get<float>(), scl[2].get<float>()};
+
+			// モデルパスの生成
+			std::string modelPath = GetModelPath(data.type, modelName);
+
+			// 生成してリストに追加
+			objects_.push_back(std::make_unique<StageObject>(modelPath, data));
+		}
+	}
+
 	// インタラクト用センサーのコライダー設定
 	LGF::Collision::ColliderOptions InteractionSensorOptions{};
 	InteractionSensorOptions.tag = "InteractionSensor";
 	InteractionSensorOptions.targetTags = {};
 
 	LGF::Collision::AABB sensorAABB{
-	    positionChineseRange_ + LGF::Vector3{-3.0f, -1.0f, -3.0f}, 
-		positionChineseRange_ + LGF::Vector3{3.0f,  2.0f,  3.0f }
-	};
+	    LGF::Vector3{-3.0f, -1.0f, -3.0f},
+        LGF::Vector3{3.0f,  2.0f,  3.0f }
+    };
 
 	colliderHandleInteractionSensor_ = CollisionManager::GetInstance()->AddCollider(sensorAABB, InteractionSensorOptions);
-#pragma endregion
 }
 
 void StageManager::Draw() {
-	/* モデル描画 */
-
-	// 地面
-	if (modelGround_.IsValid()) {
-		LGF::Matrix4x4 worldMatrix = LGF::Math::MakeAffineMatrix(
-		    {1.0f, 1.0f, 1.0f},                                       // スケール (X, Y, Z)
-		    LGF::Math::MakeRotateAxisAngle({0.0f, 1.0f, 0.0f}, 0.0f), // 回転
-		    {0.0f, 0.0f, 0.0f}                                        // 位置
-		);
-
-		// 描画オプション
-		LGF::ModelDrawOptions options{};
-		options.color = LGF::Color::White;
-
-		// モデル自身のDraw関数を呼び出す
-		modelGround_.Draw(worldMatrix, options);
-	}
-
-	// 木01
-	if (modelTree_01_.IsValid()) {
-		LGF::Matrix4x4 worldMatrix = LGF::Math::MakeAffineMatrix(
-		    {1.0f, 1.0f, 1.0f},                                       // スケール (X, Y, Z)
-		    LGF::Math::MakeRotateAxisAngle({0.0f, 1.0f, 0.0f}, 0.0f), // 回転
-		    {5.0f, 0.0f, 5.0f}                                                        // 位置
-		);
-
-		// 描画オプション
-		LGF::ModelDrawOptions options{};
-		options.color = LGF::Color::White;
-
-		// モデル自身のDraw関数を呼び出す
-		modelTree_01_.Draw(worldMatrix, options);
-	}
-
-	// 木02
-	if (modelTree_02_.IsValid()) {
-		LGF::Matrix4x4 worldMatrix = LGF::Math::MakeAffineMatrix(
-		    {1.0f, 1.0f, 1.0f},                                       // スケール (X, Y, Z)
-		    LGF::Math::MakeRotateAxisAngle({0.0f, 1.0f, 0.0f}, 0.0f), // 回転
-		    {15.0f, 0.0f, 15.0f}                                      // 位置
-		);
-
-		// 描画オプション
-		LGF::ModelDrawOptions options{};
-		options.color = LGF::Color::White;
-
-		// モデル自身のDraw関数を呼び出す
-		modelTree_02_.Draw(worldMatrix, options);
-	}
-
-	// 岩01
-	if (modelRock_01_.IsValid()) {
-		LGF::Matrix4x4 worldMatrix = LGF::Math::MakeAffineMatrix(
-		    {1.0f, 1.0f, 1.0f},                                       // スケール (X, Y, Z)
-		    LGF::Math::MakeRotateAxisAngle({0.0f, 1.0f, 0.0f}, 0.0f), // 回転
-		    {-5.0f, 0.0f, -5.0f}                                      // 位置
-		);
-
-		// 描画オプション
-		LGF::ModelDrawOptions options{};
-		options.color = LGF::Color::White;
-
-		// モデル自身のDraw関数を呼び出す
-		modelRock_01_.Draw(worldMatrix, options);
-	}
-
-	// 草01
-	if (modelGrass_01_.IsValid()) {
-		LGF::Matrix4x4 worldMatrix = LGF::Math::MakeAffineMatrix(
-		    {1.0f, 1.0f, 1.0f},                                       // スケール (X, Y, Z)
-		    LGF::Math::MakeRotateAxisAngle({0.0f, 1.0f, 0.0f}, 0.0f), // 回転
-		    {-5.0f, 0.0f, 5.0f}                                      // 位置
-		);
-
-		// 描画オプション
-		LGF::ModelDrawOptions options{};
-		options.color = LGF::Color::White;
-
-		// モデル自身のDraw関数を呼び出す
-		modelGrass_01_.Draw(worldMatrix, options);
-	}
-
-	// 中華レンジ
-	if (modelChineseRange_.IsValid()) {
-		// ワールド行列の作成
-		LGF::Matrix4x4 worldMatrix = LGF::Math::MakeAffineMatrix(
-		    {1.0f, 1.0f, 1.0f},                                       // スケール (X, Y, Z)
-		    LGF::Math::MakeRotateAxisAngle({0.0f, 1.0f, 0.0f}, 0.0f), // 回転
-		    positionChineseRange_                                     // 位置
-		);
-
-		// 描画オプション
-		LGF::ModelDrawOptions options{};
-		options.color = LGF::Color::White;
-
-		// モデル自身のDraw関数を呼び出す
-		modelChineseRange_.Draw(worldMatrix, options);
+	// ステージオブジェクトの描画
+	for (auto& obj : objects_) {
+		obj->Draw();
 	}
 
 #ifdef _DEBUG
 	/* コライダーデバッグ描画 */
-
-	// 中華レンジ
-	auto ChineseRangeStateOpt = CollisionManager::GetInstance()->GetColliderState(colliderHandleChineseRange_);
-	if (ChineseRangeStateOpt.has_value()) {
-		if (std::holds_alternative<LGF::Collision::AABB>(ChineseRangeStateOpt->shape)) {
-			DebugDraw::DrawAABB(std::get<LGF::Collision::AABB>(ChineseRangeStateOpt->shape), {0.0f, 1.0f, 0.0f, 1.0f});
-		}
-	}
 
 	// インタラクト用センサー
 	auto InteractionSensorStateOpt = CollisionManager::GetInstance()->GetColliderState(colliderHandleInteractionSensor_);
@@ -162,3 +91,15 @@ void StageManager::Draw() {
 }
 
 void StageManager::DrawImGuiDebug() {}
+
+std::string StageManager::GetModelPath(const std::string& type, const std::string& name) {
+	std::string folder = "empty";
+
+	if (type == "Environment") {
+		folder = "environment";
+	} else if (type == "Furniture") {
+		folder = "furniture";
+	}
+
+	return "../Assets/Models/" + folder + "/" + name + "/" + name + ".gltf";
+}

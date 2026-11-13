@@ -62,7 +62,7 @@ GamePlayScene::GamePlayScene(const InitData& init) :
 	cookingController_ = std::make_unique<CookingController>(physicsWorld_);
 	ingredientManager_ = std::make_unique<IngredientManager>(physicsWorld_);
 
-	stageManager_ = std::make_unique<StageManager>();
+	stageManager_ = std::make_unique<StageManager>("../Assets/Stages/stage.json");
 
 	judgeManager_ = std::make_unique<JudgeManager>();
 }
