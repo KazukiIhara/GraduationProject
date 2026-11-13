@@ -15,20 +15,23 @@ namespace {
 UIWorldDemoScene::UIWorldDemoScene(const InitData& init) :
 	IScene(init),
 	titleFont_(kFontPath, 40u),
-	buttonFont_(kFontPath, 24u),
+	buttonFont2D_(kFontPath, 20u),
 	bodyFont_(kFontPath, 20u),
-	captionFont_(kFontPath, 16u) {
-	AddButton("Cursor + Navigation", -108.0f, true, true);
-	AddButton("Cursor Only", -36.0f, true, false);
-	AddButton("Navigation Only", 36.0f, false, true);
-	AddButton(
+	captionFont_(kFontPath, 16u),
+	buttonFont3D_(kFontPath, 32u),
+	light_({ 0.3f, -1.0f, 0.5f }, Color::White, 1.5f) {
+	AddButton3D("Cursor + Navigation", 1.2f, true, true);
+	AddButton3D("Cursor Only", 0.4f, true, false);
+	AddButton3D("Navigation Only", -0.4f, false, true);
+	AddButton3D(
 		"Direct Input: 1 / Pad East",
-		108.0f,
+		-1.2f,
 		false,
 		false,
 		[this] {
 			return directButtonCommand_.Press();
 		});
+	AddButton2D("2D Overlay Button", { 24.0f, 184.0f }, true, false);
 
 	const Window::Size windowSize = Window::GetSize();
 	cursorPosition_ = {
@@ -91,20 +94,23 @@ void UIWorldDemoScene::Update() {
 		.isCursorPressed = pointerSubmitCommand_.Press(),
 		.navigationOffset = navigationOffset,
 		.isNavigationPressed = submitCommand_.Press(),
+		.cursor3D = MakeUICursor3D(camera_, cursorPosition_, 100.0f),
 	});
 }
 
 void UIWorldDemoScene::Draw() const {
 	const Window::Size windowSize = Window::GetSize();
-	Rect2D{
-		0.0f,
-		0.0f,
-		static_cast<float>(windowSize.width),
-		static_cast<float>(windowSize.height),
-	}.Draw(Vector4{ 0.015f, 0.02f, 0.04f, 1.0f });
+
+	camera_.SetScene();
+	light_.SetScene();
+	grid_.Draw();
+	uiWorld_.Draw3D();
+	if (areHitboxesVisible_) {
+		uiWorld_.DrawHitboxes3D(Color::Lime);
+	}
 
 	titleFont_.Draw(
-		"InputCommand + UIWorld Demo",
+		"InputCommand + 2D / 3D UIWorld Demo",
 		{ static_cast<float>(windowSize.width) * 0.5f, 28.0f },
 		{
 			.color = Color::AliceBlue,
@@ -142,20 +148,101 @@ void UIWorldDemoScene::Draw() const {
 	}.Draw(cursorColor);
 }
 
-UIButtonHandle UIWorldDemoScene::AddButton(
+UIButtonHandle UIWorldDemoScene::AddButton2D(
 	std::string text,
-	float positionY,
+	const Vector2& position,
 	bool cursorEnabled,
 	bool navigationEnabled,
 	std::function<bool()> isDirectPressed) {
 	UIButtonDesc desc{};
 	desc.transform = {
-		.position = { 0.0f, positionY },
-		.size = { 440.0f, 58.0f },
-		.anchor = { 0.5f, 0.5f },
-		.pivot = { 0.5f, 0.5f },
+		.position = position,
+		.size = { 240.0f, 48.0f },
 	};
-	desc.callbacks = {
+	desc.callbacks = MakeCallbacks(text);
+	desc.draw = [this, text](const UIButtonDrawContext& context) {
+		const Vector4 color = context.state.isHeld
+			? Color::HotPink
+			: context.state.isHovered
+				? Color::RoyalBlue
+				: Vector4{ 0.05f, 0.08f, 0.16f, 0.94f };
+		context.rect.Draw(color);
+		buttonFont2D_.Draw(
+			text,
+			context.rect.leftTop + context.rect.size * 0.5f,
+			{
+				.color = Color::White,
+				.anchor = { 0.5f, 0.5f },
+			});
+	};
+	desc.isDirectPressed = std::move(isDirectPressed);
+	desc.isCursorEnabled = cursorEnabled;
+	desc.isNavigationEnabled = navigationEnabled;
+	return uiWorld_.AddButton(desc);
+}
+
+UIButtonHandle UIWorldDemoScene::AddButton3D(
+	std::string text,
+	float positionY,
+	bool cursorEnabled,
+	bool navigationEnabled,
+	std::function<bool()> isDirectPressed) {
+	UIButtonDesc3D desc{};
+	desc.transform = {
+		.position = { 0.0f, positionY, 0.0f },
+		.size = { 3.6f, 0.65f },
+	};
+	desc.callbacks = MakeCallbacks(text);
+	desc.draw = [this, text](const UIButtonDrawContext3D& context) {
+		Vector4 color{ 0.12f, 0.18f, 0.32f, 1.0f };
+		if (context.state.isSelected) {
+			color = { 0.95f, 0.42f, 0.04f, 1.0f };
+		}
+		if (context.state.isHovered) {
+			color = { 0.05f, 0.42f, 1.0f, 1.0f };
+		}
+		if (context.state.isHeld) {
+			color = { 1.0f, 0.08f, 0.48f, 1.0f };
+		}
+
+		if (context.state.isSelected || context.state.isHovered ||
+			context.state.isHeld) {
+			Vector4 outlineColor = context.state.isSelected
+				? Color::Yellow
+				: Color::Cyan;
+			if (context.state.isHovered) {
+				outlineColor = Color::Cyan;
+			}
+			if (context.state.isHeld) {
+				outlineColor = Color::White;
+			}
+
+			const Matrix4x4 outlineMatrix = Math::MakeAffineMatrix(
+				{ 1.04f, 1.18f, 1.0f },
+				{},
+				{ 0.0f, 0.0f, 0.01f }) * context.worldMatrix;
+			buttonPanel_.Draw(outlineMatrix, outlineColor);
+		}
+
+		buttonPanel_.Draw(context.worldMatrix, color);
+		buttonFont3D_.Draw(
+			text,
+			Math::Transform({ 0.0f, 0.0f, -0.01f }, context.worldMatrix),
+			{
+				.color = Color::White,
+				.anchor = { 0.5f, 0.5f },
+				.worldUnitsPerPixel = 0.008f,
+				.mode = Font3DMode::World,
+			});
+	};
+	desc.isDirectPressed = std::move(isDirectPressed);
+	desc.isCursorEnabled = cursorEnabled;
+	desc.isNavigationEnabled = navigationEnabled;
+	return uiWorld_.AddButton3D(desc);
+}
+
+UIButtonCallbacks UIWorldDemoScene::MakeCallbacks(const std::string& text) {
+	return {
 		.onTrigger = [this, text] {
 			++triggerCount_;
 			triggerMessage_ = "Trigger: " + text +
@@ -172,29 +259,4 @@ UIButtonHandle UIWorldDemoScene::AddButton(
 				" (" + std::to_string(releaseCount_) + ")";
 		},
 	};
-	desc.draw = [this, text](const UIButtonDrawContext& context) {
-		Vector4 color{ 0.08f, 0.10f, 0.16f, 0.96f };
-		if (context.state.isHovered) {
-			color = Color::RoyalBlue;
-		}
-		if (context.state.isSelected) {
-			color = Color::DarkOrange;
-		}
-		if (context.state.isHeld) {
-			color = Color::HotPink;
-		}
-
-		context.rect.Draw(color);
-		buttonFont_.Draw(
-			text,
-			context.rect.leftTop + context.rect.size * 0.5f,
-			{
-				.color = Color::White,
-				.anchor = { 0.5f, 0.5f },
-			});
-	};
-	desc.isDirectPressed = std::move(isDirectPressed);
-	desc.isCursorEnabled = cursorEnabled;
-	desc.isNavigationEnabled = navigationEnabled;
-	return uiWorld_.AddButton(desc);
 }

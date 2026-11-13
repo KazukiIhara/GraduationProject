@@ -14,17 +14,29 @@ public:
 	void Draw() const override;
 
 private:
-	LGF::UIButtonHandle AddButton(
+	LGF::UIButtonHandle AddButton2D(
+		std::string text,
+		const LGF::Vector2& position,
+		bool cursorEnabled,
+		bool navigationEnabled,
+		std::function<bool()> isDirectPressed = {});
+	LGF::UIButtonHandle AddButton3D(
 		std::string text,
 		float positionY,
 		bool cursorEnabled,
 		bool navigationEnabled,
 		std::function<bool()> isDirectPressed = {});
+	LGF::UIButtonCallbacks MakeCallbacks(const std::string& text);
 
 	LGF::Font2D titleFont_;
-	LGF::Font2D buttonFont_;
+	LGF::Font2D buttonFont2D_;
 	LGF::Font2D bodyFont_;
 	LGF::Font2D captionFont_;
+	LGF::Font3D buttonFont3D_;
+	LGF::DebugCamera3D camera_{ 8.0f };
+	LGF::DirectionalLight light_;
+	LGF::Grid3D grid_{ 16.0f, 1.0f };
+	LGF::UIPanel3D buttonPanel_;
 
 	LGF::InputCommand previousCommand_{ "UI.Demo.Previous" };
 	LGF::InputCommand nextCommand_{ "UI.Demo.Next" };
