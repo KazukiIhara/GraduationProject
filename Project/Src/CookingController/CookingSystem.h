@@ -176,6 +176,42 @@ public:
 		return parameters_.Evaluate();
 	}
 
+	/// <summary>
+	/// スライド12対応：5大パラメータのレーダーチャートデータ (0.0f ～ 1.0f) を取得
+	/// </summary>
+	CookingParameters::RadarChartData GetRadarChartData() const
+	{
+		return parameters_.GetRadarChartData();
+	}
+
+	// -----------------------------------------------------
+	// VFX（エフェクト） / SE（効果音）向け出力インターフェース
+	// -----------------------------------------------------
+
+	/// <summary>
+	/// 湯気（白煙・Steam）の発生強度 (0.0f ～ 1.0f)
+	/// 温度100℃以上で水分蒸発が起きているときに発生（加熱中は強く、余熱中は穏やか）
+	/// </summary>
+	float GetSteamIntensity() const;
+
+	/// <summary>
+	/// 焦げ煙（黒煙・Smoke）の発生強度 (0.0f ～ 1.0f)
+	/// 焦げ（burnt）が始まったときや、焦げつき警報時に立ち上る
+	/// </summary>
+	float GetSmokeIntensity() const;
+
+	/// <summary>
+	/// 炒め音（ジュワーッ / Sizzle）の再生フラグ
+	/// 加熱中で、かつ適度な温度・水分があるときに true
+	/// </summary>
+	bool IsSizzling() const;
+
+	/// <summary>
+	/// 焦げ付き音（パチパチ・チリチリ）の警告音再生フラグ
+	/// 鍋を振らずに焦げ猶予時間を超えて火に当て続けているときに true
+	/// </summary>
+	bool IsBurningAlert() const;
+
 	// -----------------------------------------------------
 	// ImGuiデバッグ表示
 	// -----------------------------------------------------

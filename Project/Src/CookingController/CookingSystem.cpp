@@ -381,6 +381,52 @@ void CookingSystem::UpdateAroma(float deltaTime)
 	}
 }
 
+float CookingSystem::GetSteamIntensity() const
+{
+	// 100℃未満、または水分が完全にゼロの場合は湯気が出ない
+	if (parameters_.temperature < 100.0f || parameters_.moisture <= 0.0f) {
+		return 0.0f;
+	}
+
+	// 温度に応じたベース強度 (100℃～200℃で 0.2～1.0)
+	float tempFactor = std::clamp((parameters_.temperature - 100.0f) / 100.0f, 0.0f, 1.0f);
+	float base = 0.2f + 0.8f * tempFactor;
+
+	// 水分量によるスケール (水分が多いと濃く、乾いてくると薄くなる)
+	float moistureFactor = std::clamp(parameters_.moisture / 25.0f, 0.1f, 1.0f);
+
+	// 余熱時（火元から離れている時）は微量の湯気
+	float stateMultiplier = isHeating_ ? 1.0f : config_.residualEvapMultiplier;
+
+	return std::clamp(base * moistureFactor * stateMultiplier, 0.0f, 1.0f);
+}
+
+float CookingSystem::GetSmokeIntensity() const
+{
+	// 焦げ（burnt）が発生している場合は黒煙
+	float burntSmoke = std::clamp(parameters_.burnt / 40.0f, 0.0f, 1.0f);
+
+	// 焦げ猶予を超えて放置されているときの立ち上る煙
+	float alertSmoke = 0.0f;
+	if (isHeating_ && heatExposureTimer_ > config_.burnGraceTime && parameters_.temperature >= config_.burnStartTemp) {
+		alertSmoke = std::clamp((heatExposureTimer_ - config_.burnGraceTime) / 3.0f, 0.0f, 1.0f);
+	}
+
+	return std::max(burntSmoke, alertSmoke);
+}
+
+bool CookingSystem::IsSizzling() const
+{
+	// 加熱中で、鍋の温度が90℃以上、かつ水分が残っていれば炒め音が鳴る
+	return isHeating_ && (parameters_.temperature >= 90.0f) && (parameters_.moisture >= 3.0f) && (parameters_.burnt < 75.0f);
+}
+
+bool CookingSystem::IsBurningAlert() const
+{
+	// 焦げ始め直前〜焦げ進行中の警告音
+	return isHeating_ && (heatExposureTimer_ > config_.burnGraceTime * 0.8f) && (parameters_.temperature >= config_.burnStartTemp);
+}
+
 void CookingSystem::DrawImGuiDebug()
 {
 #ifdef _DEBUG
@@ -591,6 +637,45 @@ void CookingSystem::DrawImGuiDebug()
 		ImGui::TextWrapped("Comment: \"%s\"", eval.commentEn.c_str());
 		if (!eval.messageTextures.empty()) {
 			ImGui::TextDisabled("Message Texture: %s", eval.messageTextures[0].c_str());
+		}
+
+		// -----------------------------------------------------
+		// 7. スライド12対応：5大パラメータ レーダーチャート値 (0.0 ～ 1.0)
+		// -----------------------------------------------------
+		ImGui::Separator();
+		ImGui::TextColored(ImVec4(0.3f, 1.0f, 0.6f, 1.0f), "=== Radar Chart Normalized Data (Slide 12) ===");
+		auto radar = eval.radarChart;
+		ImGui::ProgressBar(radar.fluffiness, ImVec2(-1.0f, 0.0f), ("Fluffiness: " + std::to_string(static_cast<int>(radar.fluffiness * 100)) + "%").c_str());
+		ImGui::ProgressBar(radar.aroma, ImVec2(-1.0f, 0.0f), ("Aroma: " + std::to_string(static_cast<int>(radar.aroma * 100)) + "%").c_str());
+		ImGui::ProgressBar(radar.volume, ImVec2(-1.0f, 0.0f), ("Volume: " + std::to_string(static_cast<int>(radar.volume * 100)) + "%").c_str());
+		ImGui::ProgressBar(radar.temperature, ImVec2(-1.0f, 0.0f), ("Temperature: " + std::to_string(static_cast<int>(radar.temperature * 100)) + "%").c_str());
+		ImGui::ProgressBar(radar.umami, ImVec2(-1.0f, 0.0f), ("Umami: " + std::to_string(static_cast<int>(radar.umami * 100)) + "%").c_str());
+
+		// -----------------------------------------------------
+		// 8. VFX（エフェクト） / SE（効果音）状態インジケータ
+		// -----------------------------------------------------
+		ImGui::Separator();
+		ImGui::TextColored(ImVec4(0.8f, 0.6f, 1.0f, 1.0f), "=== VFX & Audio State (For Effects) ===");
+		float steam = GetSteamIntensity();
+		float smoke = GetSmokeIntensity();
+		ImGui::ProgressBar(steam, ImVec2(-1.0f, 0.0f), ("Steam (White Vapor): " + std::to_string(static_cast<int>(steam * 100)) + "%").c_str());
+		ImGui::ProgressBar(smoke, ImVec2(-1.0f, 0.0f), ("Smoke (Burnt Smoke): " + std::to_string(static_cast<int>(smoke * 100)) + "%").c_str());
+
+		ImGui::Text("Sizzle Sound (Sizzle SE): ");
+		ImGui::SameLine();
+		if (IsSizzling()) {
+			ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "[PLAYING]");
+		} else {
+			ImGui::TextDisabled("[STOP]");
+		}
+
+		ImGui::SameLine();
+		ImGui::Text(" | Burning Alert: ");
+		ImGui::SameLine();
+		if (IsBurningAlert()) {
+			ImGui::TextColored(ImVec4(1.0f, 0.2f, 0.2f, 1.0f), "[ALERT!]");
+		} else {
+			ImGui::TextDisabled("[OFF]");
 		}
 	}
 	ImGui::End();

@@ -101,34 +101,49 @@ struct CookingParameters
 
 	/// <summary>
 	/// レーダーチャート用の正規化値 (0.0f ～ 1.0f) を取得
+	/// スライド12「究極の炒飯を作ろう」の5大パラメータに対応
 	/// </summary>
-	struct NormalizedRadarValues
+	struct RadarChartData
 	{
-		float fluffiness; // パラパラ度
-		float aroma;      // 香り
-		float volume;     // ボリューム
-		float temperature;// 温度 (適温 140～200℃ を1.0とする)
-		float umami;      // 旨味
+		float fluffiness = 0.0f; // パラパラ度 (0.0f ～ 1.0f)
+		float aroma = 0.0f;      // 香り (0.0f ～ 1.0f)
+		float volume = 0.0f;     // ボリューム (0.0f ～ 1.0f)
+		float temperature = 0.0f;// 温度適正度 (0.0f ～ 1.0f: 適温 150～210℃ で最大1.0)
+		float umami = 0.0f;      // 旨味 (0.0f ～ 1.0f)
+
+		/// <summary>
+		/// 5角形の平均スコア (0.0f ～ 1.0f)
+		/// </summary>
+		float GetAverage() const
+		{
+			return (fluffiness + aroma + volume + temperature + umami) / 5.0f;
+		}
 	};
+	using NormalizedRadarValues = RadarChartData; // 互換用エイリアス
 
-	NormalizedRadarValues GetNormalizedValues() const
+	RadarChartData GetRadarChartData() const
 	{
-		NormalizedRadarValues norm{};
-		norm.fluffiness = fluffiness / 100.0f;
-		norm.aroma = aroma / 100.0f;
-		norm.volume = volume / 100.0f;
-		norm.umami = umami / 100.0f;
+		RadarChartData norm{};
+		norm.fluffiness = std::clamp(fluffiness / 100.0f, 0.0f, 1.0f);
+		norm.aroma = std::clamp(aroma / 100.0f, 0.0f, 1.0f);
+		norm.volume = std::clamp(volume / 100.0f, 0.0f, 1.0f);
+		norm.umami = std::clamp(umami / 100.0f, 0.0f, 1.0f);
 
-		// 温度は適温（約150～220℃）で最大値1.0
+		// 温度は適温（約150～210℃）で最大値1.0
 		if (temperature < 60.0f) {
-			norm.temperature = temperature / 120.0f; // 冷めている
-		} else if (temperature <= 220.0f) {
-			norm.temperature = 0.5f + (temperature - 60.0f) / 160.0f * 0.5f; // 適温
+			norm.temperature = std::clamp(temperature / 120.0f, 0.0f, 0.5f); // 冷めている
+		} else if (temperature <= 210.0f) {
+			norm.temperature = 0.5f + (temperature - 60.0f) / 150.0f * 0.5f; // 適温
 		} else {
-			norm.temperature = std::max(0.2f, 1.0f - (temperature - 220.0f) / 80.0f * 0.6f); // 熱すぎ
+			norm.temperature = std::max(0.3f, 1.0f - (temperature - 210.0f) / 70.0f * 0.5f); // 熱すぎ
 		}
 
 		return norm;
+	}
+
+	RadarChartData GetNormalizedValues() const
+	{
+		return GetRadarChartData();
 	}
 
 	// -----------------------------------------------------
@@ -151,6 +166,9 @@ struct CookingParameters
 		std::string commentEn;      // 評論家のセリフ（英語・ImGui等のASCII環境用）
 		bool isAccepted;            // 合格かどうか
 
+		// スライド12対応：5大パラメータのレーダーチャートデータ (0.0f ～ 1.0f)
+		RadarChartData radarChart;
+
 		// Messageクラス（テクスチャ会話表示）に渡すテクスチャ名リスト
 		std::vector<std::string> messageTextures;
 	};
@@ -158,6 +176,7 @@ struct CookingParameters
 	JudgeEvaluation Evaluate() const
 	{
 		JudgeEvaluation eval{};
+		eval.radarChart = GetRadarChartData();
 
 		// 評価対象パラメータ: パラパラ度(40%)、旨味(35%)、ボリューム(25%)
 		// ※ 温度や香りは調理・狩猟誘引用のパラメータであり、最終評価には使用しない
