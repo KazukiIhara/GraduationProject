@@ -50,6 +50,7 @@ private:
 	LGF::Grid3D grid_{ 20.0f, 1.0f };
 	LGF::Physics::PhysicsWorld physicsWorld_;
 	LGF::Physics::StaticObjectHandle floorPhysicsHandle_{};
+	LGF::InputCommand openUIWorldDemoCommand_{ "UI.Demo.Open" };
 
 	// スカイボックス
 	LGF::Skybox skybox_{"../Assets/Textures/skybox.png"};
