@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "LGF/Collision/ColliderWorld.h"
-
+#include "LGF/Physics.h"
 #include "Stage/StageObject.h"
 
 // =========================================================
@@ -9,14 +9,14 @@
 // =========================================================
 class StageManager {
 public:
-	StageManager(const std::string& jsonFilePath);
+	StageManager(const std::string& jsonFilePath, LGF::Physics::PhysicsWorld& physicsWorld);
 	~StageManager();
 
 	/// <summary>
 	/// 初期化処理
 	/// </summary>
 	/// <param name="colliderWorld"></param>
-	void Initialize(const std::string& jsonFilePath);
+	void Initialize(const std::string& jsonFilePath, LGF::Physics::PhysicsWorld& physicsWorld);
 
 	/// <summary>
 	/// 更新処理
@@ -53,9 +53,17 @@ private:
 	// Member Variables
 	// =========================================================
 
+	LGF::Physics::PhysicsWorld& physicsWorld_;
+
 	// ステージオブジェクトのリスト
 	std::vector<std::unique_ptr<StageObject>> objects_;
 
-	// コライダーハンドル
-	LGF::Collision::ColliderHandle colliderHandleInteractionSensor_; // プレイヤーのインタラクト用センサー
+	// 部類オブジェクトハンドル
+	std::vector<LGF::Physics::StaticObjectHandle> staticPhysicsHandles_;
+	
+	// 物理ワールドから取得した静的オブジェクトの状態を保持（デバッグ表示に使用）
+	std::vector<LGF::Physics::StaticObjectState> staticObjectStates_;
+	
+	// プレイヤーのインタラクト用センサー
+	LGF::Collision::ColliderHandle colliderHandleInteractionSensor_;
 };

@@ -53,7 +53,6 @@ namespace {
 			{ -3.5f + std::sin(time) * 2.0f, 1.35f, -2.8f },
 			{ 1.6f, 0.18f, 1.2f });
 	}
-
 }
 
 PhysicsWorldDemoScene::PhysicsWorldDemoScene(const InitData& init) :
