@@ -25,8 +25,10 @@ struct CookingTuningConfig
 	float shakeFluffinessVertical = 2.0f;   // 縦振りのパラパラ上昇値
 	float shakeAromaVertical = 2.5f;        // 縦振りの香り拡散値
 	float shakeMoistureLossVertical = 0.3f; // 縦振りの水分蒸発ボーナス
+	float shakeCoolingVertical = 12.0f;     // 縦振りの冷却値 (℃) - 空中に舞い熱を放出
 	float shakeUmamiHorizontal = 1.2f;      // 横振りの旨味上昇値
 	float shakeFluffinessHorizontal = 0.8f; // 横振りのパラパラ上昇値
+	float shakeCoolingHorizontal = 3.5f;    // 横振りの冷却値 (℃) - 鍋肌を滑る微小冷却
 
 	// 強さの閾値係数（暫定で3段階）
 	float strengthWeakCoeff = 0.5f;         // 弱の係数

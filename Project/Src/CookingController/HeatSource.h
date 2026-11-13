@@ -56,8 +56,8 @@ public:
 
 private:
 	LGF::Vector3 position_ = { 0.0f, 1.0f, 0.0f }; // 中華レンジの天板・バーナー位置
-	bool isActive_ = true;                          // 点火中かどうか（常時ONの豪火）
+	bool isActive_ = true;                          // 点火中かどうか（常時ONの火）
 
-	float heatOutput_ = 24.0f;                      // 熱出力（中華レンジの豪火: 24℃/s）
-	float targetMaxTemperature_ = 240.0f;           // 上限温度（中華レンジの最高温度: 240℃）
+	float heatOutput_ = 24.0f;                      // 熱出力（中華レンジの熱 : 24℃/s）
+	float targetMaxTemperature_ = 240.0f;           // 上限温度（中華レンジの最高温度 : 240℃）
 };

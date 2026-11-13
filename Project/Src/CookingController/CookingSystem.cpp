@@ -185,6 +185,9 @@ void CookingSystem::OnWokShake(WokShakeDirection direction, float intensity)
 		if (parameters_.temperature >= 100.0f) {
 			parameters_.moisture = std::max(0.0f, parameters_.moisture - config_.shakeMoistureLossVertical * intensity);
 		}
+
+		// 宙を舞うことで一気に放熱・冷却！
+		parameters_.temperature = std::max(kRoomTemperature, parameters_.temperature - config_.shakeCoolingVertical * intensity);
 	}
 	else if (direction == WokShakeDirection::Horizontal) {
 		// -----------------------------------------------------
@@ -202,6 +205,9 @@ void CookingSystem::OnWokShake(WokShakeDirection direction, float intensity)
 		if (parameters_.temperature >= 100.0f) {
 			parameters_.aroma += (config_.shakeAromaVertical * 0.4f) * intensity;
 		}
+
+		// 横回しによる緩やかな冷却
+		parameters_.temperature = std::max(kRoomTemperature, parameters_.temperature - config_.shakeCoolingHorizontal * intensity);
 	}
 
 	parameters_.ClampAll();
@@ -380,7 +386,7 @@ void CookingSystem::DrawImGuiDebug()
 #ifdef _DEBUG
 	if (ImGui::Begin("Fried Rice Cooking System")) {
 		// -----------------------------------------------------
-		// 0. デバッグ操作（シミュレーション一時停止・強制調理場フラグ）
+		// デバッグ操作（シミュレーション一時停止・強制調理場フラグ）
 		// -----------------------------------------------------
 		ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.8f, 1.0f), "=== Debug Controls ===");
 		ImGui::Checkbox("Pause Simulation", &isDebugPause_);
@@ -393,7 +399,7 @@ void CookingSystem::DrawImGuiDebug()
 		ImGui::Separator();
 
 		// -----------------------------------------------------
-		// 1. スライド記載の5大パラメータ確認＆直接調整
+		// スライド記載の5大パラメータ確認＆直接調整
 		// -----------------------------------------------------
 		ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f), "=== 5 Big Parameters (Realtime Adjust) ===");
 
@@ -417,7 +423,7 @@ void CookingSystem::DrawImGuiDebug()
 		ImGui::Separator();
 
 		// -----------------------------------------------------
-		// 2. 状態・物理補助パラメータ
+		// 状態・物理補助パラメータ
 		// -----------------------------------------------------
 		ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "=== State & Physics Adjust ===");
 		ImGui::SliderFloat("Moisture (Water %)", &parameters_.moisture, 0.0f, 100.0f, "%.1f%%");
@@ -429,7 +435,7 @@ void CookingSystem::DrawImGuiDebug()
 		ImGui::Separator();
 
 		// -----------------------------------------------------
-		// 3. 火元（中華レンジ）コントロール
+		// 火元（中華レンジ）コントロール
 		// -----------------------------------------------------
 		ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "=== Stove (Heat Source) ===");
 		ImGui::Text("Heating State: [%s]", isHeating_ ? "HEATING (ON)" : "Off / Away");
@@ -449,7 +455,7 @@ void CookingSystem::DrawImGuiDebug()
 		ImGui::Separator();
 
 		// -----------------------------------------------------
-		// 4. ゲーム物理・シミュレーションのチューニングパラメータ (Config)
+		// ゲーム物理・シミュレーションのチューニングパラメータ (Config)
 		// -----------------------------------------------------
 		if (ImGui::CollapsingHeader("Cooking Tuning Config (Game Balance)")) {
 			ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.4f, 1.0f), "[Heat & Cooling]");
@@ -468,8 +474,10 @@ void CookingSystem::DrawImGuiDebug()
 			ImGui::DragFloat("Vertical Fluffiness Bonus", &config_.shakeFluffinessVertical, 0.2f, 1.0f, 20.0f, "%.1f");
 			ImGui::DragFloat("Vertical Aroma Bonus", &config_.shakeAromaVertical, 0.5f, 1.0f, 20.0f, "%.1f");
 			ImGui::DragFloat("Vertical Moisture Loss", &config_.shakeMoistureLossVertical, 0.1f, 0.0f, 5.0f, "%.1f");
+			ImGui::DragFloat("Vertical Cooling (C)", &config_.shakeCoolingVertical, 0.5f, 0.0f, 30.0f, "%.1f C");
 			ImGui::DragFloat("Horizontal Umami Bonus", &config_.shakeUmamiHorizontal, 0.2f, 0.5f, 15.0f, "%.1f");
 			ImGui::DragFloat("Horizontal Fluffiness Bonus", &config_.shakeFluffinessHorizontal, 0.2f, 0.5f, 10.0f, "%.1f");
+			ImGui::DragFloat("Horizontal Cooling (C)", &config_.shakeCoolingHorizontal, 0.2f, 0.0f, 15.0f, "%.1f C");
 
 			ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.4f, 1.0f), "[Strength Level Multipliers]");
 			ImGui::DragFloat("Weak Multiplier", &config_.strengthWeakCoeff, 0.05f, 0.1f, 1.0f, "%.2f");
@@ -485,7 +493,7 @@ void CookingSystem::DrawImGuiDebug()
 		ImGui::Separator();
 
 		// -----------------------------------------------------
-		// 5. アクション検証 & プリセット
+		// アクション検証 & プリセット
 		// -----------------------------------------------------
 		ImGui::TextColored(ImVec4(0.5f, 1.0f, 0.5f, 1.0f), "=== Action Simulation (Direction & Strength) ===");
 		ImGui::Text("Vertical Shake (Aori):");
@@ -553,7 +561,7 @@ void CookingSystem::DrawImGuiDebug()
 		ImGui::Separator();
 
 		// -----------------------------------------------------
-		// 6. 炒飯評論家のリアルタイム判定プレビュー
+		// 炒飯評論家のリアルタイム判定プレビュー
 		// -----------------------------------------------------
 		ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.8f, 1.0f), "=== Judge Evaluation Preview ===");
 		auto eval = parameters_.Evaluate();
