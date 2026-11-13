@@ -35,7 +35,7 @@ void Main() {
 		Mouse::Left,
 		Gamepad{ 0u }.Button(GamepadButtonCode::RightShoulder),
 	});
-	Input::RegisterCommand("UI.Demo.DirectButton", {
+	Input::RegisterCommand("UI.Demo.Shortcut", {
 		Key::Num1,
 		Gamepad{ 0u }.Button(GamepadButtonCode::East),
 	});
