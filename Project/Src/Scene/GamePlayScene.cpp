@@ -81,6 +81,10 @@ void GamePlayScene::Update() {
 		ChangeScene(SceneNames::PhysicsWorldDemo);
 		return;
 	}
+	if (Key::K.Trigger()) {
+		ChangeScene(SceneNames::SkinningAnimationDemo);
+		return;
+	}
 
 	/* カメラ操作 */
 	static bool prevCookingMode = false;
@@ -136,6 +140,7 @@ void GamePlayScene::Update() {
 		ImGui::Text("Num2 : Toggle Mouse Camera"); 
 		ImGui::SameLine();
 		ImGui::Text("[%s]", isMouseCameraEnabled_ ? "Enabled" : "Disabled");
+		ImGui::Text("K : Open Skinning Animation Demo");
 
 		ImGui::Separator();
 
