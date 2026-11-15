@@ -26,6 +26,9 @@ namespace {
 		};
 		settings.substepCount = 8u;
 		settings.solverIterationCount = 6u;
+		settings.maximumParticleCount = 1024u;
+		settings.maximumColliderCount = 64u;
+		settings.maximumParticleCommandCount = 4096u;
 		settings.linearDamping = 0.15f;
 		return settings;
 	}
@@ -58,6 +61,9 @@ namespace {
 PhysicsWorldDemoScene::PhysicsWorldDemoScene(const InitData& init) :
 	SampleScene(init),
 	physicsWorld_(MakeWorldSettings()) {
+	particleRenderGroup_ = physicsWorld_.CreateParticleRenderGroup({
+		.color = Color::White,
+	});
 	Reset();
 }
 
@@ -111,7 +117,6 @@ void PhysicsWorldDemoScene::Update() {
 	physicsWorld_.GetStaticObjectStates(staticObjectStates_);
 	physicsWorld_.GetKinematicObjectStates(kinematicObjectStates_);
 	physicsWorld_.GetDynamicObjectStates(dynamicObjectStates_);
-	physicsWorld_.GetParticleStates(particleStates_);
 	DrawDebugWindow();
 }
 
@@ -160,11 +165,7 @@ void PhysicsWorldDemoScene::Draw() const {
 			color);
 	}
 
-	for (const Physics::PhysicsParticleState& state : particleStates_) {
-		Sphere3D(state.radius).Draw(
-			Math::MakeTranslateMatrix(state.position),
-			Color::White);
-	}
+	physicsWorld_.DrawParticleRenderGroups();
 }
 
 void PhysicsWorldDemoScene::Reset() {
@@ -173,7 +174,6 @@ void PhysicsWorldDemoScene::Reset() {
 	staticObjectStates_.clear();
 	kinematicObjectStates_.clear();
 	dynamicObjectStates_.clear();
-	particleStates_.clear();
 	nextObjectIndex_ = 100u;
 	spawnTimer_ = 0.0f;
 	platformTime_ = 0.0f;
@@ -249,7 +249,6 @@ void PhysicsWorldDemoScene::Reset() {
 	physicsWorld_.GetStaticObjectStates(staticObjectStates_);
 	physicsWorld_.GetKinematicObjectStates(kinematicObjectStates_);
 	physicsWorld_.GetDynamicObjectStates(dynamicObjectStates_);
-	physicsWorld_.GetParticleStates(particleStates_);
 }
 
 void PhysicsWorldDemoScene::SpawnSpheres(std::size_t count) {
@@ -299,6 +298,7 @@ void PhysicsWorldDemoScene::SpawnParticles(std::size_t count) {
 			.mass = 0.15f,
 			.material = { .restitution = 0.3f, .friction = 0.2f },
 			.objectHandle = { objectIndex, 1u },
+			.renderGroup = particleRenderGroup_,
 		});
 	}
 }
@@ -410,9 +410,10 @@ void PhysicsWorldDemoScene::DrawDebugWindow() {
 			settings.substepCount,
 			settings.solverIterationCount);
 		ImGui::Text(
-			"Particle step: %.3f ms  Candidate pairs: %llu",
-			statistics.totalMilliseconds,
-			static_cast<unsigned long long>(statistics.candidatePairCount));
+			"GPU particle stats: %s  Candidate pairs: %llu  Latency: %u frames",
+			statistics.isAvailable ? "available" : "pending",
+			static_cast<unsigned long long>(statistics.candidatePairCount),
+			statistics.latencyFrames);
 		ImGui::TextDisabled("Gold balls collide with static shapes, the player, and each other.");
 		ImGui::TextDisabled("Purple platform is Kinematic; white spheres use the particle solver.");
 		ImGui::TextDisabled("Orange obstacle demonstrates a Static Sphere alongside OBB surfaces.");

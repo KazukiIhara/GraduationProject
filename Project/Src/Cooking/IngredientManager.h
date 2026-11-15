@@ -44,6 +44,7 @@ private:
 
 private:
 	LGF::Physics::PhysicsWorld* physicsWorld_ = nullptr;
+	LGF::Physics::PhysicsParticleRenderGroupHandle riceRenderGroup_{};
 	CookingFriedRice cookingFriedRice_;
 	std::vector<std::unique_ptr<Rice>> riceObjects_;
 	uint32_t nextObjectIndex_ = 1000u;

@@ -22,6 +22,9 @@ namespace {
 		};
 		settings.substepCount = 8u;
 		settings.solverIterationCount = 8u;
+		settings.maximumParticleCount = 4096u;
+		settings.maximumColliderCount = 256u;
+		settings.maximumParticleCommandCount = 16384u;
 		settings.linearDamping = 0.2f;
 		return settings;
 	}
