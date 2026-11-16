@@ -48,7 +48,8 @@ private:
 	mutable LGF::DebugCamera3D camera_;
 	LGF::DirectionalLight light_;
 	LGF::Grid3D grid_{ 20.0f, 1.0f };
-	LGF::Physics::PhysicsWorld physicsWorld_;
+	LGF::Physics::PhysicsWorld physicsWorld1_; // 炒飯と判定を取るものだけ
+	LGF::Physics::PhysicsWorld physicsWorld2_; // それ以外（ステージ上のオブジェクトなど）
 	LGF::Physics::StaticObjectHandle floorPhysicsHandle_{};
 	LGF::InputCommand openUIWorldDemoCommand_{ "UI.Demo.Open" };
 
