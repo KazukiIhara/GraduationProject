@@ -14,6 +14,11 @@ public:
 	/// 移動方法
 	/// </summary>
 	void Move() override;
+	/// <summary>
+	/// 攻撃処理
+	/// </summary>
+	/// <param name="target">プレイヤーか炒飯か</param>
+	void Attack(Target target) override;
 
 private:
 	//線形補間の中間のY軸を上にする
@@ -30,5 +35,8 @@ private:
 	LGF::Vector3 startPoint;//始点
 	LGF::Vector3 halfPoint;//中間
 	LGF::Vector3 endPoint;//終点
+
+	const LGF::Vector3 kCollisionMin = { -0.5f,-2.5f,-0.5f };
+	const LGF::Vector3 kCollisionMax = { 0.5f,2.5f,0.5f };
 };
 

@@ -16,3 +16,13 @@ void Boar::Move() {
 	//向き
 	rotate_.y = std::atan2(differenceCharHan.x, differenceCharHan.z);
 }
+
+void Boar::Attack(Target target) {
+
+	if(IsAnticipationTime(target, 2.0f)) {
+		//攻撃 突進
+	}
+	else {
+		//予備動作
+	}
+}
