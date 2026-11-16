@@ -10,9 +10,9 @@ CookingTuningConfig::IngredientBonus CookingTuningConfig::GetDefaultIngredientBo
 	if (name == "Rice") {
 		bonus.displayName = "追加ご飯";
 		bonus.volume = 100.0f;
-		bonus.umami = 5.0f;
-		bonus.aroma = 2.0f;
-		bonus.moisture = 30.0f;
+		bonus.umami = -3.0f;   // 米投入により既存の旨味が希釈されて微量低下
+		bonus.aroma = -2.0f;   // 米投入により既存の香りが抑えられて微量低下
+		bonus.moisture = 25.0f;
 	} else if (name == "Egg") {
 		bonus.displayName = "溶き卵";
 		bonus.volume = 20.0f;
@@ -31,30 +31,6 @@ CookingTuningConfig::IngredientBonus CookingTuningConfig::GetDefaultIngredientBo
 		bonus.umami = 25.0f;
 		bonus.aroma = 15.0f;
 		bonus.moisture = 15.0f;
-	} else if (name == "Pork") {
-		bonus.displayName = "豚肉（狩猟肉）";
-		bonus.volume = 25.0f;
-		bonus.umami = 20.0f;
-		bonus.aroma = 12.0f;
-		bonus.moisture = 15.0f;
-	} else if (name == "Chicken") {
-		bonus.displayName = "鶏肉（狩猟肉）";
-		bonus.volume = 25.0f;
-		bonus.umami = 18.0f;
-		bonus.aroma = 10.0f;
-		bonus.moisture = 15.0f;
-	} else if (name == "Beef") {
-		bonus.displayName = "牛肉（大型狩猟肉）";
-		bonus.volume = 35.0f;
-		bonus.umami = 30.0f;
-		bonus.aroma = 20.0f;
-		bonus.moisture = 15.0f;
-	} else if (name == "Seasoning") {
-		bonus.displayName = "秘伝の調味料";
-		bonus.volume = 2.0f;
-		bonus.umami = 20.0f;
-		bonus.aroma = 10.0f;
-		bonus.moisture = -5.0f;
 	} else {
 		// 未知の食材：汎用的な初期バランス値で自動設定
 		bonus.displayName = name;
@@ -84,7 +60,7 @@ void CookingTuningConfig::ResetToDefault()
 
 	// 標準食材テーブルの初期登録
 	const std::vector<std::string> standardIngredients = {
-		"Rice", "Egg", "GreenOnion", "Meat", "Pork", "Chicken", "Beef", "Seasoning"
+		"Rice", "Egg", "GreenOnion", "Meat"
 	};
 	for (const auto& name : standardIngredients) {
 		ingredientBonuses[name] = GetDefaultIngredientBonus(name);
@@ -160,6 +136,7 @@ bool CookingTuningConfig::SaveToFile(const std::filesystem::path& path) const
 	}
 
 	// 8. 審査員判定
+	doc.Set("Judge/targetRiceAmount", targetRiceAmount);
 	doc.Set("Judge/fluffinessWeight", judge.fluffinessWeight);
 	doc.Set("Judge/umamiWeight", judge.umamiWeight);
 	doc.Set("Judge/volumeWeight", judge.volumeWeight);
@@ -170,13 +147,28 @@ bool CookingTuningConfig::SaveToFile(const std::filesystem::path& path) const
 	doc.Set("Judge/scoreDelicious", static_cast<int32_t>(judge.scoreDelicious));
 	doc.Set("Judge/scoreAcceptable", static_cast<int32_t>(judge.scoreAcceptable));
 
-	return doc.Save(path).succeeded;
+	auto res = doc.Save(path);
+	if (!res.succeeded) {
+		std::filesystem::path altPath = (path.string().rfind("../", 0) == 0)
+			? path.string().substr(3)
+			: ("../" + path.string());
+		res = doc.Save(altPath);
+	}
+	return res.succeeded;
 }
 
 bool CookingTuningConfig::LoadFromFile(const std::filesystem::path& path)
 {
 	LGF::ParameterDocument doc;
 	auto res = doc.Load(path);
+	if (!res.succeeded) {
+		// 実行ディレクトリの違い（Project直下かルートか）に対応するため別パスでもフォールバック試行
+		std::filesystem::path altPath = (path.string().rfind("../", 0) == 0)
+			? path.string().substr(3)
+			: ("../" + path.string());
+		res = doc.Load(altPath);
+	}
+
 	if (!res.succeeded) {
 		ResetToDefault();
 		return false;
@@ -265,6 +257,7 @@ bool CookingTuningConfig::LoadFromFile(const std::filesystem::path& path)
 	}
 
 	// 8. 審査員判定
+	targetRiceAmount = doc.GetOr<float>("Judge/targetRiceAmount", targetRiceAmount);
 	judge.fluffinessWeight = doc.GetOr<float>("Judge/fluffinessWeight", judge.fluffinessWeight);
 	judge.umamiWeight = doc.GetOr<float>("Judge/umamiWeight", judge.umamiWeight);
 	judge.volumeWeight = doc.GetOr<float>("Judge/volumeWeight", judge.volumeWeight);

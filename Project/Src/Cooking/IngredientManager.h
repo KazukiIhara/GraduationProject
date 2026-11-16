@@ -35,6 +35,7 @@ public:
 	/// 調理中の炒飯を取得
 	/// </summary>
 	const CookingFriedRice& GetCookingFriedRice() const;
+	CookingFriedRice& GetCookingFriedRice();
 
 private:
 	/// <summary>

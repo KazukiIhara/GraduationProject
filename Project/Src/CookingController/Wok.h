@@ -53,6 +53,15 @@ public:
 	const LGF::Vector3& GetRotation() const { return rotation_; }
 
 	/// <summary>
+	/// 鍋振りアニメーションを手動で開始（デバッグ・UI用）
+	/// </summary>
+	void TriggerShakeAnimation()
+	{
+		isAnimationPlaying_ = true;
+		animationTime_ = 0.0f;
+	}
+
+	/// <summary>
 	/// 鍋振りアニメーション中かどうか
 	/// </summary>
 	bool IsAnimationPlaying() const { return isAnimationPlaying_; }

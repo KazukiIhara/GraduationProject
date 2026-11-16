@@ -1,116 +1,294 @@
 {
-  "Initial": {
-    "umami": 0.0,
-    "moisture": 60.0,
-    "fluffiness": 20.0,
-    "temperature": 25.0,
-    "volume": 0.0,
-    "aroma": 10.0
+  "Aroma": {
+    "attractMaxRadius": {
+      "type": "Float",
+      "value": 35.0
+    },
+    "decayRate": {
+      "type": "Float",
+      "value": 0.20000000298023224
+    }
   },
   "Heat": {
-    "heatOutput": 24.0,
-    "roomTemperature": 25.0,
-    "naturalCoolingRate": 2.5,
-    "targetMaxTemperature": 240.0,
-    "tempDiffCoolingCoeff": 0.015
-  },
-  "Aroma": {
-    "decayRate": 0.5,
-    "attractMaxRadius": 30.0
-  },
-  "MoistureBurnt": {
-    "evapRateCoeff": 0.22,
-    "burnStartTemp": 180.0,
-    "burnGraceTime": 5.0,
-    "burnRateCoeff": 1.0,
-    "residualEvapMultiplier": 0.15,
-    "burnMaxMoisture": 12.0
-  },
-  "Judge": {
-    "burnPenaltyRate": 1.5,
-    "burnPenaltyThreshold": 10.0,
-    "scoreDelicious": 75,
-    "scoreAcceptable": 60,
-    "fluffinessWeight": 0.35,
-    "burntFailThreshold": 50.0,
-    "volumeWeight": 0.3,
-    "umamiWeight": 0.35,
-    "scoreMasterpiece": 90
+    "heatOutput": {
+      "type": "Float",
+      "value": 24.0
+    },
+    "naturalCoolingRate": {
+      "type": "Float",
+      "value": 2.5
+    },
+    "roomTemperature": {
+      "type": "Float",
+      "value": 25.0
+    },
+    "targetMaxTemperature": {
+      "type": "Float",
+      "value": 240.0
+    },
+    "tempDiffCoolingCoeff": {
+      "type": "Float",
+      "value": 0.014999999664723873
+    }
   },
   "Ingredients": {
-    "Meat": {
-      "aroma": 15.0,
-      "moisture": 15.0,
-      "umami": 25.0,
-      "volume": 30.0
-    },
-    "Beef": {
-      "umami": 30.0,
-      "volume": 35.0,
-      "aroma": 20.0,
-      "moisture": 15.0
-    },
-    "Pork": {
-      "umami": 25.0,
-      "volume": 30.0,
-      "aroma": 15.0,
-      "moisture": 15.0
-    },
-    "Chicken": {
-      "umami": 20.0,
-      "volume": 25.0,
-      "aroma": 10.0,
-      "moisture": 15.0
-    },
-    "Rice": {
-      "umami": 5.0,
-      "volume": 100.0,
-      "aroma": 2.0,
-      "moisture": 30.0
-    },
-    "Seasoning": {
-      "umami": 20.0,
-      "volume": 2.0,
-      "aroma": 10.0,
-      "moisture": -5.0
-    },
     "Egg": {
-      "umami": 10.0,
-      "volume": 20.0,
-      "aroma": 5.0,
-      "moisture": 25.0
+      "aroma": {
+        "type": "Float",
+        "value": 5.0
+      },
+      "moisture": {
+        "type": "Float",
+        "value": 25.0
+      },
+      "umami": {
+        "type": "Float",
+        "value": 10.0
+      },
+      "volume": {
+        "type": "Float",
+        "value": 20.0
+      }
     },
     "GreenOnion": {
-      "umami": 8.0,
-      "volume": 10.0,
-      "aroma": 15.0,
-      "moisture": 10.0
+      "aroma": {
+        "type": "Float",
+        "value": 15.0
+      },
+      "moisture": {
+        "type": "Float",
+        "value": 10.0
+      },
+      "umami": {
+        "type": "Float",
+        "value": 8.0
+      },
+      "volume": {
+        "type": "Float",
+        "value": 10.0
+      }
+    },
+    "Meat": {
+      "aroma": {
+        "type": "Float",
+        "value": 15.0
+      },
+      "moisture": {
+        "type": "Float",
+        "value": 15.0
+      },
+      "umami": {
+        "type": "Float",
+        "value": 25.0
+      },
+      "volume": {
+        "type": "Float",
+        "value": 30.0
+      }
+    },
+    "Rice": {
+      "aroma": {
+        "type": "Float",
+        "value": -2.0
+      },
+      "moisture": {
+        "type": "Float",
+        "value": 25.0
+      },
+      "umami": {
+        "type": "Float",
+        "value": -3.0
+      },
+      "volume": {
+        "type": "Float",
+        "value": 100.0
+      }
+    }
+  },
+  "Initial": {
+    "aroma": {
+      "type": "Float",
+      "value": 0.0
+    },
+    "fluffiness": {
+      "type": "Float",
+      "value": 0.0
+    },
+    "moisture": {
+      "type": "Float",
+      "value": 30.0
+    },
+    "temperature": {
+      "type": "Float",
+      "value": 25.0
+    },
+    "umami": {
+      "type": "Float",
+      "value": 0.0
+    },
+    "volume": {
+      "type": "Float",
+      "value": 0.0
+    }
+  },
+  "Judge": {
+    "burnPenaltyRate": {
+      "type": "Float",
+      "value": 1.5
+    },
+    "burnPenaltyThreshold": {
+      "type": "Float",
+      "value": 20.0
+    },
+    "burntFailThreshold": {
+      "type": "Float",
+      "value": 60.0
+    },
+    "fluffinessWeight": {
+      "type": "Float",
+      "value": 0.4000000059604645
+    },
+    "scoreAcceptable": {
+      "type": "Int32",
+      "value": 45
+    },
+    "scoreDelicious": {
+      "type": "Int32",
+      "value": 65
+    },
+    "scoreMasterpiece": {
+      "type": "Int32",
+      "value": 85
+    },
+    "targetRiceAmount": {
+      "type": "Float",
+      "value": 500.0
+    },
+    "umamiWeight": {
+      "type": "Float",
+      "value": 0.3499999940395355
+    },
+    "volumeWeight": {
+      "type": "Float",
+      "value": 0.25
     }
   },
   "Ladle": {
-    "stirFluffinessInstant": 0.4,
-    "swingThreshold": 0.5,
-    "swingSpeedScale": 0.2,
-    "umamiRate": 1.0,
-    "fluffinessRate": 1.5,
-    "stirUmamiInstant": 0.3
+    "fluffinessRate": {
+      "type": "Float",
+      "value": 0.5
+    },
+    "stirFluffinessInstant": {
+      "type": "Float",
+      "value": 0.4000000059604645
+    },
+    "stirUmamiInstant": {
+      "type": "Float",
+      "value": 0.800000011920929
+    },
+    "swingSpeedScale": {
+      "type": "Float",
+      "value": 1.5
+    },
+    "swingThreshold": {
+      "type": "Float",
+      "value": 0.30000001192092896
+    },
+    "umamiRate": {
+      "type": "Float",
+      "value": 1.0
+    }
+  },
+  "MoistureBurnt": {
+    "burnGraceTime": {
+      "type": "Float",
+      "value": 5.0
+    },
+    "burnMaxMoisture": {
+      "type": "Float",
+      "value": 12.0
+    },
+    "burnRateCoeff": {
+      "type": "Float",
+      "value": 0.5
+    },
+    "burnStartTemp": {
+      "type": "Float",
+      "value": 180.0
+    },
+    "evapRateCoeff": {
+      "type": "Float",
+      "value": 0.2199999988079071
+    },
+    "residualEvapMultiplier": {
+      "type": "Float",
+      "value": 0.15000000596046448
+    }
   },
   "WokShake": {
-    "goldenZoneEfficiency": 1.5,
-    "coolingVertical": 12.0,
-    "strengthMediumCoeff": 1.0,
-    "goldenZoneMoistMax": 35.0,
-    "goldenZoneMoistMin": 15.0,
-    "wetZoneEfficiency": 0.8,
-    "fluffinessVertical": 2.0,
-    "aromaVertical": 2.5,
-    "dryZoneEfficiency": 0.7,
-    "strengthWeakCoeff": 0.5,
-    "coolingHorizontal": 4.0,
-    "goldenZoneTempMin": 160.0,
-    "moistureLossVertical": 0.3,
-    "strengthStrongCoeff": 1.5,
-    "umamiHorizontal": 1.2,
-    "fluffinessHorizontal": 0.8
+    "aromaVertical": {
+      "type": "Float",
+      "value": 2.5
+    },
+    "coolingHorizontal": {
+      "type": "Float",
+      "value": 3.5
+    },
+    "coolingVertical": {
+      "type": "Float",
+      "value": 12.0
+    },
+    "dryZoneEfficiency": {
+      "type": "Float",
+      "value": 0.20000000298023224
+    },
+    "fluffinessHorizontal": {
+      "type": "Float",
+      "value": 0.800000011920929
+    },
+    "fluffinessVertical": {
+      "type": "Float",
+      "value": 2.0
+    },
+    "goldenZoneEfficiency": {
+      "type": "Float",
+      "value": 1.2999999523162842
+    },
+    "goldenZoneMoistMax": {
+      "type": "Float",
+      "value": 35.0
+    },
+    "goldenZoneMoistMin": {
+      "type": "Float",
+      "value": 10.0
+    },
+    "goldenZoneTempMin": {
+      "type": "Float",
+      "value": 120.0
+    },
+    "moistureLossVertical": {
+      "type": "Float",
+      "value": 0.30000001192092896
+    },
+    "strengthMediumCoeff": {
+      "type": "Float",
+      "value": 1.0
+    },
+    "strengthStrongCoeff": {
+      "type": "Float",
+      "value": 1.5
+    },
+    "strengthWeakCoeff": {
+      "type": "Float",
+      "value": 0.5
+    },
+    "umamiHorizontal": {
+      "type": "Float",
+      "value": 1.2000000476837158
+    },
+    "wetZoneEfficiency": {
+      "type": "Float",
+      "value": 0.6000000238418579
+    }
   }
 }

@@ -51,6 +51,10 @@ const CookingFriedRice& IngredientManager::GetCookingFriedRice() const {
 	return cookingFriedRice_;
 }
 
+CookingFriedRice& IngredientManager::GetCookingFriedRice() {
+	return cookingFriedRice_;
+}
+
 void IngredientManager::AddRice(const Vector3& spawnPosition) {
 	if (physicsWorld_ == nullptr) {
 		return;

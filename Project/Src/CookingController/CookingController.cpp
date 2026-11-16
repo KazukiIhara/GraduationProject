@@ -7,6 +7,7 @@ CookingController::CookingController(LGF::Physics::PhysicsWorld& physicsWorld) {
 	wok_ = std::make_unique<Wok>(physicsWorld);
 	ladle_ = std::make_unique<Ladle>();
 	cookingSystem_ = std::make_unique<CookingSystem>();
+	cookingSystem_->BindWok(wok_.get());
 
 	prevWokShaking_ = false;
 	prevLadleOffsetZ_ = 0.0f;

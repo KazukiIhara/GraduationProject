@@ -1,9 +1,11 @@
-#pragma once
+﻿#pragma once
 
 #include "CookingParameters.h"
 #include "CookingConfig.h"
 #include "HeatSource.h"
 #include "LGF/Math/Vector3.h"
+
+class Wok;
 
 // =========================================================
 // 調理システム（火元・パラメータ・調理処理の統合マネージャー）
@@ -101,6 +103,18 @@ public:
 	/// CookingFriedRice の状態（米の量や投入具材）からパラメータを一括同期
 	/// </summary>
 	void SyncWithFriedRice(const CookingFriedRice& friedRice);
+
+	/// <summary>
+	/// CookingFriedRice をバインド（毎フレーム自動双方向同期を行う）
+	/// </summary>
+	void BindFriedRice(CookingFriedRice* friedRice);
+	CookingFriedRice* GetBoundFriedRice() const { return boundFriedRice_; }
+
+	/// <summary>
+	/// 中華鍋（Wok）をバインド（ImGui等からの鍋振りアニメーション連動用）
+	/// </summary>
+	void BindWok(Wok* wok) { boundWok_ = wok; }
+	Wok* GetBoundWok() const { return boundWok_; }
 
 	// -----------------------------------------------------
 	// 外部（中華レンジ・鍋・動物・審査員）との接続支援
@@ -265,6 +279,11 @@ private:
 	CookingParameters parameters_;
 	HeatSource heatSource_;
 	CookingTuningConfig config_;
+
+	// バインドされたCookingFriedRice（ゲーム内の炒飯モデル・具材マネージャー）
+	CookingFriedRice* boundFriedRice_ = nullptr;
+	// バインドされた中華鍋（アニメーション連動用）
+	Wok* boundWok_ = nullptr;
 
 	// 料理モード（中華レンジ前に立ち、鍋がセットされているか）
 	bool isCookingMode_ = true;

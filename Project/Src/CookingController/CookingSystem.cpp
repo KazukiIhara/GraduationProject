@@ -1,4 +1,5 @@
-#include "CookingSystem.h"
+﻿#include "CookingSystem.h"
+#include "Wok.h"
 
 #include <imgui.h>
 #include <cmath>
@@ -24,12 +25,12 @@ CookingSystem::CookingSystem()
 void CookingSystem::Reset()
 {
 	parameters_ = CookingParameters{};
-	parameters_.fluffiness = config_.initFluffiness;
-	parameters_.aroma = config_.initAroma;
-	parameters_.volume = config_.initVolume;
+	parameters_.fluffiness = 0.0f;
+	parameters_.aroma = 0.0f;
+	parameters_.volume = 0.0f; // volume は米の量から算出（初期値は0）
 	parameters_.temperature = config_.initTemperature;
-	parameters_.umami = config_.initUmami;
-	parameters_.moisture = config_.initMoisture;
+	parameters_.umami = 0.0f;
+	parameters_.moisture = 0.0f;
 	parameters_.burnt = 0.0f;
 	parameters_.shakeCount = 0;
 	parameters_.verticalShakeCount = 0;
@@ -39,8 +40,12 @@ void CookingSystem::Reset()
 	parameters_.addedIngredients.clear();
 	parameters_.addedIngredientNames.clear();
 
-	// 初期ご飯を投入
-	AddRice(150.0f);
+	// 初期ご飯を投入（バインド先がない場合のみ単体テスト用初期値投入）
+	if (!boundFriedRice_) {
+		AddRice(150.0f);
+	} else {
+		boundFriedRice_->Reset();
+	}
 
 	isCookingMode_ = true;
 	isWokShaking_ = false;
@@ -73,28 +78,51 @@ void CookingSystem::Update(
 		return;
 	}
 
-	// 1. 火元による熱伝達と冷却
+	// 外部CookingFriedRiceとバインドされている場合、米・食材の増加を同期
+	if (boundFriedRice_) {
+		SyncWithFriedRice(*boundFriedRice_);
+	}
+
+	// volume は CookingFriedRice（または parameters_.riceAmount）の米の量のみを参照
+	// 目標米量（config_.targetRiceAmount: デフォルト150g = 一人前）で 100% となるように算出
+	float riceAmount = boundFriedRice_ ? boundFriedRice_->GetRiceAmount() : parameters_.riceAmount;
+	float targetRice = (config_.targetRiceAmount > 0.0f) ? config_.targetRiceAmount : 150.0f;
+	parameters_.volume = (riceAmount / targetRice) * 100.0f;
+
+	// 1. 火元による熱伝達と冷却（温度は米がなくても常に変化）
 	UpdateHeat(deltaTime);
 
-	// 2. 水分蒸発と焦げの進行
-	UpdateMoistureAndBurnt(deltaTime, isWokShaking);
+	// 米が入っている場合のみ、温度以外のパラメータ変化（水分蒸発・焦げ・香り拡散・炒め）を更新
+	if (parameters_.riceAmount > 0.0f) {
+		// 2. 水分蒸発と焦げの進行
+		UpdateMoistureAndBurnt(deltaTime, isWokShaking);
 
-	// 3. 香りの自然拡散
-	UpdateAroma(deltaTime);
+		// 3. 香りの自然拡散
+		UpdateAroma(deltaTime);
 
-	// 4. おたまによる継続的な炒め処理
-	if (ladleStirStrength > 0.05f) {
-		float stirAmount = ladleStirStrength * deltaTime;
-		// 炒めることで具材が均一になり旨味UP
-		parameters_.umami += config_.ladleUmamiRate * stirAmount;
-		// 水分が適正ならパラパラ度も微増
-		if (parameters_.moisture < 50.0f && parameters_.temperature >= 100.0f) {
-			parameters_.fluffiness += config_.ladleFluffinessRate * stirAmount;
+		// 4. おたまによる継続的な炒め処理
+		if (ladleStirStrength > 0.05f) {
+			float stirAmount = ladleStirStrength * deltaTime;
+			// 炒めることで具材が均一になり旨味UP
+			parameters_.umami += config_.ladleUmamiRate * stirAmount;
+			// 水分が適正ならパラパラ度も微増
+			if (parameters_.moisture < 50.0f && parameters_.temperature >= 100.0f) {
+				parameters_.fluffiness += config_.ladleFluffinessRate * stirAmount;
+			}
 		}
 	}
 
 	// パラメータを規定範囲内にクランプ
 	parameters_.ClampAll();
+
+	// 5. 調理状態（FriedRiceState）の更新と同期
+	if (boundFriedRice_) {
+		if (parameters_.burnt >= config_.judge.burntFailThreshold) {
+			boundFriedRice_->SetState(FriedRiceState::Burned);
+		} else if (boundFriedRice_->GetState() == FriedRiceState::NotStarted && parameters_.riceAmount > 0.0f) {
+			boundFriedRice_->SetState(FriedRiceState::Cooking);
+		}
+	}
 }
 
 void CookingSystem::ProcessLadleSwing(float swingDeltaZ, float deltaTime)
@@ -178,17 +206,23 @@ void CookingSystem::OnWokShake(WokShakeDirection direction, float intensity)
 	case WokShakeDirection::Vertical:
 		// 縦振り（あおり・浮かし）：宙に舞うことでパラパラ度・香り・水分蒸発・冷却
 		parameters_.verticalShakeCount++;
-		parameters_.fluffiness += config_.shakeFluffinessVertical * intensity * efficiency;
-		parameters_.aroma += config_.shakeAromaVertical * intensity;
-		parameters_.moisture = std::max(0.0f, parameters_.moisture - config_.shakeMoistureLossVertical * intensity);
+		// 米が入っている場合のみ温度以外のパラメータを変化
+		if (parameters_.riceAmount > 0.0f) {
+			parameters_.fluffiness += config_.shakeFluffinessVertical * intensity * efficiency;
+			parameters_.aroma += config_.shakeAromaVertical * intensity;
+			parameters_.moisture = std::max(0.0f, parameters_.moisture - config_.shakeMoistureLossVertical * intensity);
+		}
 		parameters_.temperature = std::max(config_.roomTemperature, parameters_.temperature - config_.shakeCoolingVertical * intensity);
 		break;
 
 	case WokShakeDirection::Horizontal:
 		// 横振り（水平回し・鍋肌）：均一加熱で旨味UP、鍋肌で焦げ防止、マイルドな冷却
 		parameters_.horizontalShakeCount++;
-		parameters_.umami += config_.shakeUmamiHorizontal * intensity;
-		parameters_.fluffiness += config_.shakeFluffinessHorizontal * intensity * efficiency;
+		// 米が入っている場合のみ温度以外のパラメータを変化
+		if (parameters_.riceAmount > 0.0f) {
+			parameters_.umami += config_.shakeUmamiHorizontal * intensity;
+			parameters_.fluffiness += config_.shakeFluffinessHorizontal * intensity * efficiency;
+		}
 		parameters_.temperature = std::max(config_.roomTemperature, parameters_.temperature - config_.shakeCoolingHorizontal * intensity);
 		break;
 
@@ -209,12 +243,15 @@ void CookingSystem::OnLadleStir(float stirIntensity)
 
 	parameters_.stirCount++;
 
-	// 単発炒めアクションによる効果
-	parameters_.umami += config_.ladleStirUmamiInstant * stirIntensity;
+	// 米が入っている場合のみ温度以外のパラメータを変化
+	if (parameters_.riceAmount > 0.0f) {
+		// 単発炒めアクションによる効果
+		parameters_.umami += config_.ladleStirUmamiInstant * stirIntensity;
 
-	// 水分量が適正で加熱中ならパラパラ度も微増
-	if (parameters_.moisture < 50.0f && parameters_.temperature >= 100.0f) {
-		parameters_.fluffiness += config_.ladleStirFluffinessInstant * stirIntensity;
+		// 水分量が適正で加熱中ならパラパラ度も微増
+		if (parameters_.moisture < 50.0f && parameters_.temperature >= 100.0f) {
+			parameters_.fluffiness += config_.ladleStirFluffinessInstant * stirIntensity;
+		}
 	}
 
 	// 具材をかき混ぜることで焦げタイマーを少し緩和
@@ -227,16 +264,40 @@ void CookingSystem::AddRice(float amount)
 {
 	if (amount <= 0.0f) return;
 
-	float scale = amount / 100.0f; // 基準100gに対するスケール
-	auto bonus = config_.GetIngredientBonus("Rice");
+	// バインド先のCookingFriedRiceがある場合、そちらにも米の量を反映
+	if (boundFriedRice_) {
+		float expectedTotal = parameters_.riceAmount + amount;
+		if (boundFriedRice_->GetRiceAmount() < expectedTotal) {
+			boundFriedRice_->AddRice(expectedTotal - boundFriedRice_->GetRiceAmount());
+		}
+	}
+
+	bool wasEmpty = (parameters_.riceAmount <= 0.0f);
 
 	parameters_.riceAmount += amount;
-	parameters_.volume += bonus.volume * scale;
-	parameters_.umami += bonus.umami * scale;
-	parameters_.aroma += bonus.aroma * scale;
-	parameters_.moisture += bonus.moisture * scale;
+	// volume は米の総量から直接算出（目標米量 config_.targetRiceAmount で100%）
+	float targetRice = (config_.targetRiceAmount > 0.0f) ? config_.targetRiceAmount : 150.0f;
+	parameters_.volume = (parameters_.riceAmount / targetRice) * 100.0f;
+
+	if (wasEmpty) {
+		// 初回米投入時に初期パラメータを設定
+		parameters_.fluffiness = config_.initFluffiness;
+		parameters_.aroma = config_.initAroma;
+		parameters_.umami = config_.initUmami;
+		parameters_.moisture = config_.initMoisture;
+	} else {
+		// 2回目以降の米追加時はボーナス差分（味が薄まる、水分増加など）を反映
+		float scale = amount / 100.0f; // 基準100gに対するスケール
+		auto bonus = config_.GetIngredientBonus("Rice");
+
+		parameters_.umami += bonus.umami * scale;
+		parameters_.aroma += bonus.aroma * scale;
+		parameters_.moisture += bonus.moisture * scale;
+	}
 
 	// 冷たい米の投入による温度低下
+	float scale = amount / 100.0f;
+	auto bonus = config_.GetIngredientBonus("Rice");
 	float cooling = (bonus.volume * scale) * kIngredientCoolingFactor;
 	parameters_.temperature = std::max(config_.roomTemperature, parameters_.temperature - cooling);
 
@@ -247,6 +308,30 @@ void CookingSystem::AddRice(float amount)
 void CookingSystem::AddIngredient(IngredientType type, float amount)
 {
 	if (amount <= 0.0f) return;
+
+	// バインド先のCookingFriedRiceがある場合、そちらにも食材を反映
+	if (boundFriedRice_) {
+		float currentBound = 0.0f;
+		for (const auto& data : boundFriedRice_->GetIngredients()) {
+			if (data.type == type) {
+				currentBound = data.amount;
+				break;
+			}
+		}
+
+		float currentParam = 0.0f;
+		for (const auto& data : parameters_.addedIngredients) {
+			if (data.type == type) {
+				currentParam = data.amount;
+				break;
+			}
+		}
+
+		float expectedTotal = currentParam + amount;
+		if (currentBound < expectedTotal) {
+			boundFriedRice_->AddIngredient(type, expectedTotal - currentBound);
+		}
+	}
 
 	std::string name = GetIngredientTypeName(type);
 	AddIngredient(name, amount);
@@ -273,10 +358,12 @@ void CookingSystem::AddIngredient(const std::string& name, float amount)
 	// JSONに設定がなければデフォルト値が自動で返却される
 	auto bonus = config_.GetIngredientBonus(name);
 
-	parameters_.volume += bonus.volume * amount;
-	parameters_.umami += bonus.umami * amount;
-	parameters_.aroma += bonus.aroma * amount;
-	parameters_.moisture += bonus.moisture * amount;
+	// 米が入っている場合のみ、炒飯パラメータ（旨味・香り・水分）を加算
+	if (parameters_.riceAmount > 0.0f) {
+		parameters_.umami += bonus.umami * amount;
+		parameters_.aroma += bonus.aroma * amount;
+		parameters_.moisture += bonus.moisture * amount;
+	}
 
 	// 冷たい具材投入による温度低下
 	float cooling = (bonus.volume * amount) * kIngredientCoolingFactor;
@@ -288,16 +375,36 @@ void CookingSystem::AddIngredient(const std::string& name, float amount)
 
 void CookingSystem::AddIngredient(const Ingredient& ingredient)
 {
-	parameters_.volume += ingredient.volumeBonus;
-	parameters_.umami += ingredient.umamiBonus;
-	parameters_.aroma += ingredient.aromaBonus;
-	parameters_.moisture += ingredient.moistureBonus;
+	// 米が入っている場合のみ、炒飯パラメータを加算
+	if (parameters_.riceAmount > 0.0f) {
+		parameters_.umami += ingredient.umamiBonus;
+		parameters_.aroma += ingredient.aromaBonus;
+		parameters_.moisture += ingredient.moistureBonus;
+	}
 
 	float cooling = ingredient.volumeBonus * kIngredientCoolingFactor;
 	parameters_.temperature = std::max(config_.roomTemperature, parameters_.temperature - cooling);
 
 	parameters_.addedIngredientNames.push_back(ingredient.name);
 	parameters_.ClampAll();
+}
+
+void CookingSystem::BindFriedRice(CookingFriedRice* friedRice)
+{
+	boundFriedRice_ = friedRice;
+	if (boundFriedRice_) {
+		// バインド先の初期状態（通常0g・具材なし）と完全同期
+		parameters_.riceAmount = 0.0f;
+		parameters_.volume = 0.0f;
+		parameters_.moisture = 0.0f;
+		parameters_.fluffiness = 0.0f;
+		parameters_.aroma = 0.0f;
+		parameters_.umami = 0.0f;
+		parameters_.burnt = 0.0f;
+		parameters_.addedIngredients.clear();
+		parameters_.addedIngredientNames.clear();
+		SyncWithFriedRice(*boundFriedRice_);
+	}
 }
 
 void CookingSystem::SyncWithFriedRice(const CookingFriedRice& friedRice)
@@ -474,17 +581,25 @@ void CookingSystem::DrawImGuiDebug()
 
 void CookingSystem::DrawImGuiStatus()
 {
+	// 色付きプログレスバーを描画するヘルパー
+	auto ColoredProgressBar = [](float fraction, const char* overlay, const ImVec4& color)
+		{
+			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, color);
+			ImGui::ProgressBar(fraction, ImVec2(-1, 0), overlay);
+			ImGui::PopStyleColor();
+		};
+
 	ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f), "=== 5 Major Parameters ===");
-	ImGui::ProgressBar(parameters_.fluffiness / 100.0f, ImVec2(-1, 0), "Fluffiness");
-	ImGui::ProgressBar(parameters_.aroma / 100.0f, ImVec2(-1, 0), "Aroma");
-	ImGui::ProgressBar(parameters_.volume / 100.0f, ImVec2(-1, 0), "Volume");
-	ImGui::ProgressBar(parameters_.umami / 100.0f, ImVec2(-1, 0), "Umami");
-	ImGui::ProgressBar(parameters_.temperature / 300.0f, ImVec2(-1, 0), "Temperature");
+	ColoredProgressBar(parameters_.fluffiness / 100.0f, "Fluffiness", ImVec4(0.85f, 0.78f, 0.45f, 1.0f));
+	ColoredProgressBar(parameters_.aroma / 100.0f, "Aroma", ImVec4(0.90f, 0.55f, 0.15f, 1.0f));
+	ColoredProgressBar(parameters_.volume / 100.0f, "Volume", ImVec4(0.30f, 0.72f, 0.40f, 1.0f));
+	ColoredProgressBar(parameters_.umami / 100.0f, "Umami", ImVec4(0.78f, 0.25f, 0.30f, 1.0f));
+	ColoredProgressBar(parameters_.temperature / 300.0f, "Temperature", ImVec4(0.92f, 0.28f, 0.15f, 1.0f));
 
 	ImGui::Separator();
 	ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "=== Simulation Sub-Parameters ===");
-	ImGui::ProgressBar(parameters_.moisture / 100.0f, ImVec2(-1, 0), "Moisture");
-	ImGui::ProgressBar(parameters_.burnt / 100.0f, ImVec2(-1, 0), "Burnt (Char)");
+	ColoredProgressBar(parameters_.moisture / 100.0f, "Moisture", ImVec4(0.15f, 0.55f, 0.85f, 1.0f));
+	ColoredProgressBar(parameters_.burnt / 100.0f, "Burnt (Char)", ImVec4(0.32f, 0.20f, 0.18f, 1.0f));
 
 	ImGui::Text("Rice Amount: %.1f g", parameters_.riceAmount);
 	ImGui::Text("Heat Exposure Timer: %.2f sec (Grace: %.1f sec)", heatExposureTimer_, config_.burnGraceTime);
@@ -616,8 +731,8 @@ void CookingSystem::DrawImGuiTuningConfig()
 				std::string label = b.displayName.empty() ? name : (name + " (" + b.displayName + ")");
 				if (ImGui::TreeNode(label.c_str())) {
 					ImGui::DragFloat("Volume Bonus", &b.volume, 0.5f, 0.0f, 150.0f, "%.1f");
-					ImGui::DragFloat("Umami Bonus", &b.umami, 0.5f, 0.0f, 50.0f, "%.1f");
-					ImGui::DragFloat("Aroma Bonus", &b.aroma, 0.5f, 0.0f, 50.0f, "%.1f");
+					ImGui::DragFloat("Umami Bonus", &b.umami, 0.5f, -20.0f, 50.0f, "%.1f");
+					ImGui::DragFloat("Aroma Bonus", &b.aroma, 0.5f, -20.0f, 50.0f, "%.1f");
 					ImGui::DragFloat("Moisture Bonus", &b.moisture, 0.5f, -20.0f, 50.0f, "%.1f");
 					ImGui::TreePop();
 				}
@@ -627,6 +742,7 @@ void CookingSystem::DrawImGuiTuningConfig()
 
 		// 8. 審査員配点・閾値
 		if (ImGui::TreeNode("8. Judge Scoring")) {
+			ImGui::DragFloat("Target Rice Amount (100% Vol)", &config_.targetRiceAmount, 5.0f, 50.0f, 500.0f, "%.0f g");
 			ImGui::DragFloat("Fluffiness Weight", &config_.judge.fluffinessWeight, 0.02f, 0.0f, 1.0f, "%.2f");
 			ImGui::DragFloat("Umami Weight", &config_.judge.umamiWeight, 0.02f, 0.0f, 1.0f, "%.2f");
 			ImGui::DragFloat("Volume Weight", &config_.judge.volumeWeight, 0.02f, 0.0f, 1.0f, "%.2f");
@@ -664,6 +780,11 @@ void CookingSystem::DrawImGuiActions()
 		if (selectedLevel == 1) lvl = ShakeStrengthLevel::Weak;
 		else if (selectedLevel == 3) lvl = ShakeStrengthLevel::Strong;
 		OnWokShake(dir, lvl);
+
+		// 鍋（Wok）がバインドされていればアニメーションも開始
+		if (boundWok_) {
+			boundWok_->TriggerShakeAnimation();
+		}
 	}
 
 	ImGui::SameLine();

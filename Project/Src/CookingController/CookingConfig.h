@@ -108,12 +108,13 @@ struct CookingTuningConfig
 	// -----------------------------------------------------
 	// 8. 評論家審査・スコア配分
 	// -----------------------------------------------------
+	float targetRiceAmount = 150.0f;        // 満点（volume = 100%）となる目標米量（g）
 	JudgeConfig judge;
 
 	// -----------------------------------------------------
 	// 外部ファイル読み書き
 	// -----------------------------------------------------
-	bool LoadFromFile(const std::filesystem::path& path = "Assets/Parameters/CookingConfig.json");
-	bool SaveToFile(const std::filesystem::path& path = "Assets/Parameters/CookingConfig.json") const;
+	bool LoadFromFile(const std::filesystem::path& path = "../Assets/Parameters/CookingConfig.json");
+	bool SaveToFile(const std::filesystem::path& path = "../Assets/Parameters/CookingConfig.json") const;
 	void ResetToDefault();
 };

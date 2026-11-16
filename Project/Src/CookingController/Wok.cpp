@@ -1,4 +1,4 @@
-﻿#include "Wok.h"
+#include "Wok.h"
 
 #include "imgui.h"
 
@@ -111,6 +111,12 @@ void Wok::Draw() const {
 void Wok::DrawImGuiDebug() {
 #ifdef _DEBUG
 	ImGui::Begin("Wok");
+
+	if (ImGui::Button("Trigger Shake Animation")) {
+		TriggerShakeAnimation();
+	}
+	ImGui::Text("Animation: [%s]", isAnimationPlaying_ ? "PLAYING" : "Idle");
+	ImGui::ProgressBar(GetAnimationProgress(), ImVec2(-1, 0), "Progress");
 
 	ImGui::DragFloat3("Position", &position_.x, 0.01f);
 	ImGui::DragFloat3("Rotation", &rotation_.x, 0.01f);

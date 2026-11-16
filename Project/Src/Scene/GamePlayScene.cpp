@@ -71,6 +71,9 @@ GamePlayScene::GamePlayScene(const InitData& init) :
 
 	// 中華レンジの配置位置を調理システムの火元位置に同期
 	cookingController_->GetCookingSystem().SetHeatSourcePosition(stageManager_->GetChineseRangePosition());
+
+	// 食材マネージャーの炒飯モデルを調理システムに連携（バインド）
+	cookingController_->GetCookingSystem().BindFriedRice(&ingredientManager_->GetCookingFriedRice());
 }
 
 void GamePlayScene::Update() {
