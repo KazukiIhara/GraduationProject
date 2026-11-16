@@ -1,4 +1,4 @@
-﻿#include "CookingSystem.h"
+#include "CookingSystem.h"
 
 #include <imgui.h>
 #include <cmath>
@@ -35,8 +35,12 @@ void CookingSystem::Reset()
 	parameters_.verticalShakeCount = 0;
 	parameters_.horizontalShakeCount = 0;
 	parameters_.stirCount = 0;
+	parameters_.riceAmount = 0.0f;
 	parameters_.addedIngredients.clear();
-	parameters_.addedIngredients.push_back(IngredientType::Rice);
+	parameters_.addedIngredientNames.clear();
+
+	// 初期ご飯を投入
+	AddRice(150.0f);
 
 	isCookingMode_ = true;
 	isWokShaking_ = false;
@@ -219,60 +223,109 @@ void CookingSystem::OnLadleStir(float stirIntensity)
 	parameters_.ClampAll();
 }
 
-void CookingSystem::AddIngredient(IngredientType type)
+void CookingSystem::AddRice(float amount)
 {
-	Ingredient item{};
-	item.type = type;
+	if (amount <= 0.0f) return;
 
-	auto applyBonus = [&](const std::string& name, const CookingTuningConfig::IngredientBonus& b) {
-		item.name = name;
-		item.volumeBonus = b.volume;
-		item.umamiBonus = b.umami;
-		item.aromaBonus = b.aroma;
-		item.moistureBonus = b.moisture;
-	};
+	float scale = amount / 100.0f; // 基準100gに対するスケール
+	auto bonus = config_.GetIngredientBonus("Rice");
 
-	switch (type)
-	{
-	case IngredientType::Rice:
-		applyBonus("追加ご飯", config_.ingRice);
-		break;
-	case IngredientType::Egg:
-		applyBonus("溶き卵", config_.ingEgg);
-		break;
-	case IngredientType::Pork:
-		applyBonus("豚肉（狩猟肉）", config_.ingPork);
-		break;
-	case IngredientType::Chicken:
-		applyBonus("鶏肉（狩猟肉）", config_.ingChicken);
-		break;
-	case IngredientType::Beef:
-		applyBonus("牛肉（大型狩猟肉）", config_.ingBeef);
-		break;
-	case IngredientType::GreenOnion:
-		applyBonus("刻みネギ", config_.ingGreenOnion);
-		break;
-	case IngredientType::Seasoning:
-		applyBonus("秘伝の調味料", config_.ingSeasoning);
-		break;
+	parameters_.riceAmount += amount;
+	parameters_.volume += bonus.volume * scale;
+	parameters_.umami += bonus.umami * scale;
+	parameters_.aroma += bonus.aroma * scale;
+	parameters_.moisture += bonus.moisture * scale;
+
+	// 冷たい米の投入による温度低下
+	float cooling = (bonus.volume * scale) * kIngredientCoolingFactor;
+	parameters_.temperature = std::max(config_.roomTemperature, parameters_.temperature - cooling);
+
+	parameters_.addedIngredientNames.push_back("Rice");
+	parameters_.ClampAll();
+}
+
+void CookingSystem::AddIngredient(IngredientType type, float amount)
+{
+	if (amount <= 0.0f) return;
+
+	std::string name = GetIngredientTypeName(type);
+	AddIngredient(name, amount);
+
+	// CookingFriedRice互換の履歴に登録
+	auto it = std::find_if(
+		parameters_.addedIngredients.begin(),
+		parameters_.addedIngredients.end(),
+		[type](const IngredientData& data) {
+			return data.type == type;
+		});
+
+	if (it != parameters_.addedIngredients.end()) {
+		it->amount += amount;
+	} else {
+		parameters_.addedIngredients.push_back({ type, amount });
 	}
+}
 
-	AddIngredient(item);
+void CookingSystem::AddIngredient(const std::string& name, float amount)
+{
+	if (amount <= 0.0f) return;
+
+	// JSONに設定がなければデフォルト値が自動で返却される
+	auto bonus = config_.GetIngredientBonus(name);
+
+	parameters_.volume += bonus.volume * amount;
+	parameters_.umami += bonus.umami * amount;
+	parameters_.aroma += bonus.aroma * amount;
+	parameters_.moisture += bonus.moisture * amount;
+
+	// 冷たい具材投入による温度低下
+	float cooling = (bonus.volume * amount) * kIngredientCoolingFactor;
+	parameters_.temperature = std::max(config_.roomTemperature, parameters_.temperature - cooling);
+
+	parameters_.addedIngredientNames.push_back(name);
+	parameters_.ClampAll();
 }
 
 void CookingSystem::AddIngredient(const Ingredient& ingredient)
 {
-	parameters_.addedIngredients.push_back(ingredient.type);
 	parameters_.volume += ingredient.volumeBonus;
 	parameters_.umami += ingredient.umamiBonus;
 	parameters_.aroma += ingredient.aromaBonus;
 	parameters_.moisture += ingredient.moistureBonus;
 
-	// 冷たい具材が入ることで鍋の温度が少し低下する
-	float coolingFromIngredient = ingredient.volumeBonus * kIngredientCoolingFactor;
-	parameters_.temperature = std::max(config_.roomTemperature, parameters_.temperature - coolingFromIngredient);
+	float cooling = ingredient.volumeBonus * kIngredientCoolingFactor;
+	parameters_.temperature = std::max(config_.roomTemperature, parameters_.temperature - cooling);
 
+	parameters_.addedIngredientNames.push_back(ingredient.name);
 	parameters_.ClampAll();
+}
+
+void CookingSystem::SyncWithFriedRice(const CookingFriedRice& friedRice)
+{
+	// 米の同期
+	float deltaRice = friedRice.GetRiceAmount() - parameters_.riceAmount;
+	if (deltaRice > 0.0f) {
+		AddRice(deltaRice);
+	}
+
+	// 具材の同期
+	for (const auto& ing : friedRice.GetIngredients()) {
+		float currentAmount = 0.0f;
+		auto it = std::find_if(
+			parameters_.addedIngredients.begin(),
+			parameters_.addedIngredients.end(),
+			[&](const IngredientData& data) {
+				return data.type == ing.type;
+			});
+		if (it != parameters_.addedIngredients.end()) {
+			currentAmount = it->amount;
+		}
+
+		float deltaAmount = ing.amount - currentAmount;
+		if (deltaAmount > 0.0f) {
+			AddIngredient(ing.type, deltaAmount);
+		}
+	}
 }
 
 void CookingSystem::UpdateHeat(float deltaTime)
@@ -433,6 +486,7 @@ void CookingSystem::DrawImGuiStatus()
 	ImGui::ProgressBar(parameters_.moisture / 100.0f, ImVec2(-1, 0), "Moisture");
 	ImGui::ProgressBar(parameters_.burnt / 100.0f, ImVec2(-1, 0), "Burnt (Char)");
 
+	ImGui::Text("Rice Amount: %.1f g", parameters_.riceAmount);
 	ImGui::Text("Heat Exposure Timer: %.2f sec (Grace: %.1f sec)", heatExposureTimer_, config_.burnGraceTime);
 	ImGui::Text("Attract Radius: %.1f m (Max: %.1f m)", GetAttractRadius(), config_.attractMaxRadius);
 
@@ -556,24 +610,18 @@ void CookingSystem::DrawImGuiTuningConfig()
 			ImGui::TreePop();
 		}
 
-		// 7. 食材ボーナス
+		// 7. 食材ボーナス（動的マップから全食材を表示）
 		if (ImGui::TreeNode("7. Ingredient Bonuses")) {
-			auto drawBonusUI = [](const char* name, CookingTuningConfig::IngredientBonus& b) {
-				if (ImGui::TreeNode(name)) {
-					ImGui::DragFloat("Volume Bonus", &b.volume, 0.5f, 0.0f, 50.0f, "%.1f");
+			for (auto& [name, b] : config_.ingredientBonuses) {
+				std::string label = b.displayName.empty() ? name : (name + " (" + b.displayName + ")");
+				if (ImGui::TreeNode(label.c_str())) {
+					ImGui::DragFloat("Volume Bonus", &b.volume, 0.5f, 0.0f, 150.0f, "%.1f");
 					ImGui::DragFloat("Umami Bonus", &b.umami, 0.5f, 0.0f, 50.0f, "%.1f");
 					ImGui::DragFloat("Aroma Bonus", &b.aroma, 0.5f, 0.0f, 50.0f, "%.1f");
 					ImGui::DragFloat("Moisture Bonus", &b.moisture, 0.5f, -20.0f, 50.0f, "%.1f");
 					ImGui::TreePop();
 				}
-			};
-			drawBonusUI("Rice (Base)", config_.ingRice);
-			drawBonusUI("Egg", config_.ingEgg);
-			drawBonusUI("Pork (Hunt)", config_.ingPork);
-			drawBonusUI("Chicken (Hunt)", config_.ingChicken);
-			drawBonusUI("Beef (Large Hunt)", config_.ingBeef);
-			drawBonusUI("Green Onion", config_.ingGreenOnion);
-			drawBonusUI("Seasoning", config_.ingSeasoning);
+			}
 			ImGui::TreePop();
 		}
 
@@ -623,21 +671,31 @@ void CookingSystem::DrawImGuiActions()
 		OnLadleStir(1.0f);
 	}
 
-	// 具材追加テスト
+	// 具材追加テスト（CookingFriedRice準拠 & 米追加）
 	if (ImGui::TreeNode("Add Ingredients Test")) {
-		if (ImGui::Button("Rice")) AddIngredient(IngredientType::Rice);
+		// 米の投入量指定（スライダー & クイックボタン）
+		static float inputRiceAmount = 150.0f;
+		ImGui::DragFloat("Rice Amount (g)", &inputRiceAmount, 10.0f, 10.0f, 1000.0f, "%.0f g");
+		if (ImGui::Button("Add Specified Rice")) {
+			AddRice(inputRiceAmount);
+		}
 		ImGui::SameLine();
-		if (ImGui::Button("Egg")) AddIngredient(IngredientType::Egg);
+		if (ImGui::Button("+50g"))  { AddRice(50.0f); }
 		ImGui::SameLine();
-		if (ImGui::Button("Pork")) AddIngredient(IngredientType::Pork);
+		if (ImGui::Button("+100g")) { AddRice(100.0f); }
 		ImGui::SameLine();
-		if (ImGui::Button("Chicken")) AddIngredient(IngredientType::Chicken);
+		if (ImGui::Button("+150g")) { AddRice(150.0f); }
+
+		ImGui::Separator();
+		// 各食材の投入量指定
+		static float inputIngredientAmount = 1.0f;
+		ImGui::DragFloat("Ingredient Scale", &inputIngredientAmount, 0.1f, 0.1f, 10.0f, "%.1f");
+		if (ImGui::Button("Add Egg"))         AddIngredient(IngredientType::Egg, inputIngredientAmount);
 		ImGui::SameLine();
-		if (ImGui::Button("Beef")) AddIngredient(IngredientType::Beef);
+		if (ImGui::Button("Add Green Onion")) AddIngredient(IngredientType::GreenOnion, inputIngredientAmount);
 		ImGui::SameLine();
-		if (ImGui::Button("Green Onion")) AddIngredient(IngredientType::GreenOnion);
-		ImGui::SameLine();
-		if (ImGui::Button("Seasoning")) AddIngredient(IngredientType::Seasoning);
+		if (ImGui::Button("Add Meat"))        AddIngredient(IngredientType::Meat, inputIngredientAmount);
+
 		ImGui::TreePop();
 	}
 

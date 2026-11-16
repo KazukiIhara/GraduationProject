@@ -1,5 +1,5 @@
 #include "AnimalTestScene.h"
-#include "Animals/Rabbit.h"
+#include "Animals/SetUp/DropFoodManager.h"
 
 AnimalTestScene::AnimalTestScene(const InitData& init)
 	: SampleScene(init){
@@ -9,9 +9,12 @@ AnimalTestScene::AnimalTestScene(const InitData& init)
 void AnimalTestScene::Update() {
 	spawnAnimals_->BornAnimals();
 	spawnAnimals_->Update();
+
+	DropFoodManager::GetInstance()->Update();
 }
 
 void AnimalTestScene::Draw() const {
 	DrawStage();
 	spawnAnimals_->Draw();
+	DropFoodManager::GetInstance()->Draw();
 }

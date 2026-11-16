@@ -7,8 +7,16 @@
 #include "LGF/LGFMath.h"
 
 #include "AppMath/AppMath.h"
+#include "Input/XboxController.h"
 
 using namespace LGF;
+
+namespace {
+
+	constexpr float kXboxTriggerThreshold = 0.5f;
+	constexpr float kXboxAcceleration = 1.0f;
+
+}
 
 Ladle::Ladle() {
 	position_ = kBasePosition;
@@ -16,8 +24,8 @@ Ladle::Ladle() {
 }
 
 void Ladle::Update() {
-	// ジョイコン入力操作
-	JoyConInput();
+	// コントローラー入力操作
+	ControllerInput();
 
 	float targetZ = kBasePosition.z + currentSwingOffsetZ_;
 
@@ -55,16 +63,28 @@ void Ladle::DrawImGuiDebug()
 #endif
 }
 
-void Ladle::JoyConInput() {
+void Ladle::ControllerInput() {
+	float accelerationZ = 0.0f;
 	const std::optional<Gamepad> right = JoyCon::Right();
 	if(right) {
 		// 加速度センサーの取得
-		Vector3 accel = right->Acceleration(GamepadSensorType::Right);
-		// 前後の動きに対応する軸に掛け合わせる
-		float moveDelta = accel.z * sensitivity_ * 0.05f; // 値が大きくなりすぎないよう補正
-		// 振った勢いをオフセットに加算
-		currentSwingOffsetZ_ += moveDelta;
-		// 動かせる距離に限界を設ける
-		currentSwingOffsetZ_ = std::clamp(currentSwingOffsetZ_, kMaxBackwardLimit, kMaxForwardLimit);
+		accelerationZ += right->Acceleration(GamepadSensorType::Right).z;
 	}
+
+	const auto xboxController = XboxController::Get();
+	if (xboxController.has_value() &&
+		xboxController->RightTrigger() >= kXboxTriggerThreshold) {
+		// 右トリガーが閾値を超えたら一定の加速度入力として扱う
+		accelerationZ += kXboxAcceleration;
+	}
+
+	// 前後の動きに対応する軸に掛け合わせる
+	const float moveDelta = accelerationZ * sensitivity_ * 0.05f;
+	// 振った勢いをオフセットに加算
+	currentSwingOffsetZ_ += moveDelta;
+	// 動かせる距離に限界を設ける
+	currentSwingOffsetZ_ = std::clamp(
+		currentSwingOffsetZ_,
+		kMaxBackwardLimit,
+		kMaxForwardLimit);
 }

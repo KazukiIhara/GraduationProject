@@ -46,7 +46,7 @@ private:
 	// Constants
 	// =========================================================
 
-	const LGF::Vector3 kBasePosition = { 5.0f, 5.0f, 9.0f };
+	const LGF::Vector3 kBasePosition = { 8.0f, 5.0f, 9.0f };
 	const LGF::Vector3 kBaseRotation = { 0.0f, 0.0f, 0.0f, };
 	const LGF::Vector3 kBaseScale = { 8.0f, 3.0f, 1.0f };
 

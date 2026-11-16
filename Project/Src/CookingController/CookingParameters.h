@@ -1,37 +1,40 @@
 ﻿#pragma once
 
+#include "Cooking/CookingFriedRice.h"
+
 #include <string>
 #include <vector>
 
 // =========================================================
-// 炒飯パラメータ & 食材定義
+// 炒飯パラメータ & 食材定義（CookingFriedRice準拠）
 // =========================================================
 
 /// <summary>
-/// 食材の種類
+/// 食材種類の文字列表現を取得（JSONキーや設定取得用）
+/// 将来新しい食材がCookingFriedRice.hに追加された場合でも、
+/// ここ以外のコードを修正せずに安全にフォールバック動作します
 /// </summary>
-enum class IngredientType
+inline std::string GetIngredientTypeName(IngredientType type)
 {
-	Rice,        // ご飯（ベース）
-	Egg,         // 卵
-	Pork,        // 豚肉（狩猟で入手）
-	Chicken,     // 鶏肉（狩猟で入手）
-	Beef,        // 牛肉（狩猟で入手）
-	GreenOnion,  // ネギ
-	Seasoning,   // 調味料（塩コショウ・醤油など）
-};
+	switch (type)
+	{
+	case IngredientType::Egg:        return "Egg";
+	case IngredientType::GreenOnion: return "GreenOnion";
+	case IngredientType::Meat:       return "Meat";
+	default:                         return "Ingredient_" + std::to_string(static_cast<int>(type));
+	}
+}
 
 /// <summary>
 /// 具材情報
 /// </summary>
 struct Ingredient
 {
-	IngredientType type = IngredientType::Rice;
-	std::string name = "ご飯";
-	float volumeBonus = 20.0f;     // ボリューム上昇量
+	std::string name = "具材";
+	float volumeBonus = 15.0f;     // ボリューム上昇量
 	float umamiBonus = 10.0f;      // 旨味上昇量
 	float aromaBonus = 5.0f;       // 香り上昇量
-	float moistureBonus = 15.0f;   // 水分量（炒める前のしっとり感）
+	float moistureBonus = 10.0f;   // 水分量（炒める前のしっとり感）
 };
 
 /// <summary>
@@ -92,12 +95,16 @@ struct CookingParameters
 
 	float moisture = 60.0f;      // 水分量（高いとベチャベチャ、適度でパラパラ、ゼロになると焦げやすい）
 	float burnt = 0.0f;          // 焦げ度（高温で放置するとUP、減点対象）
+	float riceAmount = 0.0f;     // 米の量（g）
 
 	int shakeCount = 0;          // 鍋振り総回数
 	int verticalShakeCount = 0;  // 縦振り（あおり）回数
 	int horizontalShakeCount = 0;// 横振り（水平回し）回数
 	int stirCount = 0;           // おたま炒め回数
-	std::vector<IngredientType> addedIngredients; // 投入された具材履歴
+
+	// 投入された具材履歴（CookingFriedRice互換 & 汎用名称リスト）
+	std::vector<IngredientData> addedIngredients;
+	std::vector<std::string> addedIngredientNames;
 
 	// -----------------------------------------------------
 	// パラメータクランプ

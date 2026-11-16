@@ -1,9 +1,10 @@
-﻿#pragma once
+#pragma once
 
 #include <memory>
 #include "Wok.h"
 #include "Ladle.h"
 #include "CookingSystem.h"
+#include "LGF/Physics.h"
 
 // =========================================================
 // 調理器具管理クラス
@@ -18,7 +19,7 @@ public:
 	/// <summary>
 	/// コンストラクタ
 	/// </summary>
-	CookingController();
+	explicit CookingController(LGF::Physics::PhysicsWorld& physicsWorld);
 
 	/// <summary>
 	/// 更新処理

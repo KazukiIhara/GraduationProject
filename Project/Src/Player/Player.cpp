@@ -8,6 +8,7 @@
 
 #include "DebugDraw/DebugDraw.h"
 #include "Collision/CollisionManager.h"
+#include "Input/XboxController.h"
 
 using namespace LGF;
 
@@ -59,6 +60,12 @@ void Player::Update(float cameraYaw) {
 		if (aButton.Trigger()) {
 			isInteractTriggerd = true;
 		}
+	}
+
+	const auto xboxController = XboxController::Get();
+	if (xboxController.has_value() &&
+		xboxController->Button(GamepadButtonCode::South).Trigger()) {
+		isInteractTriggerd = true;
 	}
 
 	bool wasCookingMode = isCookingMode_; // 前フレームのモード状態を保持
@@ -154,10 +161,8 @@ bool Player::ProcessInput(LGF::Vector3& outMoveDir) {
 	outMoveDir = {0.0f, 0.0f, 0.0f};
 	bool isPressed = false;
 
-	/* Joy-Con左スティック操作 */
-	auto leftJoyCon = JoyCon::Left();
-	if (leftJoyCon.has_value() && leftJoyCon->IsConnected()) {
-		Vector2 stick = leftJoyCon->LeftStick();
+	auto processStickInput = [&](const Gamepad& gamepad) {
+		Vector2 stick = gamepad.LeftStick();
 
 		// デッドゾーン処理
 		if (std::abs(stick.x) < kDeadZone)
@@ -170,6 +175,20 @@ bool Player::ProcessInput(LGF::Vector3& outMoveDir) {
 			outMoveDir.z = stick.y;
 			return true;
 		}
+
+		return false;
+	};
+
+	/* Joy-Con左スティック操作 */
+	auto leftJoyCon = JoyCon::Left();
+	if (leftJoyCon.has_value() && processStickInput(*leftJoyCon)) {
+		return true;
+	}
+
+	/* Xboxコントローラー左スティック操作 */
+	const auto xboxController = XboxController::Get();
+	if (xboxController.has_value() && processStickInput(*xboxController)) {
+		return true;
 	}
 
 	/* キーボード操作 */

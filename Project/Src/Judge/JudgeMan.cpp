@@ -3,12 +3,14 @@
 #include "imgui.h"
 #include "LGF/Input.h"
 #include "LGF/LGFMath.h"
+#include "LGF/System.h"
 
 #include "AppMath/AppMath.h"
 #include "../Player/Player.h"
 #include "LGF/Input.h"
 
 #include "ConversationData.h"
+#include "Input/XboxController.h"
 
 #include <cassert>
 #include <random>
@@ -19,10 +21,18 @@ JudgeMan::JudgeMan() {
 	position_ = kBasePosition;
 	rotation_ = kBaseRotation;
 	message_ = std::make_unique<Message>();
+
+	//アニメーション初期化
+	modelAnimator_.Play("Idle", opt);
+
 }
 
 void JudgeMan::Update(const Player* player, const LGF::DebugCamera3D& camera) {
 	message_->Update(camera);
+	const auto xboxController = XboxController::Get();
+	const bool isTalkTriggered = Key::C.Trigger() ||
+		(xboxController.has_value() &&
+			xboxController->Button(GamepadButtonCode::South).Trigger());
 
 	// 審査員がIdle状態のとき
 	if (state_ == JudgeManState::JudgeManState_Idle) {
@@ -37,12 +47,14 @@ void JudgeMan::Update(const Player* player, const LGF::DebugCamera3D& camera) {
 			// 会話可能UIを表示
 			message_->SetIsTalkUIVisible(true);
 
-			// Spaceで会話開始
-			if (Key::Space.Trigger()) {
+			// SpaceまたはXbox Aボタンで会話開始
+			if (isTalkTriggered) {
 				// メッセージを表示
 				message_->SetIsDisplay(true);
 				// 審査員の状態をTalkingに切り替える
 				state_ = JudgeManState::JudgeManState_Talking;
+				// アニメーションを切り替える
+				modelAnimator_.Play("Conversation", opt);
 				//会話の内容を登録（ランダム）
 				std::vector<std::string> group = {
 					"demoA",
@@ -64,15 +76,21 @@ void JudgeMan::Update(const Player* player, const LGF::DebugCamera3D& camera) {
 	// 審査員がTalking状態のとき
 	else if (state_ == JudgeManState::JudgeManState_Talking) {
 		// 会話を進める処理
-		if (Key::Space.Trigger()) {
+		if (isTalkTriggered) {
 			if (!message_->Next()) {
 				// 会話が終了した場合、審査員の状態をIdleに切り替える
 				state_ = JudgeManState::JudgeManState_Idle;
+				// アニメーションを切り替える
+				modelAnimator_.Play("Idle", opt);
 				// メッセージを非表示にする
 				message_->SetIsDisplay(false);
 			}
 		}
 	}
+
+	//アニメーション更新
+	modelAnimator_.Update((float)System::DeltaTime());
+
 }
 
 void JudgeMan::Draw() const {
@@ -87,7 +105,7 @@ void JudgeMan::Draw() const {
 		ModelDrawOptions options{};
 		options.color = Color::White;
 
-		model_.Draw(worldMatrix, options);
+		model_.Draw(worldMatrix,modelAnimator_, options);
 	}
 	
 	// メッセージの描画

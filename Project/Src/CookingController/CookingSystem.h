@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "CookingParameters.h"
 #include "CookingConfig.h"
@@ -73,15 +73,34 @@ public:
 	void ProcessLadleSwing(float swingDeltaZ, float deltaTime);
 
 	/// <summary>
-	/// 食材を中華鍋に投入
+	/// 米（ご飯）を中華鍋に投入
 	/// </summary>
-	/// <param name="type">投入する食材の種類</param>
-	void AddIngredient(IngredientType type);
+	/// <param name="amount">追加する米の量（g）</param>
+	void AddRice(float amount = 100.0f);
 
 	/// <summary>
-	/// 食材投入（詳細定義指定）
+	/// 食材を中華鍋に投入（CookingFriedRiceのIngredientTypeに対応）
+	/// </summary>
+	/// <param name="type">投入する食材の種類</param>
+	/// <param name="amount">投入量（標準: 1.0f）</param>
+	void AddIngredient(IngredientType type, float amount = 1.0f);
+
+	/// <summary>
+	/// 食材を中華鍋に投入（食材名直接指定：未知の新規食材にも対応）
+	/// </summary>
+	/// <param name="name">食材の名称（例: "Egg", "Meat", "Tomato" 等）</param>
+	/// <param name="amount">投入量（標準: 1.0f）</param>
+	void AddIngredient(const std::string& name, float amount = 1.0f);
+
+	/// <summary>
+	/// 食材投入（詳細定義指定・互換用）
 	/// </summary>
 	void AddIngredient(const Ingredient& ingredient);
+
+	/// <summary>
+	/// CookingFriedRice の状態（米の量や投入具材）からパラメータを一括同期
+	/// </summary>
+	void SyncWithFriedRice(const CookingFriedRice& friedRice);
 
 	// -----------------------------------------------------
 	// 外部（中華レンジ・鍋・動物・審査員）との接続支援

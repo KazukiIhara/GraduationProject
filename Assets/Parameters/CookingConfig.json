@@ -38,6 +38,12 @@
     "scoreMasterpiece": 90
   },
   "Ingredients": {
+    "Meat": {
+      "aroma": 15.0,
+      "moisture": 15.0,
+      "umami": 25.0,
+      "volume": 30.0
+    },
     "Beef": {
       "umami": 30.0,
       "volume": 35.0,

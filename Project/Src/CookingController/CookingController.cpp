@@ -1,10 +1,10 @@
-﻿#include "CookingController.h"
+#include "CookingController.h"
 
 #include <cmath>
 #include "LGF/System.h"
 
-CookingController::CookingController() {
-	wok_ = std::make_unique<Wok>();
+CookingController::CookingController(LGF::Physics::PhysicsWorld& physicsWorld) {
+	wok_ = std::make_unique<Wok>(physicsWorld);
 	ladle_ = std::make_unique<Ladle>();
 	cookingSystem_ = std::make_unique<CookingSystem>();
 

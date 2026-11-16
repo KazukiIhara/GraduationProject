@@ -2,9 +2,93 @@
 
 #include "LGF/Parameter.h"
 
+CookingTuningConfig::IngredientBonus CookingTuningConfig::GetDefaultIngredientBonus(const std::string& name)
+{
+	IngredientBonus bonus;
+	bonus.displayName = name;
+
+	if (name == "Rice") {
+		bonus.displayName = "追加ご飯";
+		bonus.volume = 100.0f;
+		bonus.umami = 5.0f;
+		bonus.aroma = 2.0f;
+		bonus.moisture = 30.0f;
+	} else if (name == "Egg") {
+		bonus.displayName = "溶き卵";
+		bonus.volume = 20.0f;
+		bonus.umami = 10.0f;
+		bonus.aroma = 5.0f;
+		bonus.moisture = 25.0f;
+	} else if (name == "GreenOnion") {
+		bonus.displayName = "刻みネギ";
+		bonus.volume = 10.0f;
+		bonus.umami = 8.0f;
+		bonus.aroma = 15.0f;
+		bonus.moisture = 10.0f;
+	} else if (name == "Meat") {
+		bonus.displayName = "肉（狩猟肉）";
+		bonus.volume = 30.0f;
+		bonus.umami = 25.0f;
+		bonus.aroma = 15.0f;
+		bonus.moisture = 15.0f;
+	} else if (name == "Pork") {
+		bonus.displayName = "豚肉（狩猟肉）";
+		bonus.volume = 25.0f;
+		bonus.umami = 20.0f;
+		bonus.aroma = 12.0f;
+		bonus.moisture = 15.0f;
+	} else if (name == "Chicken") {
+		bonus.displayName = "鶏肉（狩猟肉）";
+		bonus.volume = 25.0f;
+		bonus.umami = 18.0f;
+		bonus.aroma = 10.0f;
+		bonus.moisture = 15.0f;
+	} else if (name == "Beef") {
+		bonus.displayName = "牛肉（大型狩猟肉）";
+		bonus.volume = 35.0f;
+		bonus.umami = 30.0f;
+		bonus.aroma = 20.0f;
+		bonus.moisture = 15.0f;
+	} else if (name == "Seasoning") {
+		bonus.displayName = "秘伝の調味料";
+		bonus.volume = 2.0f;
+		bonus.umami = 20.0f;
+		bonus.aroma = 10.0f;
+		bonus.moisture = -5.0f;
+	} else {
+		// 未知の食材：汎用的な初期バランス値で自動設定
+		bonus.displayName = name;
+		bonus.volume = 15.0f;
+		bonus.umami = 10.0f;
+		bonus.aroma = 5.0f;
+		bonus.moisture = 10.0f;
+	}
+
+	return bonus;
+}
+
+CookingTuningConfig::IngredientBonus CookingTuningConfig::GetIngredientBonus(const std::string& name) const
+{
+	auto it = ingredientBonuses.find(name);
+	if (it != ingredientBonuses.end()) {
+		return it->second;
+	}
+
+	// JSONや設定に存在しない食材はデフォルト値で設定
+	return GetDefaultIngredientBonus(name);
+}
+
 void CookingTuningConfig::ResetToDefault()
 {
 	*this = CookingTuningConfig{};
+
+	// 標準食材テーブルの初期登録
+	const std::vector<std::string> standardIngredients = {
+		"Rice", "Egg", "GreenOnion", "Meat", "Pork", "Chicken", "Beef", "Seasoning"
+	};
+	for (const auto& name : standardIngredients) {
+		ingredientBonuses[name] = GetDefaultIngredientBonus(name);
+	}
 }
 
 bool CookingTuningConfig::SaveToFile(const std::filesystem::path& path) const
@@ -66,20 +150,14 @@ bool CookingTuningConfig::SaveToFile(const std::filesystem::path& path) const
 	doc.Set("Initial/umami", initUmami);
 	doc.Set("Initial/moisture", initMoisture);
 
-	// 7. 食材ボーナス
-	auto setBonus = [&](const std::string& prefix, const IngredientBonus& b) {
+	// 7. 食材ボーナス（動的保存：登録されているすべての食材を保存）
+	for (const auto& [name, b] : ingredientBonuses) {
+		const std::string prefix = "Ingredients/" + name;
 		doc.Set(prefix + "/volume", b.volume);
 		doc.Set(prefix + "/umami", b.umami);
 		doc.Set(prefix + "/aroma", b.aroma);
 		doc.Set(prefix + "/moisture", b.moisture);
-	};
-	setBonus("Ingredients/Rice", ingRice);
-	setBonus("Ingredients/Egg", ingEgg);
-	setBonus("Ingredients/Pork", ingPork);
-	setBonus("Ingredients/Chicken", ingChicken);
-	setBonus("Ingredients/Beef", ingBeef);
-	setBonus("Ingredients/GreenOnion", ingGreenOnion);
-	setBonus("Ingredients/Seasoning", ingSeasoning);
+	}
 
 	// 8. 審査員判定
 	doc.Set("Judge/fluffinessWeight", judge.fluffinessWeight);
@@ -100,6 +178,7 @@ bool CookingTuningConfig::LoadFromFile(const std::filesystem::path& path)
 	LGF::ParameterDocument doc;
 	auto res = doc.Load(path);
 	if (!res.succeeded) {
+		ResetToDefault();
 		return false;
 	}
 
@@ -158,20 +237,32 @@ bool CookingTuningConfig::LoadFromFile(const std::filesystem::path& path)
 	initUmami = doc.GetOr<float>("Initial/umami", initUmami);
 	initMoisture = doc.GetOr<float>("Initial/moisture", initMoisture);
 
-	// 7. 食材ボーナス
-	auto getBonus = [&](const std::string& prefix, IngredientBonus& b) {
-		b.volume = doc.GetOr<float>(prefix + "/volume", b.volume);
-		b.umami = doc.GetOr<float>(prefix + "/umami", b.umami);
-		b.aroma = doc.GetOr<float>(prefix + "/aroma", b.aroma);
-		b.moisture = doc.GetOr<float>(prefix + "/moisture", b.moisture);
+	// 7. 食材ボーナス（動的走査：JSON内のすべての食材ノードを自動読み込み）
+	ingredientBonuses.clear();
+	const auto& root = doc.GetRoot();
+	auto ingIt = root.children.find("Ingredients");
+	if (ingIt != root.children.end()) {
+		for (const auto& [ingName, ingNode] : ingIt->second.children) {
+			IngredientBonus def = GetDefaultIngredientBonus(ingName);
+			IngredientBonus b;
+			b.displayName = def.displayName;
+			b.volume = doc.GetOr<float>("Ingredients/" + ingName + "/volume", def.volume);
+			b.umami = doc.GetOr<float>("Ingredients/" + ingName + "/umami", def.umami);
+			b.aroma = doc.GetOr<float>("Ingredients/" + ingName + "/aroma", def.aroma);
+			b.moisture = doc.GetOr<float>("Ingredients/" + ingName + "/moisture", def.moisture);
+			ingredientBonuses[ingName] = b;
+		}
+	}
+
+	// 基本食材（Rice, Egg, GreenOnion, Meat）がJSONになければデフォルト値で自動補完
+	const std::vector<std::string> standardIngredients = {
+		"Rice", "Egg", "GreenOnion", "Meat"
 	};
-	getBonus("Ingredients/Rice", ingRice);
-	getBonus("Ingredients/Egg", ingEgg);
-	getBonus("Ingredients/Pork", ingPork);
-	getBonus("Ingredients/Chicken", ingChicken);
-	getBonus("Ingredients/Beef", ingBeef);
-	getBonus("Ingredients/GreenOnion", ingGreenOnion);
-	getBonus("Ingredients/Seasoning", ingSeasoning);
+	for (const auto& name : standardIngredients) {
+		if (ingredientBonuses.find(name) == ingredientBonuses.end()) {
+			ingredientBonuses[name] = GetDefaultIngredientBonus(name);
+		}
+	}
 
 	// 8. 審査員判定
 	judge.fluffinessWeight = doc.GetOr<float>("Judge/fluffinessWeight", judge.fluffinessWeight);

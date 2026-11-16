@@ -1,6 +1,6 @@
 #pragma once
 #include "Scene/SampleScene.h"
-#include "Animals/SpawnAnimals.h"
+#include "Animals/SetUp/SpawnAnimals.h"
 
 /// <summary>
 /// 動物テストシーン

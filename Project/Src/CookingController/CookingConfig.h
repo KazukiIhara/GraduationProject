@@ -1,8 +1,9 @@
-﻿#pragma once
+#pragma once
 
 #include "CookingParameters.h"
 #include <filesystem>
 #include <string>
+#include <unordered_map>
 
 // =========================================================
 // 調理システムのチューニングパラメータ設定
@@ -80,22 +81,29 @@ struct CookingTuningConfig
 	float initMoisture = 55.0f;
 
 	// -----------------------------------------------------
-	// 7. 食材投入ボーナス
+	// 7. 食材投入ボーナス（動的マップ管理：新規食材追加に対応）
 	// -----------------------------------------------------
 	struct IngredientBonus
 	{
-		float volume = 0.0f;
-		float umami = 0.0f;
-		float aroma = 0.0f;
-		float moisture = 0.0f;
+		std::string displayName; // 表示名
+		float volume = 15.0f;    // ボリューム上昇量
+		float umami = 10.0f;     // 旨味上昇量
+		float aroma = 5.0f;      // 香り上昇量
+		float moisture = 10.0f;  // 水分量
 	};
-	IngredientBonus ingRice{ 15.0f, 2.0f, 1.0f, 15.0f };
-	IngredientBonus ingEgg{ 5.0f, 6.0f, 4.0f, 8.0f };
-	IngredientBonus ingPork{ 10.0f, 10.0f, 6.0f, 4.0f };
-	IngredientBonus ingChicken{ 8.0f, 8.0f, 5.0f, 4.0f };
-	IngredientBonus ingBeef{ 15.0f, 14.0f, 8.0f, 5.0f };
-	IngredientBonus ingGreenOnion{ 3.0f, 4.0f, 8.0f, 2.0f };
-	IngredientBonus ingSeasoning{ 0.0f, 10.0f, 6.0f, 1.0f };
+
+	// 食材ごとのパラメータテーブル（キー: "Rice", "Egg", "GreenOnion", "Meat" 等）
+	std::unordered_map<std::string, IngredientBonus> ingredientBonuses;
+
+	/// <summary>
+	/// 食材のボーナスを取得（JSONに存在しない食材でも安全にデフォルト値を返却）
+	/// </summary>
+	IngredientBonus GetIngredientBonus(const std::string& name) const;
+
+	/// <summary>
+	/// 食材のデフォルト設定値を取得
+	/// </summary>
+	static IngredientBonus GetDefaultIngredientBonus(const std::string& name);
 
 	// -----------------------------------------------------
 	// 8. 評論家審査・スコア配分
