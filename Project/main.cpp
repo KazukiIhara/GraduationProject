@@ -19,7 +19,7 @@ void Main() {
 	sceneManager.Register<GamePlayScene>(SceneNames::GamePlayScene);
 	sceneManager.Register<ColliderWorldDemoScene>(SceneNames::ColliderWorldDemo);
 	sceneManager.Register<PhysicsWorldDemoScene>(SceneNames::PhysicsWorldDemo);
-	sceneManager.Change(SceneNames::GamePlayScene);
+	sceneManager.Change(SceneNames::AnimalTest);
 
 	while (System::Update()) {
 		sceneManager.Update();

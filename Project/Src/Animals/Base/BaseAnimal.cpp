@@ -94,6 +94,12 @@ bool BaseAnimal::IsAnticipationTime(Target target, float maxTime) {
 	return false;
 }
 
+void BaseAnimal::AttackFinishCommon(){
+	attackPoint_ = AppMath::InvisiblePlace();
+	isAttack_ = false;
+	isAttackFinish_ = true;
+}
+
 void BaseAnimal::Dead() {
 	if (rotate_.x >= -1.25f) {
 		rotate_.x -= 1.25f * (float)LGF::System::DeltaTime();

@@ -97,6 +97,12 @@ protected:
 	/// <returns></returns>
 	bool IsAnticipationTime(Target target, float maxTime);
 
+	/// <summary>
+	/// 攻撃終了処理(共通分)
+	/// </summary>
+	void AttackFinishCommon();
+
+
 	LGF::Box3D object_;
 
 	LGF::Vector3 position_;
@@ -127,7 +133,7 @@ protected:
 	LGF::Collision::ColliderHandle attackAreaColliderHandle_;// 攻撃範囲
 	
 	
-	LGF::Vector3 attackPoint_ = AppMath::InvisiblePlace();;
+	LGF::Vector3 attackPoint_ = AppMath::InvisiblePlace();
 
 	bool isAttack_ = false;
 	bool isAttackFinish_ = true;

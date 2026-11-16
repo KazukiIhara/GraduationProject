@@ -98,11 +98,9 @@ void Rabbit::Attack(Target target) {
 		attackPoint_ = position_;
 
 		if (jumpTimer_ >= kJumpTimeFinish_) {
-			attackPoint_ = AppMath::InvisiblePlace();
 			jumpTimer_ = 0.0f;
 			jumpDelayTimer_ = 0.0f;
-			isAttack_ = false;
-			isAttackFinish_ = true;
+			AttackFinishCommon();
 		}
 	}
 	else {
