@@ -23,7 +23,6 @@ JudgeMan::JudgeMan() {
 	message_ = std::make_unique<Message>();
 
 	//アニメーション初期化
-	ModelAnimationPlayOptions opt;
 	modelAnimator_.Play("Idle", opt);
 
 }
@@ -31,7 +30,7 @@ JudgeMan::JudgeMan() {
 void JudgeMan::Update(const Player* player, const LGF::DebugCamera3D& camera) {
 	message_->Update(camera);
 	const auto xboxController = XboxController::Get();
-	const bool isTalkTriggered = Key::Space.Trigger() ||
+	const bool isTalkTriggered = Key::C.Trigger() ||
 		(xboxController.has_value() &&
 			xboxController->Button(GamepadButtonCode::South).Trigger());
 
@@ -54,6 +53,8 @@ void JudgeMan::Update(const Player* player, const LGF::DebugCamera3D& camera) {
 				message_->SetIsDisplay(true);
 				// 審査員の状態をTalkingに切り替える
 				state_ = JudgeManState::JudgeManState_Talking;
+				// アニメーションを切り替える
+				modelAnimator_.Play("Conversation", opt);
 				//会話の内容を登録（ランダム）
 				std::vector<std::string> group = {
 					"demoA",
@@ -79,6 +80,8 @@ void JudgeMan::Update(const Player* player, const LGF::DebugCamera3D& camera) {
 			if (!message_->Next()) {
 				// 会話が終了した場合、審査員の状態をIdleに切り替える
 				state_ = JudgeManState::JudgeManState_Idle;
+				// アニメーションを切り替える
+				modelAnimator_.Play("Idle", opt);
 				// メッセージを非表示にする
 				message_->SetIsDisplay(false);
 			}
