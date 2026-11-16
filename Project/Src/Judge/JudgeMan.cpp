@@ -3,6 +3,7 @@
 #include "imgui.h"
 #include "LGF/Input.h"
 #include "LGF/LGFMath.h"
+#include "LGF/System.h"
 
 #include "AppMath/AppMath.h"
 #include "../Player/Player.h"
@@ -20,6 +21,11 @@ JudgeMan::JudgeMan() {
 	position_ = kBasePosition;
 	rotation_ = kBaseRotation;
 	message_ = std::make_unique<Message>();
+
+	//アニメーション初期化
+	ModelAnimationPlayOptions opt;
+	modelAnimator_.Play("Idle", opt);
+
 }
 
 void JudgeMan::Update(const Player* player, const LGF::DebugCamera3D& camera) {
@@ -78,6 +84,10 @@ void JudgeMan::Update(const Player* player, const LGF::DebugCamera3D& camera) {
 			}
 		}
 	}
+
+	//アニメーション更新
+	modelAnimator_.Update((float)System::DeltaTime());
+
 }
 
 void JudgeMan::Draw() const {
@@ -92,7 +102,7 @@ void JudgeMan::Draw() const {
 		ModelDrawOptions options{};
 		options.color = Color::White;
 
-		model_.Draw(worldMatrix, options);
+		model_.Draw(worldMatrix,modelAnimator_, options);
 	}
 	
 	// メッセージの描画
