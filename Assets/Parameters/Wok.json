@@ -1,0 +1,59 @@
+{
+  "Material": {
+    "Friction": {
+      "editor": {
+        "max": 1.0,
+        "min": 0.0,
+        "step": 0.009999999776482582
+      },
+      "type": "Float",
+      "value": 0.009999999776482582
+    },
+    "Restitution": {
+      "editor": {
+        "max": 1.0,
+        "min": 0.0,
+        "step": 0.009999999776482582
+      },
+      "type": "Float",
+      "value": 0.0
+    }
+  },
+  "Shape": {
+    "Height": {
+      "editor": {
+        "min": 0.0010000000474974513,
+        "step": 0.009999999776482582
+      },
+      "type": "Float",
+      "value": 0.75
+    },
+    "InnerRadius": {
+      "editor": {
+        "min": 0.0010000000474974513,
+        "step": 0.009999999776482582
+      },
+      "type": "Float",
+      "value": 1.0
+    },
+    "OuterApexOffset": {
+      "editor": {
+        "step": 0.009999999776482582
+      },
+      "type": "Vec3",
+      "value": {
+        "x": 0.0,
+        "y": -0.3700000047683716,
+        "z": 0.0
+      }
+    },
+    "OuterRadius": {
+      "editor": {
+        "min": 0.0010000000474974513,
+        "step": 0.009999999776482582
+      },
+      "type": "Float",
+      "value": 1.100000023841858
+    }
+  }
+}
