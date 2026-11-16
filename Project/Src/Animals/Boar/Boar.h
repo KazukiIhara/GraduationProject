@@ -11,5 +11,10 @@ class Boar : public BaseAnimal {
 	/// 移動方法
 	/// </summary>
 	void Move() override;
+	/// <summary>
+	/// 攻撃処理
+	/// </summary>
+	/// <param name="target">プレイヤーか炒飯か</param>
+	void Attack(Target target) override;
 };
 

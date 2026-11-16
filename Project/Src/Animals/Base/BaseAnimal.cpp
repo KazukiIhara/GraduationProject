@@ -1,9 +1,35 @@
 #include "BaseAnimal.h"
 #include "Animals/SetUp/DropFoodManager.h"
+#include "DebugDraw/DebugDraw.h"
+#include "Collision/CollisionManager.h"
 
 using namespace LGF;
 
 void BaseAnimal::Update() {
+
+	/* 中華レンジのインタラクト用センサー判定 */
+	auto events = CollisionManager::GetInstance()->GetEvents(bodyColliderHandle_);
+
+	auto checkSensor = [&](const auto& eventList) {
+		for (const auto& collision : eventList) {
+			if (collision.tag == "") {
+				//プレイヤーの攻撃でダメージ
+			}
+		}
+	};
+
+	LGF::Collision::AABB attackAreaCollisionAABB{
+		attackPoint_ + kAttackColliderMin,
+		attackPoint_ + kAttackColliderMax
+	};
+	LGF::Collision::AABB bodyCollisionAABB{
+		position_ + kColliderMin,
+		position_ + kColliderMax
+	};
+
+	CollisionManager::GetInstance()->SetShape(attackAreaColliderHandle_, attackAreaCollisionAABB);
+	CollisionManager::GetInstance()->SetShape(bodyColliderHandle_, bodyCollisionAABB);
+
 	if (!state_) {
 		state_ = std::make_unique<MoveAnimalState>();
 	}
@@ -17,6 +43,24 @@ void BaseAnimal::Update() {
 void BaseAnimal::Draw() {
 	Matrix4x4 worldMatrix = Math::MakeAffineMatrix(Vector3{ 1.0f,1.0f,1.0f }, Math::MakeQuaternion(rotate_), position_);
 	object_.Draw(worldMatrix, color_);
+
+#ifdef _DEBUG
+	// コライダーデバッグ描画
+	auto stateOpt = CollisionManager::GetInstance()->GetColliderState(attackAreaColliderHandle_);
+	if (stateOpt.has_value()) {
+		if (std::holds_alternative<LGF::Collision::AABB>(stateOpt->shape)) {
+			DebugDraw::DrawAABB(std::get<LGF::Collision::AABB>(stateOpt->shape), { 1.0f, 0.0f, 0.0f, 1.0f });
+		}
+	}
+	// コライダーデバッグ描画
+	stateOpt = CollisionManager::GetInstance()->GetColliderState(bodyColliderHandle_);
+	if (stateOpt.has_value()) {
+		if (std::holds_alternative<LGF::Collision::AABB>(stateOpt->shape)) {
+			DebugDraw::DrawAABB(std::get<LGF::Collision::AABB>(stateOpt->shape), { 0.0f, 1.0f, 0.0f, 1.0f });
+		}
+	}
+#endif
+
 }
 
 void BaseAnimal::SetPlayerPosition(const LGF::Vector3& playerPos) {
@@ -27,24 +71,27 @@ void BaseAnimal::SetCharHanPosition(const LGF::Vector3& playerPos) {
 	chaHanPosition_ = playerPos;
 }
 
-void BaseAnimal::Attack(Target target) {
-
-	t += (float)LGF::System::DeltaTime();
-
-	if (target == Target::charhan) {
-		position_.y = cos(t);
-	}
-	else if (target == Target::player) {
-		position_.y = sin(t);
-		//向き
-		rotate_.y = std::atan2(LGF::Math::Normalize(playerPosition_ - position_).x, LGF::Math::Normalize(playerPosition_ - position_).z);
+bool BaseAnimal::IsAnticipationTime(Target target, float maxTime) {	
+	
+	if (isAttack_) {
+		anticipationTime_ = 0.0f;
+		return false;
 	}
 
-	if (t >= 1.0f) {
-		t = 0.0f;
-		position_.y = 1.0f;
-		isAttack_ = false;
+	if (anticipationTime_ >= maxTime) {
+		isAttack_ = true;
+		return true;
 	}
+	else {
+		anticipationTime_ += (float)LGF::System::DeltaTime();
+
+		//ターゲットがプレイヤーなら方向を向く
+		if (target == Target::player) {
+			rotate_.y = std::atan2(LGF::Math::Normalize(playerPosition_ - position_).x, LGF::Math::Normalize(playerPosition_ - position_).z);
+		}
+	}
+
+	return false;
 }
 
 void BaseAnimal::Dead() {
@@ -52,9 +99,13 @@ void BaseAnimal::Dead() {
 		rotate_.x -= 1.25f * (float)LGF::System::DeltaTime();
 	}
 	deadAnimationTime_ += (float)LGF::System::DeltaTime();
+	
+	CollisionManager::GetInstance()->RemoveCollider(bodyColliderHandle_);	
+	CollisionManager::GetInstance()->RemoveCollider(attackAreaColliderHandle_);
 
 	if(IsDelete()) {
 		DropFoodManager::GetInstance()->ActivationDropFood(position_);
+
 	}
 }
 
@@ -74,7 +125,7 @@ bool BaseAnimal::IsAttackAreaInTarget(Target target) {
 
 	//対象物との距離が一定以下なら進まない
 	if (dot <= attackRadius_) {
-		isAttack_ = true;
+		isAttackFinish_ = false;
 		return true;
 	}
 
