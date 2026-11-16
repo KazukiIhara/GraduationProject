@@ -1,47 +1,9 @@
-#pragma once
+﻿#pragma once
 
 #include "CookingParameters.h"
+#include "CookingConfig.h"
 #include "HeatSource.h"
 #include "LGF/Math/Vector3.h"
-
-// =========================================================
-// 調理システムのチューニング用パラメータ設定
-// =========================================================
-struct CookingTuningConfig
-{
-	// 熱・温度
-	float heatOutput = 24.0f;				// 中華レンジの熱出力 (℃/s) - 常温25℃から適温180℃まで約6〜7秒(暫定)
-	float coolingRate = 2.5f;				// 自然放熱係数 (℃/s) - 余熱が適度に持続する穏やかな冷却
-
-	// 水分蒸発・焦げ
-	float evapRateCoeff = 0.22f;			// 水分蒸発の基準係数（平方根スケーリングで高温時の急増を抑制）
-	float residualEvapMultiplier = 0.15f;	// 余熱時の蒸発倍率（加熱中の15%で水分が飛ぶ）
-	float burnGraceTime = 3.5f;				// 焦げ始めるまでの猶予時間 (秒)
-	float burnRateCoeff = 1.0f;				// 焦げ進行速度係数
-	float burnStartTemp = 180.0f;			// 焦げ始める温度 (℃)
-	float burnMaxMoisture = 12.0f;			// 焦げ始める水分上限 (%)
-
-	// 鍋振りアクション効果（向き別の効果設定）
-	float shakeFluffinessVertical = 2.0f;   // 縦振りのパラパラ上昇値
-	float shakeAromaVertical = 2.5f;        // 縦振りの香り拡散値
-	float shakeMoistureLossVertical = 0.3f; // 縦振りの水分蒸発ボーナス
-	float shakeCoolingVertical = 12.0f;     // 縦振りの冷却値 (℃) - 空中に舞い熱を放出
-	float shakeUmamiHorizontal = 1.2f;      // 横振りの旨味上昇値
-	float shakeFluffinessHorizontal = 0.8f; // 横振りのパラパラ上昇値
-	float shakeCoolingHorizontal = 3.5f;    // 横振りの冷却値 (℃) - 鍋肌を滑る微小冷却
-
-	// 強さの閾値係数（暫定で3段階）
-	float strengthWeakCoeff = 0.5f;         // 弱の係数
-	float strengthMediumCoeff = 1.0f;       // 中の係数
-	float strengthStrongCoeff = 1.5f;       // 強の係数
-
-	// おたまアクション効果
-	float ladleUmamiRate = 1.0f;			// おたま炒めの旨味上昇率 (毎秒)
-	float ladleFluffinessRate = 0.5f;		// おたま炒めのパラパラ上昇率 (毎秒)
-
-	// 香り減衰
-	float aromaDecayRate = 0.2f;			// 香りの毎秒自然減衰値
-};
 
 // =========================================================
 // 調理システム（火元・パラメータ・調理処理の統合マネージャー）
@@ -62,20 +24,15 @@ public:
 	void Reset();
 
 	/// <summary>
-	/// 毎フレームの調理更新処理（ステートベース：調理場フラグ・鍋振り・炒め入力で更新）
+	/// 毎フレームの調理更新処理（ステートベース：調理モード・鍋振り・炒め入力で更新）
 	/// 調理場にセットされているかで自動加熱/冷却を管理します
 	/// </summary>
 	void Update(
 		float deltaTime,
-		bool isAtCookingStation,
+		bool isCookingMode,
 		bool isWokShaking,
 		float ladleStirStrength = 0.0f
 	);
-
-	/// <summary>
-	/// 毎フレームの調理更新処理（内部状態とDeltaTimeを使用する簡易オーバーロード）
-	/// </summary>
-	void Update();
 
 	// -----------------------------------------------------
 	// 調理アクション（向き・強さベース）
@@ -131,12 +88,16 @@ public:
 	// -----------------------------------------------------
 
 	/// <summary>
-	/// 調理場（コンロ近く）に鍋がセットされているかを設定
-	/// true: 鍋がコンロに自動オフセットされ、加熱状態になります
+	/// 調理モード中（中華レンジ前に立ち、鍋がセットされているか）を設定
+	/// true: 加熱状態となり、放置すると焦げが進行します
 	/// false: コンロから鍋が離れ、加熱が停止（自然放熱）します
 	/// </summary>
-	void SetAtCookingStation(bool isAtStation) { isAtCookingStation_ = isAtStation; }
-	bool IsAtCookingStation() const { return isAtCookingStation_; }
+	void SetCookingMode(bool isCooking) { isCookingMode_ = isCooking; }
+	bool IsCookingMode() const { return isCookingMode_; }
+
+	// 互換用エイリアス
+	void SetAtCookingStation(bool isAtStation) { isCookingMode_ = isAtStation; }
+	bool IsAtCookingStation() const { return isCookingMode_; }
 
 	/// <summary>
 	/// 中華レンジ（StageManager）の配置位置を火元位置に設定
@@ -158,22 +119,22 @@ public:
 	/// <summary>
 	/// 香りが届く最大有効半径（メートル）。BaseAnimalの索敵範囲用
 	/// </summary>
-	float GetAttractRadius(float maxRadius = 35.0f) const
+	float GetAttractRadius() const
 	{
-		return maxRadius * GetAttractAnimalStrength();
+		return config_.attractMaxRadius * GetAttractAnimalStrength();
 	}
 
 	/// <summary>
 	/// 指定座標の動物が炒飯の匂い感知範囲に入っているか判定
 	/// </summary>
-	bool IsAnimalAttracted(const LGF::Vector3& animalPos, float maxRadius = 35.0f) const;
+	bool IsAnimalAttracted(const LGF::Vector3& animalPos) const;
 
 	/// <summary>
 	/// 評論家による現在の炒飯の評価を取得
 	/// </summary>
 	CookingParameters::JudgeEvaluation GetCurrentEvaluation() const
 	{
-		return parameters_.Evaluate();
+		return parameters_.Evaluate(config_.judge);
 	}
 
 	/// <summary>
@@ -268,6 +229,15 @@ private:
 	/// </summary>
 	void UpdateAroma(float deltaTime);
 
+	// -----------------------------------------------------
+	// ImGui 分割描画ヘルパー
+	// -----------------------------------------------------
+	void DrawImGuiStatus();
+	void DrawImGuiStove();
+	void DrawImGuiTuningConfig();
+	void DrawImGuiActions();
+	void DrawImGuiJudgePreview();
+
 private:
 	// =========================================================
 	// Member Variables
@@ -277,8 +247,8 @@ private:
 	HeatSource heatSource_;
 	CookingTuningConfig config_;
 
-	// 調理場（コンロ近く）に立っているか（自動オフセット・加熱状態制御）
-	bool isAtCookingStation_ = true;
+	// 料理モード（中華レンジ前に立ち、鍋がセットされているか）
+	bool isCookingMode_ = true;
 	bool isWokShaking_ = false;
 	float ladleStirStrength_ = 0.0f;
 
@@ -288,9 +258,4 @@ private:
 	// デバッグ用フラグ
 	bool isDebugPause_ = false;                 // シミュレーション一時停止（パラメータ固定・手動観察用）
 	bool isDebugForceCookingStation_ = false;   // 強制的に調理場にいる扱いにする（遠隔テスト用）
-
-	// 常温（室温）
-	const float kRoomTemperature = 25.0f;
-	// 自然放熱係数
-	const float kCoolingRate = 8.0f;
 };

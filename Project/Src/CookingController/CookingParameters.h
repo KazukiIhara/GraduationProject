@@ -1,9 +1,7 @@
-#pragma once
+﻿#pragma once
 
 #include <string>
 #include <vector>
-#include <algorithm>
-#include <cmath>
 
 // =========================================================
 // 炒飯パラメータ & 食材定義
@@ -58,6 +56,22 @@ enum class ShakeStrengthLevel
 };
 
 /// <summary>
+/// 評論家審査パラメータ（配点ウェイト・減点閾値）
+/// </summary>
+struct JudgeConfig
+{
+	float fluffinessWeight = 0.40f;    // パラパラ度配分 (40%)
+	float umamiWeight = 0.35f;         // 旨味配分 (35%)
+	float volumeWeight = 0.25f;        // ボリューム配分 (25%)
+	float burnPenaltyThreshold = 20.0f;// 焦げ減点開始閾値 (%)
+	float burnPenaltyRate = 1.5f;      // 焦げ減点レート
+	float burntFailThreshold = 60.0f;  // 即不合格の焦げ閾値 (%)
+	int scoreMasterpiece = 85;         // Sランク点数
+	int scoreDelicious = 65;           // Aランク点数
+	int scoreAcceptable = 45;          // Bランク点数
+};
+
+/// <summary>
 /// 炒飯の5大パラメータおよび調理状態
 /// </summary>
 struct CookingParameters
@@ -86,21 +100,12 @@ struct CookingParameters
 	std::vector<IngredientType> addedIngredients; // 投入された具材履歴
 
 	// -----------------------------------------------------
-	// クランプ処理
+	// パラメータクランプ
 	// -----------------------------------------------------
-	void ClampAll()
-	{
-		fluffiness = std::clamp(fluffiness, 0.0f, 100.0f);
-		aroma = std::clamp(aroma, 0.0f, 100.0f);
-		volume = std::clamp(volume, 0.0f, 100.0f);
-		temperature = std::clamp(temperature, 0.0f, 300.0f);
-		umami = std::clamp(umami, 0.0f, 100.0f);
-		moisture = std::clamp(moisture, 0.0f, 100.0f);
-		burnt = std::clamp(burnt, 0.0f, 100.0f);
-	}
+	void ClampAll();
 
 	/// <summary>
-	/// レーダーチャート用の正規化値 (0.0f ～ 1.0f) を取得
+	/// レーダーチャート用の正規化値 (0.0f ～ 1.0f)
 	/// スライド12「究極の炒飯を作ろう」の5大パラメータに対応
 	/// </summary>
 	struct RadarChartData
@@ -119,32 +124,11 @@ struct CookingParameters
 			return (fluffiness + aroma + volume + temperature + umami) / 5.0f;
 		}
 	};
-	using NormalizedRadarValues = RadarChartData; // 互換用エイリアス
 
-	RadarChartData GetRadarChartData() const
-	{
-		RadarChartData norm{};
-		norm.fluffiness = std::clamp(fluffiness / 100.0f, 0.0f, 1.0f);
-		norm.aroma = std::clamp(aroma / 100.0f, 0.0f, 1.0f);
-		norm.volume = std::clamp(volume / 100.0f, 0.0f, 1.0f);
-		norm.umami = std::clamp(umami / 100.0f, 0.0f, 1.0f);
-
-		// 温度は適温（約150～210℃）で最大値1.0
-		if (temperature < 60.0f) {
-			norm.temperature = std::clamp(temperature / 120.0f, 0.0f, 0.5f); // 冷めている
-		} else if (temperature <= 210.0f) {
-			norm.temperature = 0.5f + (temperature - 60.0f) / 150.0f * 0.5f; // 適温
-		} else {
-			norm.temperature = std::max(0.3f, 1.0f - (temperature - 210.0f) / 70.0f * 0.5f); // 熱すぎ
-		}
-
-		return norm;
-	}
-
-	RadarChartData GetNormalizedValues() const
-	{
-		return GetRadarChartData();
-	}
+	/// <summary>
+	/// レーダーチャート用正規化データを取得
+	/// </summary>
+	RadarChartData GetRadarChartData() const;
 
 	// -----------------------------------------------------
 	// 評論家（JudgeMan）の評価判定
@@ -160,68 +144,17 @@ struct CookingParameters
 
 	struct JudgeEvaluation
 	{
-		JudgeGrade grade;
-		int totalScore;             // 100点満点
-		std::string comment;        // 評論家のセリフ（日本語・会話UI用）
-		std::string commentEn;      // 評論家のセリフ（英語・ImGui等のASCII環境用）
-		bool isAccepted;            // 合格かどうか
-
-		// スライド12対応：5大パラメータのレーダーチャートデータ (0.0f ～ 1.0f)
-		RadarChartData radarChart;
-
-		// Messageクラス（テクスチャ会話表示）に渡すテクスチャ名リスト
-		std::vector<std::string> messageTextures;
+		JudgeGrade grade = JudgeGrade::Unacceptable;
+		int totalScore = 0;                     // 100点満点
+		std::string comment;                    // 評論家のセリフ（日本語・会話UI用）
+		std::string commentEn;                  // 評論家のセリフ（英語・ImGui用）
+		bool isAccepted = false;                // 合格かどうか
+		RadarChartData radarChart;              // 5大パラメータレーダーチャート
+		std::vector<std::string> messageTextures;// 会話表示用テクスチャ名リスト
 	};
 
-	JudgeEvaluation Evaluate() const
-	{
-		JudgeEvaluation eval{};
-		eval.radarChart = GetRadarChartData();
-
-		// 評価対象パラメータ: パラパラ度(40%)、旨味(35%)、ボリューム(25%)
-		// ※ 温度や香りは調理・狩猟誘引用のパラメータであり、最終評価には使用しない
-		float score = (fluffiness * 0.40f) + (umami * 0.35f) + (volume * 0.25f);
-
-		// 焦げペナルティ
-		if (burnt > 20.0f) {
-			score -= (burnt - 20.0f) * 1.5f;
-		}
-
-		eval.totalScore = std::clamp(static_cast<int>(std::round(score)), 0, 100);
-
-		// 判定とセリフ・テクスチャ（Message::RegisterConversationDataにそのまま渡せる）
-		if (burnt >= 60.0f) {
-			eval.grade = JudgeGrade::Unacceptable;
-			eval.isAccepted = false;
-			eval.comment = "丸焦げじゃないか！こんな炒飯、認められるか！";
-			eval.commentEn = "Completely burnt! This is not acceptable at all!";
-			eval.messageTextures = { "demoC1.png" }; // 将来専用画像に差し替え可能
-		} else if (eval.totalScore >= 85) {
-			eval.grade = JudgeGrade::Masterpiece;
-			eval.isAccepted = true;
-			eval.comment = "こ、これは究極の炒飯…！やるじゃないか…！";
-			eval.commentEn = "Incredible... this is the Ultimate Golden Fried Rice!";
-			eval.messageTextures = { "demoA1.png", "demoA2.png" };
-		} else if (eval.totalScore >= 65) {
-			eval.grade = JudgeGrade::Delicious;
-			eval.isAccepted = true;
-			eval.comment = "パラパラで旨味も十分、なかなかの腕前だな！";
-			eval.commentEn = "Fluffy and rich in umami! Splendid cooking skill!";
-			eval.messageTextures = { "demoA1.png" };
-		} else if (eval.totalScore >= 45) {
-			eval.grade = JudgeGrade::Acceptable;
-			eval.isAccepted = true;
-			eval.comment = "ふむ、悪くはないが…まだ改善の余地があるな。";
-			eval.commentEn = "Not bad, but there is still room for improvement.";
-			eval.messageTextures = { "demoB1.png" };
-		} else {
-			eval.grade = JudgeGrade::Unacceptable;
-			eval.isAccepted = false;
-			eval.comment = "こんな炒飯、認められるか！出直してこい！";
-			eval.commentEn = "Unacceptable! Practice more and try again!";
-			eval.messageTextures = { "demoC1.png" };
-		}
-
-		return eval;
-	}
+	/// <summary>
+	/// 評論家による炒飯の総合評価
+	/// </summary>
+	JudgeEvaluation Evaluate(const JudgeConfig& config = JudgeConfig{}) const;
 };

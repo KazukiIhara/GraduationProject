@@ -1,0 +1,110 @@
+{
+  "Initial": {
+    "umami": 0.0,
+    "moisture": 60.0,
+    "fluffiness": 20.0,
+    "temperature": 25.0,
+    "volume": 0.0,
+    "aroma": 10.0
+  },
+  "Heat": {
+    "heatOutput": 24.0,
+    "roomTemperature": 25.0,
+    "naturalCoolingRate": 2.5,
+    "targetMaxTemperature": 240.0,
+    "tempDiffCoolingCoeff": 0.015
+  },
+  "Aroma": {
+    "decayRate": 0.5,
+    "attractMaxRadius": 30.0
+  },
+  "MoistureBurnt": {
+    "evapRateCoeff": 0.22,
+    "burnStartTemp": 180.0,
+    "burnGraceTime": 5.0,
+    "burnRateCoeff": 1.0,
+    "residualEvapMultiplier": 0.15,
+    "burnMaxMoisture": 12.0
+  },
+  "Judge": {
+    "burnPenaltyRate": 1.5,
+    "burnPenaltyThreshold": 10.0,
+    "scoreDelicious": 75,
+    "scoreAcceptable": 60,
+    "fluffinessWeight": 0.35,
+    "burntFailThreshold": 50.0,
+    "volumeWeight": 0.3,
+    "umamiWeight": 0.35,
+    "scoreMasterpiece": 90
+  },
+  "Ingredients": {
+    "Beef": {
+      "umami": 30.0,
+      "volume": 35.0,
+      "aroma": 20.0,
+      "moisture": 15.0
+    },
+    "Pork": {
+      "umami": 25.0,
+      "volume": 30.0,
+      "aroma": 15.0,
+      "moisture": 15.0
+    },
+    "Chicken": {
+      "umami": 20.0,
+      "volume": 25.0,
+      "aroma": 10.0,
+      "moisture": 15.0
+    },
+    "Rice": {
+      "umami": 5.0,
+      "volume": 100.0,
+      "aroma": 2.0,
+      "moisture": 30.0
+    },
+    "Seasoning": {
+      "umami": 20.0,
+      "volume": 2.0,
+      "aroma": 10.0,
+      "moisture": -5.0
+    },
+    "Egg": {
+      "umami": 10.0,
+      "volume": 20.0,
+      "aroma": 5.0,
+      "moisture": 25.0
+    },
+    "GreenOnion": {
+      "umami": 8.0,
+      "volume": 10.0,
+      "aroma": 15.0,
+      "moisture": 10.0
+    }
+  },
+  "Ladle": {
+    "stirFluffinessInstant": 0.4,
+    "swingThreshold": 0.5,
+    "swingSpeedScale": 0.2,
+    "umamiRate": 1.0,
+    "fluffinessRate": 1.5,
+    "stirUmamiInstant": 0.3
+  },
+  "WokShake": {
+    "goldenZoneEfficiency": 1.5,
+    "coolingVertical": 12.0,
+    "strengthMediumCoeff": 1.0,
+    "goldenZoneMoistMax": 35.0,
+    "goldenZoneMoistMin": 15.0,
+    "wetZoneEfficiency": 0.8,
+    "fluffinessVertical": 2.0,
+    "aromaVertical": 2.5,
+    "dryZoneEfficiency": 0.7,
+    "strengthWeakCoeff": 0.5,
+    "coolingHorizontal": 4.0,
+    "goldenZoneTempMin": 160.0,
+    "moistureLossVertical": 0.3,
+    "strengthStrongCoeff": 1.5,
+    "umamiHorizontal": 1.2,
+    "fluffinessHorizontal": 0.8
+  }
+}
