@@ -63,6 +63,7 @@ void StageManager::Initialize(const std::string& jsonFilePath, LGF::Physics::Phy
 			// PhysicsWorldへの静的オブジェクト登録
 			LGF::Vector3 baseHalfExtents{0.5f, 0.5f, 0.5f}; // デフォルト値
 			float offsetY = 0.0f; // Y軸オフセット
+			bool skipPhysics = false; // 物理をスキップするフラグ
 
 			if (modelName == "ground") {
 				baseHalfExtents = {100.0f, 0.5f, 100.0f};
@@ -82,35 +83,27 @@ void StageManager::Initialize(const std::string& jsonFilePath, LGF::Physics::Phy
 			} else if (modelName == "grass_01") {
 				baseHalfExtents = {1.0f, 1.0f, 1.0f};
 				offsetY = 1.0f;
+				skipPhysics = true; // 物理ワールド登録をスキップ
 			} else if (modelName == "chineseRange") {
 				baseHalfExtents = {1.0f, 1.0f, 1.0f};
 				offsetY = 1.0f;
 			}
 
-			LGF::Vector3 finalHalfExtents = {
-				baseHalfExtents.x * data.scale.x, 
-				baseHalfExtents.y * data.scale.y, 
-				baseHalfExtents.z * data.scale.z
-			};
+			if (!skipPhysics) {
+				LGF::Vector3 finalHalfExtents = {baseHalfExtents.x * data.scale.x, baseHalfExtents.y * data.scale.y, baseHalfExtents.z * data.scale.z};
 
-			LGF::Vector3 adjustedPosition = {
-				data.position.x, 
-				data.position.y + offsetY * data.scale.y, 
-				data.position.z
-			};
+				LGF::Vector3 adjustedPosition = {data.position.x, data.position.y + offsetY * data.scale.y, data.position.z};
 
-			LGF::Collision::AABB boxShape {
-				.min = adjustedPosition - finalHalfExtents, 
-				.max = adjustedPosition + finalHalfExtents
-            };
+				LGF::Collision::AABB boxShape{.min = adjustedPosition - finalHalfExtents, .max = adjustedPosition + finalHalfExtents};
 
-			LGF::Physics::StaticObjectOptions options{};
-			options.material = {.restitution = 0.1f, .friction = 0.85f};
-			options.objectHandle = {objectIndex++, 1u};
+				LGF::Physics::StaticObjectOptions options{};
+				options.material = {.restitution = 0.1f, .friction = 0.85f};
+				options.objectHandle = {objectIndex++, 1u};
 
-			// 物理ワールドに登録してハンドルを保持
-			auto handle = physicsWorld.AddStaticObject(boxShape, options);
-			staticPhysicsHandles_.push_back(handle);
+				// 物理ワールドに登録してハンドルを保持
+				auto handle = physicsWorld.AddStaticObject(boxShape, options);
+				staticPhysicsHandles_.push_back(handle);
+			}
 		}
 	}
 

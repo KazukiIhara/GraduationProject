@@ -3,6 +3,7 @@
 #include "LGF/Graphics/Model.h"
 #include "LGF/Math/Vector3.h"
 #include "LGF/Collision/ColliderWorld.h"
+#include "LGF/Physics.h"
 
 // =========================================================
 // プレイヤークラス
@@ -13,10 +14,8 @@ public:
 	// Public Methods
 	// =========================================================
 
-	/// <summary>
-	/// コンストラクタ
-	/// </summary>
-	Player();
+	Player(LGF::Physics::PhysicsWorld& physicsWorld);
+	~Player();
 
 	/// <summary>
 	/// 初期化処理
@@ -90,6 +89,9 @@ private:
 	const LGF::Vector3 kColliderMin = {-1.0f, -2.0f, -1.0f};
 	const LGF::Vector3 kColliderMax = {1.0f, 2.0f, 1.0f};
 
+	const float kSphereRadius = 1.0f;
+	const LGF::Vector3 kSphereOffset = {0.0f, -1.0f, 0.0f}; // 球体オフセット
+
 	// =========================================================
 	// Member Variables
 	// =========================================================
@@ -99,6 +101,9 @@ private:
 	LGF::Vector3 rotation_{0.0f, 0.0f, 0.0f}; // 回転
 
 	LGF::Collision::ColliderHandle colliderHandle_; // コライダーハンドル
+
+	LGF::Physics::PhysicsWorld& physicsWorld_; // 物理ワールド
+	LGF::Physics::DynamicObjectHandle physicsHandle_; // Sphere用ハンドル
 
 	bool isNearChineseRange_ = false; // 中華レンジの範囲内にいるか
 	bool isCookingMode_ = false; // 料理モード中かどうか（移動不可・視点移動不可）

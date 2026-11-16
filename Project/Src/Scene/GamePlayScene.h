@@ -49,7 +49,6 @@ private:
 	LGF::DirectionalLight light_;
 	LGF::Grid3D grid_{ 20.0f, 1.0f };
 	LGF::Physics::PhysicsWorld physicsWorld_;
-	LGF::Physics::StaticObjectHandle floorPhysicsHandle_{};
 	LGF::InputCommand openUIWorldDemoCommand_{ "UI.Demo.Open" };
 
 	// スカイボックス

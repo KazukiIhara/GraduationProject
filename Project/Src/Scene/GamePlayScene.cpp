@@ -17,8 +17,8 @@ namespace {
 	Physics::PhysicsWorldSettings MakePhysicsWorldSettings() {
 		Physics::PhysicsWorldSettings settings{};
 		settings.worldBounds = {
-			.min = { -20.0f, -10.0f, -20.0f },
-			.max = { 20.0f, 20.0f, 20.0f },
+			.min = { -100.0f, -10.0f, -100.0f },
+			.max = { 100.0f, 20.0f, 100.0f },
 		};
 		settings.substepCount = 8u;
 		settings.solverIterationCount = 8u;
@@ -50,17 +50,7 @@ GamePlayScene::GamePlayScene(const InitData& init) :
 	collisionManager->RegisterTag("Solid"); // 固体（プレイヤーとの押し戻しを行うオブジェクト）
 	collisionManager->RegisterTag("InteractionSensor"); // インタラクト用センサー（プレイヤーの中華レンジ周辺でのモード切替用）
 
-	player_ = std::make_unique<Player>();
-
-	floorPhysicsHandle_ = physicsWorld_.AddStaticObject(
-		Collision::AABB{
-			.min = { -20.0f, -0.5f, -20.0f },
-			.max = { 20.0f, 0.0f, 20.0f },
-		},
-		Physics::StaticObjectOptions{
-			.material = { .restitution = 0.05f, .friction = 0.9f },
-			.objectHandle = { 1u, 1u },
-		});
+	player_ = std::make_unique<Player>(physicsWorld_);
 
 	cookingController_ = std::make_unique<CookingController>(physicsWorld_);
 	ingredientManager_ = std::make_unique<IngredientManager>(physicsWorld_);
