@@ -12,7 +12,7 @@
 
 using namespace LGF;
 
-Player::Player(LGF::Physics::PhysicsWorld& physicsWorld) : physicsWorld_(physicsWorld) { Initialize(); }
+Player::Player(LGF::Physics::PhysicsWorld& physicsWorld) : physicsWorld_(physicsWorld){ Initialize(); }
 
 Player::~Player() {}
 
@@ -151,11 +151,11 @@ void Player::Draw() const {
 		}
 	}
 
-	// 物理ワールドの球体
+	// 物理ワールドの球体描画
 	auto state1 = physicsWorld_.GetState(physicsHandle_);
 	if (state1) {
 		const auto& sph = std::get<Collision::Sphere>(state1->shape);
-		DebugDraw::DrawSphere(sph.center, sph.radius, {0.0f, 1.0f, 1.0f, 1.0f});
+		DebugDraw::DrawSphere(sph.center, sph.radius, {1.0f, 1.0f, 0.0f, 1.0f});
 	}
 
 #endif

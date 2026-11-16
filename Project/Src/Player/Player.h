@@ -103,7 +103,7 @@ private:
 	LGF::Collision::ColliderHandle colliderHandle_; // コライダーハンドル
 
 	LGF::Physics::PhysicsWorld& physicsWorld_; // 物理ワールド
-	LGF::Physics::DynamicObjectHandle physicsHandle_; // Sphere用ハンドル
+	LGF::Physics::DynamicObjectHandle physicsHandle_; // 物理ハンドル
 
 	bool isNearChineseRange_ = false; // 中華レンジの範囲内にいるか
 	bool isCookingMode_ = false; // 料理モード中かどうか（移動不可・視点移動不可）
