@@ -1,28 +1,22 @@
 ﻿#pragma once
 
-#include "LGF/Graphics/Model.h"
 #include "LGF/Collision/ColliderWorld.h"
+#include "LGF/Physics.h"
+#include "Stage/StageObject.h"
 
 // =========================================================
 // ステージを構成するオブジェクト・コライダーの管理クラス
 // =========================================================
 class StageManager {
 public:
-	/// <summary>
-	/// コンストラクタ
-	/// </summary>
-	StageManager();
-
-	/// <summary>
-	/// デストラクタ
-	/// </summary>
+	StageManager(const std::string& jsonFilePath, LGF::Physics::PhysicsWorld& physicsWorld);
 	~StageManager();
 
 	/// <summary>
 	/// 初期化処理
 	/// </summary>
 	/// <param name="colliderWorld"></param>
-	void Initialize();
+	void Initialize(const std::string& jsonFilePath, LGF::Physics::PhysicsWorld& physicsWorld);
 
 	/// <summary>
 	/// 更新処理
@@ -39,31 +33,37 @@ public:
 	/// </summary>
 	void DrawImGuiDebug();
 
+	/* JSON読み込み用 */
+
+	/// <summary>
+	/// モデルのあるパスを取得
+	/// </summary>
+	/// <param name="type"></param>
+	/// <param name="name"></param>
+	/// <returns></returns>
+	std::string GetModelPath(const std::string& type, const std::string& name);
+
 private:
 	// =========================================================
 	// Constants
 	// =========================================================
 
-	const LGF::Vector3 kColliderChineseRangeMin = {-1.0f, -1.0f, -1.0f};
-	const LGF::Vector3 kColliderChineseRangeMax = {1.0f, 1.0f, 1.0f};
 
 	// =========================================================
 	// Member Variables
 	// =========================================================
 
-	// 位置
-	LGF::Vector3 positionChineseRange_ = {0.0f, 1.0f, 0.0f};
+	LGF::Physics::PhysicsWorld& physicsWorld_;
 
-	// モデル
-	LGF::Model modelGround_{"../Assets/Models/environment/ground/ground.gltf"}; // 地面
-	LGF::Model modelTree_01_{"../Assets/Models/environment/tree/tree_01.gltf"};  // 木01
-	LGF::Model modelTree_02_{"../Assets/Models/environment/tree/tree_02.gltf"}; // 木02
-	LGF::Model modelRock_01_{"../Assets/Models/environment/rock/rock_01.gltf"}; // 岩01
-	LGF::Model modelGrass_01_{"../Assets/Models/environment/grass/grass_01.gltf"}; // 草01
-	LGF::Model modelChineseRange_{"../Assets/Models/chinese_range.gltf"}; // 中華レンジ
+	// ステージオブジェクトのリスト
+	std::vector<std::unique_ptr<StageObject>> objects_;
 
-	// コライダーハンドル
-	LGF::Collision::ColliderHandle colliderHandleGround_; // 地面
-	LGF::Collision::ColliderHandle colliderHandleChineseRange_; // 中華レンジ
-	LGF::Collision::ColliderHandle colliderHandleInteractionSensor_; // プレイヤーのインタラクト用センサー
+	// 部類オブジェクトハンドル
+	std::vector<LGF::Physics::StaticObjectHandle> staticPhysicsHandles_;
+	
+	// 物理ワールドから取得した静的オブジェクトの状態を保持（デバッグ表示に使用）
+	std::vector<LGF::Physics::StaticObjectState> staticObjectStates_;
+	
+	// プレイヤーのインタラクト用センサー
+	LGF::Collision::ColliderHandle colliderHandleInteractionSensor_;
 };

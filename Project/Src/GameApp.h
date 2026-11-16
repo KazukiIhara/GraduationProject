@@ -18,5 +18,6 @@ namespace SceneNames {
 	inline const std::string ColliderWorldDemo = "ColliderWorldDemo";
 	inline const std::string PhysicsWorldDemo = "PhysicsWorldDemo";
 	inline const std::string UIWorldDemo = "UIWorldDemo";
+	inline const std::string SkinningAnimationDemo = "SkinningAnimationDemo";
 
 }

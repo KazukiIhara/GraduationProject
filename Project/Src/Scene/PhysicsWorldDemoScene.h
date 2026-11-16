@@ -29,10 +29,10 @@ private:
 	LGF::Physics::PhysicsWorld physicsWorld_;
 	LGF::Physics::DynamicObjectHandle playerHandle_{};
 	LGF::Physics::KinematicObjectHandle platformHandle_{};
+	LGF::Physics::PhysicsParticleRenderGroupHandle particleRenderGroup_{};
 	std::vector<LGF::Physics::StaticObjectState> staticObjectStates_;
 	std::vector<LGF::Physics::KinematicObjectState> kinematicObjectStates_;
 	std::vector<LGF::Physics::DynamicObjectState> dynamicObjectStates_;
-	std::vector<LGF::Physics::PhysicsParticleState> particleStates_;
 	uint32_t nextObjectIndex_ = 100u;
 	float spawnTimer_ = 0.0f;
 	float platformTime_ = 0.0f;

@@ -7,6 +7,7 @@
 #include "Scene/ColliderWorldDemoScene.h"
 #include "Scene/PhysicsWorldDemoScene.h"
 #include "Scene/UIWorldDemoScene.h"
+#include "Scene/SkinningAnimationDemoScene.h"
 
 #include "Scene/GamePlayScene.h"
 
@@ -35,7 +36,7 @@ void Main() {
 		Mouse::Left,
 		Gamepad{ 0u }.Button(GamepadButtonCode::RightShoulder),
 	});
-	Input::RegisterCommand("UI.Demo.DirectButton", {
+	Input::RegisterCommand("UI.Demo.Shortcut", {
 		Key::Num1,
 		Gamepad{ 0u }.Button(GamepadButtonCode::East),
 	});
@@ -52,6 +53,7 @@ void Main() {
 	sceneManager.Register<ColliderWorldDemoScene>(SceneNames::ColliderWorldDemo);
 	sceneManager.Register<PhysicsWorldDemoScene>(SceneNames::PhysicsWorldDemo);
 	sceneManager.Register<UIWorldDemoScene>(SceneNames::UIWorldDemo);
+	sceneManager.Register<SkinningAnimationDemoScene>(SceneNames::SkinningAnimationDemo);
 	sceneManager.Change(SceneNames::GamePlayScene);
 
 	while (System::Update()) {

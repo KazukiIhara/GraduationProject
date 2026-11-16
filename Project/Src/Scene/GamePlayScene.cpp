@@ -22,6 +22,9 @@ namespace {
 		};
 		settings.substepCount = 8u;
 		settings.solverIterationCount = 8u;
+		settings.maximumParticleCount = 4096u;
+		settings.maximumColliderCount = 256u;
+		settings.maximumParticleCommandCount = 16384u;
 		settings.linearDamping = 0.2f;
 		return settings;
 	}
@@ -62,7 +65,7 @@ GamePlayScene::GamePlayScene(const InitData& init) :
 	cookingController_ = std::make_unique<CookingController>(physicsWorld_);
 	ingredientManager_ = std::make_unique<IngredientManager>(physicsWorld_);
 
-	stageManager_ = std::make_unique<StageManager>();
+	stageManager_ = std::make_unique<StageManager>("../Assets/Stages/stage.json", physicsWorld_);
 
 	judgeManager_ = std::make_unique<JudgeManager>();
 }
@@ -79,6 +82,10 @@ void GamePlayScene::Update() {
 	}
 	if (Key::P.Trigger()) {
 		ChangeScene(SceneNames::PhysicsWorldDemo);
+		return;
+	}
+	if (Key::K.Trigger()) {
+		ChangeScene(SceneNames::SkinningAnimationDemo);
 		return;
 	}
 
@@ -136,6 +143,7 @@ void GamePlayScene::Update() {
 		ImGui::Text("Num2 : Toggle Mouse Camera"); 
 		ImGui::SameLine();
 		ImGui::Text("[%s]", isMouseCameraEnabled_ ? "Enabled" : "Disabled");
+		ImGui::Text("K : Open Skinning Animation Demo");
 
 		ImGui::Separator();
 

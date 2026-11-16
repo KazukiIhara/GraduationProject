@@ -15,7 +15,11 @@ namespace {
 }
 
 IngredientManager::IngredientManager(Physics::PhysicsWorld& physicsWorld) :
-	physicsWorld_(&physicsWorld) {}
+	physicsWorld_(&physicsWorld) {
+	riceRenderGroup_ = physicsWorld_->CreateParticleRenderGroup({
+		.color = { 0.95f, 0.92f, 0.78f, 1.0f },
+	});
+}
 
 void IngredientManager::Update(const Vector3& riceSpawnPosition) {
 	const auto xboxController = XboxController::Get();
@@ -27,9 +31,7 @@ void IngredientManager::Update(const Vector3& riceSpawnPosition) {
 }
 
 void IngredientManager::Draw() const {
-	for (const auto& rice : riceObjects_) {
-		rice->Draw();
-	}
+	physicsWorld_->DrawParticleRenderGroups();
 }
 
 void IngredientManager::DrawImGuiDebug() {
@@ -67,7 +69,8 @@ void IngredientManager::AddRice(const Vector3& spawnPosition) {
 		riceObjects_.push_back(std::make_unique<Rice>(
 			*physicsWorld_,
 			position,
-			ObjectHandle{ nextObjectIndex_++, 1u }));
+			ObjectHandle{ nextObjectIndex_++, 1u },
+			riceRenderGroup_));
 	}
 
 	cookingFriedRice_.AddRice(kRiceAmountPerServing);
