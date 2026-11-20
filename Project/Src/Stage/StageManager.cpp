@@ -91,6 +91,8 @@ void StageManager::Initialize(const std::string& jsonFilePath) {
 				offsetY = 1.0f;
 			} else if (modelName == "grass_01") {
 				skipPhysics = true; // 物理ワールド登録をスキップ（判定いらないので）
+			} else if (modelName == "mushroom_01") {
+				skipPhysics = true; // 物理ワールド登録をスキップ（判定いらないので）
 			} else if (modelName == "chineseRange") {
 				baseHalfExtents = {1.0f, 1.1f, 1.0f};
 				offsetY = 1.0f;
