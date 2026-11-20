@@ -7,7 +7,10 @@ void Deer::Init(const LGF::Vector3& spownPos) {
 	position_ = spownPos;
 	moveSpeed_ = 3.0f;
 	hp_ = 400;
-	color_ = Color::Red;
+
+	object_ = LGF::Model{ "../Assets/Models/Deer.gltf" };
+	animator = LGF::ModelAnimator(object_);
+	animator.Play("Deer.gltf");
 
 	LGF::Collision::ColliderOptions bodyOptions{};
 	bodyOptions.tag = "Deer_body";

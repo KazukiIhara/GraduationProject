@@ -6,7 +6,10 @@ void Boar::Init(const LGF::Vector3& spownPos) {
 	position_ = spownPos;
 	moveSpeed_ = 2.0f;
 	hp_ = 700;
-	color_ = Color::Purple;
+
+	object_ = LGF::Model{"../Assets/Models/Boar.gltf" };
+	animator = LGF::ModelAnimator(object_);
+	animator.Play("../Assets/Models/Boar.gltf");
 
 	LGF::Collision::ColliderOptions bodyOptions{};
 	bodyOptions.tag = "Boar_body";

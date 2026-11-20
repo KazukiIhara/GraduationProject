@@ -103,12 +103,11 @@ protected:
 	void AttackFinishCommon();
 
 
-	LGF::Box3D object_;
+	LGF::Model object_;
+	LGF::ModelAnimator animator{};
 
 	LGF::Vector3 position_;
 	LGF::Vector3 rotate_;
-
-	LGF::Vector4 color_;
 
 	float moveSpeed_ = 0.0f;
 

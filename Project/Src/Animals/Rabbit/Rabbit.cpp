@@ -8,7 +8,10 @@ void Rabbit::Init(const LGF::Vector3& spownPos) {
 	position_ = spownPos;
 	moveSpeed_ = 2.0f;
 	hp_ = 600;
-	color_ = Color::Green;
+
+	object_ = LGF::Model{ "../Assets/Models/Rabbit.gltf" };
+	animator = LGF::ModelAnimator(object_);
+	animator.Play("../Assets/Models/Rabbit.gltf");
 
 	LGF::Collision::ColliderOptions bodyOptions{};
 	bodyOptions.tag = "Rabbit_body";
