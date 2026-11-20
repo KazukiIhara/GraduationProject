@@ -155,7 +155,7 @@ private:
 	LGF::Physics::PhysicsWorld physicsWorld1_; // 炒飯と判定を取るものだけ
 	LGF::Physics::PhysicsWorld physicsWorld2_; // それ以外（ステージ上のオブジェクトなど）
 	LGF::Physics::StaticObjectHandle floorPhysicsHandle_{};
-	LGF::InputCommand openUIWorldDemoCommand_{ "UI.Demo.Open" };
+	LGF::InputCommand openFeatureShowcaseCommand_{ "Showcase.Open" };
 
 	// スカイボックス
 	LGF::Skybox skybox_{"../Assets/Textures/skybox.png"};
