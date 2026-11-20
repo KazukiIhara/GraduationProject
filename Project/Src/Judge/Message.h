@@ -2,7 +2,7 @@
 
 #include "GameApp.h"
 
-#include "LGF/Graphics/Plane3D.h"
+#include "LGF/Graphics/Font3D.h"
 #include "LGF/Math/Vector3.h"
 
 /// <summary>
@@ -24,7 +24,7 @@ public:
 	void DrawImGuiDebug();
 
 	// 会話データの登録
-	void RegisterConversationData(const std::vector<std::string>& conversationData);
+	void RegisterConversationData(const std::vector<std::string_view>& conversationData);
 	// 会話次へ
 	bool Next();
 
@@ -37,32 +37,29 @@ private:
 	// Private Methods
 	// =========================================================
 
-	void UpdateTransform();
-
-	void Updatebillboard(const LGF::DebugCamera3D& camera);
-
+	void UpdateTransform(const LGF::DebugCamera3D& camera);
 
 	// =========================================================
 	// Constants
 	// =========================================================
 
-	const LGF::Vector3 kBasePosition = { 8.0f, 5.0f, 9.0f };
-	const LGF::Vector3 kBaseRotation = { 0.0f, 0.0f, 0.0f, };
-	const LGF::Vector3 kBaseScale = { 8.0f, 3.0f, 1.0f };
+	const LGF::Vector3 kBasePosition = { 8.0f, 7.0f, 9.0f };
 
 	// =========================================================
 	// Member Variables
 	// =========================================================
 
-	//テクスチャファイルのパス
+	//ファイルのパス
 	const std::string texturePath_ = "../Assets/Textures/";
-
+	const std::string fontPath_ = "../Assets/Fonts/";
+	
 	//ひとつ分のメッセージ
-	LGF::Plane3D message_;
-	LGF::Material3D messageMaterial_;
+	LGF::Font3D message_{ fontPath_ + "OnionGeki/OnionGeki.ttf", 85u };
+	LGF::Font3DDrawOptions messageDrawOptions_;
 	bool isDisplay_ = false;
-	std::vector<std::string> conversationData_;
+	std::vector<std::string_view> conversationData_;
 	size_t currentConversationIndex_ = 0;
+	LGF::Vector3 messagePosition_;
 
 	// メッセージアニメーションのための変数
 	bool isHalfway_ = false;
@@ -72,10 +69,6 @@ private:
 	// アニメーションの振れ幅（座標とスケール）
 	float positionAmplitude_ = 0.1f;
 	float scaleAmplitude_ = 0.08f;
-
-	LGF::Vector3 position_{}; // 現在の位置
-	LGF::Vector3 rotation_{}; // 現在の回転
-	LGF::Vector3 scale_{}; // 現在のスケール	
 
 	// 会話可能UIのための変数
 	LGF::Texture textureTalkUIAvailable_{ "../Assets/Textures/opeA.png" }; // 会話可能時のUIテクスチャ

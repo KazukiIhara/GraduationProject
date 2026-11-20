@@ -6,25 +6,25 @@
 
 namespace ConversationData {
 
-    inline const std::unordered_map<std::string, std::vector<std::string>> demos = {
+    inline const std::unordered_map<std::string, std::vector<std::string_view>> demos = {
         {
             "demoA", {
-                "demoA1.png",
-                "demoA2.png",
-                "demoA3.png"
+                "チャーハンとは、\n米と炎の真剣勝負である！",
+                "フライパンを恐れるな、\n己の腕を信じろ！",
+                "さあ、今日も米粒一つ残さず\n炒め上げるのだ！！！"
             }
         },
         {
             "demoB", {
-                "demoB1.png",
-                "demoB2.png"
+                "おい、そこの若者よ",
+                "わしにチャーハンを\nもってこい！！！"
             }
         },
         {
             "demoC", {
-                "demoC1.png",
-                "demoC2.png",
-                "demoC3.png"
+                "よいか！\n火加減こそが料理の命！！",
+                "強火だけでは真の味は\n生まれぬ！！",
+                "炎を制する者こそ、\nチャーハンを制す！！"
             }
         }
     };

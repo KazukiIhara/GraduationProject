@@ -17,14 +17,17 @@ auto easeOutBack = [](float t) {
 	};
 
 Message::Message() {
-	//マテリアルの初期化
-	messageMaterial_.uvScale = { -1.0f, 1.0f };
-	messageMaterial_.unlit = true;
+	//メッセージ描画オプションの初期化
+	messageDrawOptions_ = {
+		.color = Color::Red,
+		.anchor = { 0.5f, 0.5f },
+		.worldUnitsPerPixel = 0.01f,
+		.mode = Font3DMode::Billboard,
+		.rotation = 0.0f
+	};
 
 	//メッセージボードのトランスフォーム初期化
-	position_ = kBasePosition;
-	rotation_ = kBaseRotation;
-	scale_ = kBaseScale;
+	messagePosition_ = kBasePosition;
 
 	// 会話可能UIは中央で初期化
 	canTalkUI_.leftTop = { 640.0f - canTalkUI_.size.x / 2.0f,360.0f - canTalkUI_.size.y / 2.0f };
@@ -34,22 +37,25 @@ void Message::Update(const LGF::DebugCamera3D& camera) {
 	// 会話可能UIの表示状態をリセット
 	isTalkUIVisible_ = false;
 
-	// ビルボード
-	Updatebillboard(camera);
 	// トランスフォームの更新
-	UpdateTransform();
+	UpdateTransform(camera);
 
 }
 
 void Message::Draw() const {
+	//メッセージの描画
 	if (isDisplay_) {
 		message_.Draw(
-			Math::MakeAffineMatrix(scale_,
-				Math::MakeQuaternion(rotation_),
-				position_
-			),
-			messageMaterial_
+			conversationData_[currentConversationIndex_],
+			messagePosition_,
+			messageDrawOptions_
 		);
+	}
+
+	//メッセージ背景の描画
+	if (isDisplay_) {
+		Vector2 measure = message_.Measure(conversationData_[currentConversationIndex_]);
+		Vector2 size = measure * messageDrawOptions_.worldUnitsPerPixel;
 	}
 
 	// 会話可能UIの描画
@@ -62,15 +68,12 @@ void Message::Draw() const {
 void Message::DrawImGuiDebug() {
 }
 
-void Message::RegisterConversationData(const std::vector<std::string>& conversationData)
+void Message::RegisterConversationData(const std::vector<std::string_view>& conversationData)
 {
 	conversationData_ = conversationData;
 
 	//インデックスをリセット
 	currentConversationIndex_ = 0;
-
-	// テクスチャを設定
-	messageMaterial_.baseColorTexture = Texture(texturePath_ + conversationData_[currentConversationIndex_]);
 }
 
 bool Message::Next()
@@ -90,14 +93,12 @@ bool Message::Next()
 		return false;
 	}
 
-	// テクスチャを変更
-	messageMaterial_.baseColorTexture = Texture(texturePath_ + conversationData_[currentConversationIndex_]);
 	return true;
-
 
 }
 
-void Message::UpdateTransform() {
+void Message::UpdateTransform(const LGF::DebugCamera3D& camera) {
+	camera;
 	// アニメーションタイマーの更新
 	animationTimer_ += static_cast<float>(System::DeltaTime());
 	if (animationTimer_ >= animationDuration_) {
@@ -108,29 +109,11 @@ void Message::UpdateTransform() {
 
 	if (!isHalfway_) {
 		// 座標
-		position_.y = AppMath::Lerp(kBasePosition.y - positionAmplitude_, kBasePosition.y + positionAmplitude_, easeOutBack(animationTimer_ / animationDuration_));
-
-		// スケール
-		scale_.x = AppMath::Lerp(kBaseScale.x - scaleAmplitude_, kBaseScale.x + scaleAmplitude_, easeOutBack(animationTimer_ / animationDuration_));
-		scale_.y = AppMath::Lerp(kBaseScale.y - scaleAmplitude_, kBaseScale.y + scaleAmplitude_, easeOutBack(animationTimer_ / animationDuration_));
-		scale_.z = AppMath::Lerp(kBaseScale.z - scaleAmplitude_, kBaseScale.z + scaleAmplitude_, easeOutBack(animationTimer_ / animationDuration_));
+		messagePosition_.y = AppMath::Lerp(kBasePosition.y - positionAmplitude_, kBasePosition.y + positionAmplitude_, easeOutBack(animationTimer_ / animationDuration_));
 	}
 	else {
 		// 座標
-		position_.y = AppMath::Lerp(kBasePosition.y + positionAmplitude_, kBasePosition.y - positionAmplitude_, easeOutBack(animationTimer_ / animationDuration_));
-
-		// スケール
-		scale_.x = AppMath::Lerp(kBaseScale.x + scaleAmplitude_, kBaseScale.x - scaleAmplitude_, easeOutBack(animationTimer_ / animationDuration_));
-		scale_.y = AppMath::Lerp(kBaseScale.y + scaleAmplitude_, kBaseScale.y - scaleAmplitude_, easeOutBack(animationTimer_ / animationDuration_));
-		scale_.z = AppMath::Lerp(kBaseScale.z + scaleAmplitude_, kBaseScale.z - scaleAmplitude_, easeOutBack(animationTimer_ / animationDuration_));
+		messagePosition_.y = AppMath::Lerp(kBasePosition.y + positionAmplitude_, kBasePosition.y - positionAmplitude_, easeOutBack(animationTimer_ / animationDuration_));
 	}
-}
 
-void Message::Updatebillboard(const LGF::DebugCamera3D& camera) {
-	// カメラの位置とメッセージの位置から、カメラから見た方向を計算
-	LGF::Vector3 direction = camera.translation - position_;
-	// 方向ベクトルを正規化
-	direction = LGF::Math::Normalize(direction);
-	// メッセージの回転を計算（Y軸回転のみ）
-	rotation_.y = std::atan2(direction.x, direction.z);
 }
