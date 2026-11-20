@@ -70,7 +70,7 @@ void JudgeMan::Update(const Player* player, const LGF::DebugCamera3D& camera, Co
 						selectedGroup = "demoB";
 						break;
 					case CookingParameters::JudgeGrade::B_Rank:  // Bランク（合格）
-					case CookingParameters::JudgeGrade::C_Rank:// Cランク（不合格・焦げ）
+					case CookingParameters::JudgeGrade::C_Rank:  // Cランク（不合格・焦げ）
 					default:
 						selectedGroup = "demoC";
 						break;
