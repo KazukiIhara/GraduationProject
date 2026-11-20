@@ -12,15 +12,30 @@ AnimalTestScene::AnimalTestScene(const InitData& init)
 	collisionManager->RegisterTag("Player"); // プレイヤー
 	collisionManager->RegisterTag("Solid"); // 固体（プレイヤーとの押し戻しを行うオブジェクト）
 	collisionManager->RegisterTag("InteractionSensor"); // インタラクト用センサー（プレイヤーの中華レンジ周辺でのモード切替用）
-
+	
 	collisionManager->RegisterTag("Rabbit_body");
 	collisionManager->RegisterTag("Rabbit_attackArea");
+	collisionManager->RegisterTag("Boar_body");
+	collisionManager->RegisterTag("Boar_attackArea");
+	collisionManager->RegisterTag("Deer_body");
+	collisionManager->RegisterTag("Deer_attackArea");
 
 	spawnAnimals_ = std::make_unique<SpawnAnimals>();
+
+#ifdef _DEBUG
+	isDebug = true;
+#endif // _DEBUG
 }
 
 void AnimalTestScene::Update() {
-	spawnAnimals_->BornAnimals();
+
+	if (isDebug) {
+		spawnAnimals_->BornAnimalsDebug();
+	}
+	else {
+		spawnAnimals_->BornAnimals();
+	}
+
 	spawnAnimals_->Update();
 
 	DropFoodManager::GetInstance()->Update();

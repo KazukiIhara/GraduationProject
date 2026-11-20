@@ -8,7 +8,10 @@ void Rabbit::Init(const LGF::Vector3& spownPos) {
 	position_ = spownPos;
 	moveSpeed_ = 2.0f;
 	hp_ = 600;
-	color_ = Color::Green;
+
+	object_ = LGF::Model{ "../Assets/Models/Rabbit.gltf" };
+	animator = LGF::ModelAnimator(object_);
+	animator.Play("../Assets/Models/Rabbit.gltf");
 
 	LGF::Collision::ColliderOptions bodyOptions{};
 	bodyOptions.tag = "Rabbit_body";
@@ -98,11 +101,9 @@ void Rabbit::Attack(Target target) {
 		attackPoint_ = position_;
 
 		if (jumpTimer_ >= kJumpTimeFinish_) {
-			attackPoint_ = AppMath::InvisiblePlace();
 			jumpTimer_ = 0.0f;
 			jumpDelayTimer_ = 0.0f;
-			isAttack_ = false;
-			isAttackFinish_ = true;
+			AttackFinishCommon();
 		}
 	}
 	else {

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "LGF/Collision/ColliderWorld.h"
 #include "LGF/Physics.h"
@@ -43,6 +43,15 @@ public:
 	/// <returns></returns>
 	std::string GetModelPath(const std::string& type, const std::string& name);
 
+	// =========================================================
+	// Accessor
+	// =========================================================
+
+	/// <summary>
+	/// 中華レンジ（コンロ）の位置を取得
+	/// </summary>
+	const LGF::Vector3& GetChineseRangePosition() const { return positionChineseRange_; }
+
 private:
 	// =========================================================
 	// Constants
@@ -52,6 +61,9 @@ private:
 	// =========================================================
 	// Member Variables
 	// =========================================================
+
+	// 中華レンジの位置
+	LGF::Vector3 positionChineseRange_ = { 0.0f, 1.0f, 0.0f };
 
 	LGF::Physics::PhysicsWorld& physicsWorld1_;
 	LGF::Physics::PhysicsWorld& physicsWorld2_;

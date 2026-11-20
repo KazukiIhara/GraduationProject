@@ -35,6 +35,17 @@ public:
 	/// 調理中の炒飯を取得
 	/// </summary>
 	const CookingFriedRice& GetCookingFriedRice() const;
+	CookingFriedRice& GetCookingFriedRice();
+
+	/// <summary>
+	/// 食材を追加（CookingFriedRiceに登録）
+	/// </summary>
+	void AddIngredient(IngredientType type, float amount = 1.0f);
+
+	/// <summary>
+	/// リセット処理（米オブジェクトと炒飯状態を初期化）
+	/// </summary>
+	void Reset();
 
 private:
 	/// <summary>

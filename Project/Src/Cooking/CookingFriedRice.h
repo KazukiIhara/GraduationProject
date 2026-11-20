@@ -69,6 +69,11 @@ public:
 	/// </summary>
 	void SetState(FriedRiceState state);
 
+	/// <summary>
+	/// 調理状態をリセット
+	/// </summary>
+	void Reset();
+
 private:
 	float riceAmount_ = 0.0f; // 現在の米の量（g）
 	std::vector<IngredientData> ingredients_; // 投入された食材

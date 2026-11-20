@@ -26,5 +26,6 @@ public:
 private:
 	std::unique_ptr<SpawnAnimals> spawnAnimals_;
 
+	bool isDebug = false;
 };
 

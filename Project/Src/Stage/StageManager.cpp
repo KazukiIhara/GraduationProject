@@ -1,4 +1,4 @@
-﻿#include "StageManager.h"
+#include "StageManager.h"
 
 #include "fstream"
 #include "assert.h"
@@ -79,17 +79,25 @@ void StageManager::Initialize(const std::string& jsonFilePath) {
 				offsetY = 2.0f;
 			} else if (modelName == "rock_01") {
 				baseHalfExtents = {2.0f, 2.0f, 2.0f};
-				offsetY = 1.0f;
+				offsetY = 2.0f;
 			} else if (modelName == "tree_02") {
 				baseHalfExtents = {1.0f, 2.0f, 1.0f};
 				offsetY = 1.0f;
-			} else if (modelName == "grass_01") {
+			} else if (modelName == "tree_trunk_01") {
 				baseHalfExtents = {1.0f, 1.0f, 1.0f};
 				offsetY = 1.0f;
+			} else if (modelName == "log_01") {
+				baseHalfExtents = {1.0f, 1.0f, 5.0f};
+				offsetY = 1.0f;
+			} else if (modelName == "grass_01") {
 				skipPhysics = true; // 物理ワールド登録をスキップ（判定いらないので）
 			} else if (modelName == "chineseRange") {
 				baseHalfExtents = {1.0f, 1.1f, 1.0f};
 				offsetY = 1.0f;
+				positionChineseRange_ = data.position;
+			} else if (modelName == "farm") {
+				baseHalfExtents = {5.5f, 5.6f, 10.5f};
+				offsetY = 5.6f;
 			}
 
 			if (!skipPhysics) {
@@ -173,6 +181,8 @@ std::string StageManager::GetModelPath(const std::string& type, const std::strin
 		folder = "environment";
 	} else if (type == "Furniture") {
 		folder = "furniture";
+	} else if (type == "Structure") {
+		folder = "structure";
 	}
 
 	return "../Assets/Models/" + folder + "/" + name + "/" + name + ".gltf";

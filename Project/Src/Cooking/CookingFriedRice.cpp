@@ -48,3 +48,9 @@ FriedRiceState CookingFriedRice::GetState() const {
 void CookingFriedRice::SetState(FriedRiceState state) {
 	state_ = state;
 }
+
+void CookingFriedRice::Reset() {
+	riceAmount_ = 0.0f;
+	ingredients_.clear();
+	state_ = FriedRiceState::NotStarted;
+}

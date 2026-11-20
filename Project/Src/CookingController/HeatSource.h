@@ -1,0 +1,38 @@
+﻿#pragma once
+
+#include "LGF/Math/Vector3.h"
+
+// =========================================================
+// 火元（中華レンジ・コンロ）管理クラス
+// 中華レンジは常に豪火（強火）。火加減の概念はなく、
+// 点火/消火と「調理場に鍋がセットされているか」で加熱を管理する
+// =========================================================
+class HeatSource
+{
+public:
+	HeatSource() = default;
+
+	/// <summary>
+	/// コンストラクタ
+	/// </summary>
+	/// <param name="position">火元の中心位置（中華レンジの天板）</param>
+	explicit HeatSource(const LGF::Vector3& position)
+		: position_(position) {}
+
+	// -----------------------------------------------------
+	// ゲッター・セッター
+	// -----------------------------------------------------
+
+	bool IsActive() const { return isActive_; }
+	void SetActive(bool active) { isActive_ = active; }
+	void Ignite() { isActive_ = true; }       // 点火
+	void Extinguish() { isActive_ = false; }  // 消火
+
+	const LGF::Vector3& GetPosition() const { return position_; }
+	void SetPosition(const LGF::Vector3& pos) { position_ = pos; }
+
+private:
+	LGF::Vector3 position_ = { 0.0f, 1.0f, 0.0f }; // 中華レンジの天板・バーナー位置
+	bool isActive_ = true;                          // 点火中かどうか（常時ONの火）
+};
+

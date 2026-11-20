@@ -1,13 +1,13 @@
-#include "JudgeManager.h"
+﻿#include "JudgeManager.h"
 
 JudgeManager::JudgeManager() {
 	man_ = std::make_unique<JudgeMan>();
 	table_ = std::make_unique<JudgeTable>();
 }
 
-void JudgeManager::Update(const Player* player, const LGF::DebugCamera3D& camera) {
+void JudgeManager::Update(const Player* player, const LGF::DebugCamera3D& camera, CookingSystem* cookingSystem) {
 	// 各インスタンスの更新
-	man_->Update(player, camera);
+	man_->Update(player, camera, cookingSystem);
 	table_->Update();
 	
 }

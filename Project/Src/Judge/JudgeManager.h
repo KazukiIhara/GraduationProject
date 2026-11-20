@@ -1,8 +1,9 @@
-#pragma once
+﻿#pragma once
 
 #include "JudgeMan.h"
 #include "JudgeTable.h"
 
+class CookingSystem;
 
 // =========================================================
 // 審査員周り管理クラス
@@ -22,7 +23,7 @@ public:
 	/// <summary>
 	/// 更新処理
 	/// </summary>
-	void Update(const Player* player, const LGF::DebugCamera3D& camera);
+	void Update(const Player* player, const LGF::DebugCamera3D& camera, CookingSystem* cookingSystem = nullptr);
 
 	/// <summary>
 	/// 描画処理

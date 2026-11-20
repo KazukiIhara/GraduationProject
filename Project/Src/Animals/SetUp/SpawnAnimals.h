@@ -24,6 +24,11 @@ public:
 	/// </summary>
 	void BornAnimals();
 
+	/// <summary>
+	/// 召喚処理(debug)
+	/// </summary>
+	void BornAnimalsDebug();
+
 private:
 
 	std::unique_ptr<BaseAnimal> RandomAnimalsClass(int a);

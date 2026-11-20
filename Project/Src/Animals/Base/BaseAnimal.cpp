@@ -38,11 +38,14 @@ void BaseAnimal::Update() {
 	state_->Update();
 
 	state_ = state_->ChangeState();
+
+
+	animator.Update((float)System::DeltaTime());
 }
 
 void BaseAnimal::Draw() {
 	Matrix4x4 worldMatrix = Math::MakeAffineMatrix(Vector3{ 1.0f,1.0f,1.0f }, Math::MakeQuaternion(rotate_), position_);
-	object_.Draw(worldMatrix, color_);
+	object_.Draw(worldMatrix, animator);
 
 #ifdef _DEBUG
 	// コライダーデバッグ描画
@@ -92,6 +95,12 @@ bool BaseAnimal::IsAnticipationTime(Target target, float maxTime) {
 	}
 
 	return false;
+}
+
+void BaseAnimal::AttackFinishCommon(){
+	attackPoint_ = AppMath::InvisiblePlace();
+	isAttack_ = false;
+	isAttackFinish_ = true;
 }
 
 void BaseAnimal::Dead() {
