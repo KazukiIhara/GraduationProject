@@ -20,5 +20,11 @@ public:
 	/// </summary>
 	/// <param name="target">プレイヤーか炒飯か</param>
 	void Attack(Target target) override;
+
+private:
+	float attackTime_ = 0.0f;
+	const float KAttackTimeMax_ = 1.0f;
+
+	LGF::Vector3 bitePoint_{};
 };
 
