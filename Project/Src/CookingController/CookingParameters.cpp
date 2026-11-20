@@ -53,34 +53,34 @@ CookingParameters::JudgeEvaluation CookingParameters::Evaluate(const JudgeConfig
 
 	// 判定とセリフ・テクスチャ（仮）
 	if (burnt >= config.burntFailThreshold) {
-		eval.grade = JudgeGrade::Unacceptable;
+		eval.grade = JudgeGrade::C_Rank;
 		eval.isAccepted = false;
 		eval.comment = "丸焦げじゃないか！こんな炒飯、認められるか！";
 		eval.commentEn = "Completely burnt! This is not acceptable at all!";
 		eval.messageTextures = { "demoC1.png" };
 	} else if (eval.totalScore >= config.scoreMasterpiece) {
-		eval.grade = JudgeGrade::Masterpiece;
+		eval.grade = JudgeGrade::S_Rank;
 		eval.isAccepted = true;
 		eval.comment = "こ、これは究極の炒飯…！やるじゃないか…！";
 		eval.commentEn = "Incredible... this is the Ultimate Golden Fried Rice!";
 		eval.messageTextures = { "demoA1.png", "demoA2.png" };
 	} else if (eval.totalScore >= config.scoreDelicious) {
-		eval.grade = JudgeGrade::Delicious;
+		eval.grade = JudgeGrade::A_Rank;
 		eval.isAccepted = true;
 		eval.comment = "パラパラで旨味も十分、なかなかの腕前だな！";
 		eval.commentEn = "Fluffy and rich in umami! Splendid cooking skill!";
 		eval.messageTextures = { "demoA1.png" };
 	} else if (eval.totalScore >= config.scoreAcceptable) {
-		eval.grade = JudgeGrade::Acceptable;
+		eval.grade = JudgeGrade::B_Rank;
 		eval.isAccepted = true;
 		eval.comment = "ふむ、悪くはないが…まだ改善の余地があるな。";
 		eval.commentEn = "Not bad, but there is still room for improvement.";
 		eval.messageTextures = { "demoB1.png" };
 	} else {
-		eval.grade = JudgeGrade::Unacceptable;
+		eval.grade = JudgeGrade::C_Rank;
 		eval.isAccepted = false;
 		eval.comment = "こんな炒飯、認められるか！出直してこい！";
-		eval.commentEn = "Unacceptable! Practice more and try again!";
+		eval.commentEn = "C_Rank! Practice more and try again!";
 		eval.messageTextures = { "demoC1.png" };
 	}
 

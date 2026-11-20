@@ -844,20 +844,20 @@ void CookingSystem::DrawImGuiJudgePreview()
 	ImVec4 gradeColor(1, 1, 1, 1);
 	switch (eval.grade)
 	{
-	case CookingParameters::JudgeGrade::Masterpiece:
-		gradeStr = "S: Masterpiece (Ultimate Fried Rice)";
+	case CookingParameters::JudgeGrade::S_Rank:
+		gradeStr = "S: S_Rank (Ultimate Fried Rice)";
 		gradeColor = ImVec4(1.0f, 0.84f, 0.0f, 1.0f);
 		break;
-	case CookingParameters::JudgeGrade::Delicious:
-		gradeStr = "A: Delicious (Splendid)";
+	case CookingParameters::JudgeGrade::A_Rank:
+		gradeStr = "A: A_Rank (Splendid)";
 		gradeColor = ImVec4(0.2f, 1.0f, 0.4f, 1.0f);
 		break;
-	case CookingParameters::JudgeGrade::Acceptable:
-		gradeStr = "B: Acceptable (Passing)";
+	case CookingParameters::JudgeGrade::B_Rank:
+		gradeStr = "B: B_Rank (Passing)";
 		gradeColor = ImVec4(0.4f, 0.8f, 1.0f, 1.0f);
 		break;
-	case CookingParameters::JudgeGrade::Unacceptable:
-		gradeStr = "C: Unacceptable (Failed)";
+	case CookingParameters::JudgeGrade::C_Rank:
+		gradeStr = "C: C_Rank (Failed)";
 		gradeColor = ImVec4(1.0f, 0.2f, 0.2f, 1.0f);
 		break;
 	}

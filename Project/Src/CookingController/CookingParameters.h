@@ -143,15 +143,15 @@ struct CookingParameters
 
 	enum class JudgeGrade
 	{
-		Masterpiece, // 究極の炒飯（Sランク）
-		Delicious,   // 合格・美味（Aランク）
-		Acceptable,  // ギリギリ認める（Bランク）
-		Unacceptable // 認められない！（Cランク・不合格）
+		S_Rank, // 究極の炒飯（Sランク）
+		A_Rank,   // 合格・美味（Aランク）
+		B_Rank,  // ギリギリ認める（Bランク）
+		C_Rank // 認められない！（Cランク・不合格）
 	};
 
 	struct JudgeEvaluation
 	{
-		JudgeGrade grade = JudgeGrade::Unacceptable;
+		JudgeGrade grade = JudgeGrade::C_Rank;
 		int totalScore = 0;                     // 100点満点
 		std::string comment;                    // 評論家のセリフ（日本語・会話UI用）
 		std::string commentEn;                  // 評論家のセリフ（英語・ImGui用）

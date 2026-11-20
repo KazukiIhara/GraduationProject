@@ -63,14 +63,14 @@ void JudgeMan::Update(const Player* player, const LGF::DebugCamera3D& camera, Co
 
 					// ランクに応じたリアクション
 					switch (latestEvaluation_.grade) {
-					case CookingParameters::JudgeGrade::Masterpiece: // Sランク（絶品・黄金炒飯）
+					case CookingParameters::JudgeGrade::S_Rank: // Sランク（絶品・黄金炒飯）
 						selectedGroup = "demoA";
 						break;
-					case CookingParameters::JudgeGrade::Delicious:   // Aランク（美味）
+					case CookingParameters::JudgeGrade::A_Rank:   // Aランク（美味）
 						selectedGroup = "demoB";
 						break;
-					case CookingParameters::JudgeGrade::Acceptable:  // Bランク（合格）
-					case CookingParameters::JudgeGrade::Unacceptable:// Cランク（不合格・焦げ）
+					case CookingParameters::JudgeGrade::B_Rank:  // Bランク（合格）
+					case CookingParameters::JudgeGrade::C_Rank:// Cランク（不合格・焦げ）
 					default:
 						selectedGroup = "demoC";
 						break;
@@ -146,20 +146,20 @@ void JudgeMan::DrawImGuiDebug()
 		const char* gradeStr = "Unknown";
 		ImVec4 gradeColor(1, 1, 1, 1);
 		switch (latestEvaluation_.grade) {
-		case CookingParameters::JudgeGrade::Masterpiece:
-			gradeStr = "S: Masterpiece (Ultimate)";
+		case CookingParameters::JudgeGrade::S_Rank:
+			gradeStr = "S: S_Rank (Ultimate)";
 			gradeColor = ImVec4(1.0f, 0.84f, 0.0f, 1.0f);
 			break;
-		case CookingParameters::JudgeGrade::Delicious:
-			gradeStr = "A: Delicious (Splendid)";
+		case CookingParameters::JudgeGrade::A_Rank:
+			gradeStr = "A: A_Rank (Splendid)";
 			gradeColor = ImVec4(0.2f, 1.0f, 0.4f, 1.0f);
 			break;
-		case CookingParameters::JudgeGrade::Acceptable:
-			gradeStr = "B: Acceptable (Passing)";
+		case CookingParameters::JudgeGrade::B_Rank:
+			gradeStr = "B: B_Rank (Passing)";
 			gradeColor = ImVec4(0.4f, 0.8f, 1.0f, 1.0f);
 			break;
-		case CookingParameters::JudgeGrade::Unacceptable:
-			gradeStr = "C: Unacceptable (Failed)";
+		case CookingParameters::JudgeGrade::C_Rank:
+			gradeStr = "C: C_Rank (Failed)";
 			gradeColor = ImVec4(1.0f, 0.2f, 0.2f, 1.0f);
 			break;
 		}
