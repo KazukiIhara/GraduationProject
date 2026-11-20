@@ -1,4 +1,4 @@
-﻿#include "CookingSystem.h"
+#include "CookingSystem.h"
 #include "Wok.h"
 
 #include <imgui.h>
@@ -602,6 +602,14 @@ void CookingSystem::DrawImGuiStatus()
 	ColoredProgressBar(parameters_.burnt / 100.0f, "Burnt (Char)", ImVec4(0.32f, 0.20f, 0.18f, 1.0f));
 
 	ImGui::Text("Rice Amount: %.1f g", parameters_.riceAmount);
+	if (!parameters_.addedIngredients.empty()) {
+		ImGui::Text("Added Ingredients:");
+		for (const auto& ing : parameters_.addedIngredients) {
+			ImGui::BulletText("%s: %.1f", GetIngredientTypeName(ing.type).c_str(), ing.amount);
+		}
+	} else {
+		ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "Added Ingredients: None");
+	}
 	ImGui::Text("Heat Exposure Timer: %.2f sec (Grace: %.1f sec)", heatExposureTimer_, config_.burnGraceTime);
 	ImGui::Text("Attract Radius: %.1f m (Max: %.1f m)", GetAttractRadius(), config_.attractMaxRadius);
 

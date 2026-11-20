@@ -4,8 +4,10 @@
 #include "LGF/Math/Vector3.h"
 #include "LGF/Graphics/Sprite.h"
 #include "Message.h"
+#include "CookingController/CookingParameters.h"
 
 class Player;
+class CookingSystem;
 
 
 enum class JudgeManState
@@ -32,7 +34,7 @@ public:
 	/// <summary>
 	/// 更新処理
 	/// </summary>
-	void Update(const Player* player, const LGF::DebugCamera3D& camera);
+	void Update(const Player* player, const LGF::DebugCamera3D& camera, CookingSystem* cookingSystem = nullptr);
 
 	/// <summary>
 	/// 描画処理
@@ -43,6 +45,12 @@ public:
 	/// ImGuiデバッグ描画
 	/// </summary>
 	void DrawImGuiDebug();
+
+	/// <summary>
+	/// 最後に審査した評価結果を取得
+	/// </summary>
+	const CookingParameters::JudgeEvaluation& GetLatestEvaluation() const { return latestEvaluation_; }
+	bool HasEvaluation() const { return hasEvaluation_; }
 
 private:
 	// =========================================================
@@ -77,5 +85,9 @@ private:
 	//会話変数
 	JudgeManState state_ = JudgeManState::JudgeManState_Idle; // 審査員の状態
 	const float talkDistance_ = 8.0f; // プレイヤーとの会話距離
+
+	// 最新の評価結果
+	CookingParameters::JudgeEvaluation latestEvaluation_{};
+	bool hasEvaluation_ = false;
 };
 

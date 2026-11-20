@@ -130,8 +130,8 @@ void GamePlayScene::Update() {
 	physicsWorld2_.Update(static_cast<float>(System::DeltaTime()));
 	/* ステージオブジェクト管理クラスの更新 */
 	stageManager_->Update();
-	// 審査員マネージャーの更新
-	judgeManager_->Update(player_.get(), camera_);
+	// 審査員マネージャーの更新（調理システムの評価結果を連動）
+	judgeManager_->Update(player_.get(), camera_, &cookingController_->GetCookingSystem());
 
 	/* コリジョンマネージャー更新 */
 	CollisionManager::GetInstance()->Step();

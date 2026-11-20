@@ -7,8 +7,7 @@
 
 #include "AppMath/AppMath.h"
 #include "../Player/Player.h"
-#include "LGF/Input.h"
-
+#include "CookingController/CookingSystem.h"
 #include "ConversationData.h"
 #include "Input/XboxController.h"
 
@@ -27,7 +26,7 @@ JudgeMan::JudgeMan() {
 
 }
 
-void JudgeMan::Update(const Player* player, const LGF::DebugCamera3D& camera) {
+void JudgeMan::Update(const Player* player, const LGF::DebugCamera3D& camera, CookingSystem* cookingSystem) {
 	message_->Update(camera);
 	const auto xboxController = XboxController::Get();
 	const bool isTalkTriggered = Key::C.Trigger() ||
@@ -55,18 +54,40 @@ void JudgeMan::Update(const Player* player, const LGF::DebugCamera3D& camera) {
 				state_ = JudgeManState::JudgeManState_Talking;
 				// アニメーションを切り替える
 				modelAnimator_.Play("Conversation", opt);
-				//会話の内容を登録（ランダム）
-				std::vector<std::string> group = {
-					"demoA",
-					"demoB",
-					"demoC"
-				};
-				//ランダムエンジン
-				std::random_device seedGenerator;
-				std::mt19937 randomEngine(seedGenerator());
-				int randomIndex = std::uniform_int_distribution<int>(0, static_cast<int>(group.size()) - 1)(randomEngine);
 
-				message_->RegisterConversationData({ ConversationData::demos.at(group[randomIndex]) });
+				// 調理システムから炒飯の評価を取得
+				std::string selectedGroup = "demoB";
+				if (cookingSystem && cookingSystem->GetParameters().riceAmount > 0.0f) {
+					latestEvaluation_ = cookingSystem->GetCurrentEvaluation();
+					hasEvaluation_ = true;
+
+					// ランクに応じたリアクション
+					switch (latestEvaluation_.grade) {
+					case CookingParameters::JudgeGrade::Masterpiece: // Sランク（絶品・黄金炒飯）
+						selectedGroup = "demoA";
+						break;
+					case CookingParameters::JudgeGrade::Delicious:   // Aランク（美味）
+						selectedGroup = "demoB";
+						break;
+					case CookingParameters::JudgeGrade::Acceptable:  // Bランク（合格）
+					case CookingParameters::JudgeGrade::Unacceptable:// Cランク（不合格・焦げ）
+					default:
+						selectedGroup = "demoC";
+						break;
+					}
+				} else {
+					hasEvaluation_ = false;
+					// 米が入っていない場合、デフォルト会話
+					std::vector<std::string> group = { "demoA", "demoB", "demoC" };
+					std::random_device seedGenerator;
+					std::mt19937 randomEngine(seedGenerator());
+					int randomIndex = std::uniform_int_distribution<int>(0, static_cast<int>(group.size()) - 1)(randomEngine);
+					selectedGroup = group[randomIndex];
+				}
+
+				if (ConversationData::demos.count(selectedGroup)) {
+					message_->RegisterConversationData({ ConversationData::demos.at(selectedGroup) });
+				}
 			}
 		}
 		else {
@@ -119,6 +140,35 @@ void JudgeMan::DrawImGuiDebug()
 
 	ImGui::DragFloat3("Position", &position_.x, 0.01f);
 	ImGui::DragFloat3("Rotation", &rotation_.x, 0.01f);
+
+	ImGui::Separator();
+	if (hasEvaluation_) {
+		const char* gradeStr = "Unknown";
+		ImVec4 gradeColor(1, 1, 1, 1);
+		switch (latestEvaluation_.grade) {
+		case CookingParameters::JudgeGrade::Masterpiece:
+			gradeStr = "S: Masterpiece (Ultimate)";
+			gradeColor = ImVec4(1.0f, 0.84f, 0.0f, 1.0f);
+			break;
+		case CookingParameters::JudgeGrade::Delicious:
+			gradeStr = "A: Delicious (Splendid)";
+			gradeColor = ImVec4(0.2f, 1.0f, 0.4f, 1.0f);
+			break;
+		case CookingParameters::JudgeGrade::Acceptable:
+			gradeStr = "B: Acceptable (Passing)";
+			gradeColor = ImVec4(0.4f, 0.8f, 1.0f, 1.0f);
+			break;
+		case CookingParameters::JudgeGrade::Unacceptable:
+			gradeStr = "C: Unacceptable (Failed)";
+			gradeColor = ImVec4(1.0f, 0.2f, 0.2f, 1.0f);
+			break;
+		}
+		ImGui::TextColored(gradeColor, "Latest Dish Rank: %s", gradeStr);
+		ImGui::Text("Total Score: %d / 100", latestEvaluation_.totalScore);
+		ImGui::TextWrapped("Comment: %s", latestEvaluation_.comment.c_str());
+	} else {
+		ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "No dish presented yet.");
+	}
 
 	ImGui::End();
 #endif

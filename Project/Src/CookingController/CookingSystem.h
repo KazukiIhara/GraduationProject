@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "CookingParameters.h"
 #include "CookingConfig.h"
@@ -221,6 +221,11 @@ public:
 
 	const CookingParameters& GetParameters() const { return parameters_; }
 	CookingParameters& GetParameters() { return parameters_; }
+
+	/// <summary>
+	/// 米の量（g）を取得
+	/// </summary>
+	float GetRiceAmount() const { return parameters_.riceAmount; }
 
 	const HeatSource& GetHeatSource() const { return heatSource_; }
 	HeatSource& GetHeatSource() { return heatSource_; }

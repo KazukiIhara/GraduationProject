@@ -40,8 +40,49 @@ void IngredientManager::DrawImGuiDebug() {
 		ImGui::Text("Space / Xbox X : Add Rice");
 		ImGui::Text("Rice Amount : %.0f g", cookingFriedRice_.GetRiceAmount());
 		ImGui::Text("Rice Particles : %zu", riceObjects_.size());
-		ImGui::Text("Ingredients : %zu", cookingFriedRice_.GetIngredients().size());
-		ImGui::Text("State : %d", static_cast<int>(cookingFriedRice_.GetState()));
+		ImGui::Text("Ingredients Count : %zu", cookingFriedRice_.GetIngredients().size());
+
+		// 投入済み食材の一覧表示
+		if (!cookingFriedRice_.GetIngredients().empty()) {
+			ImGui::Text("Ingredients List:");
+			for (const auto& ing : cookingFriedRice_.GetIngredients()) {
+				const char* name = "Unknown";
+				switch (ing.type) {
+				case IngredientType::Egg: name = "Egg"; break;
+				case IngredientType::GreenOnion: name = "GreenOnion"; break;
+				case IngredientType::Meat: name = "Meat"; break;
+				}
+				ImGui::BulletText("%s: %.1f", name, ing.amount);
+			}
+		}
+
+		ImGui::Separator();
+		ImGui::TextColored(ImVec4(0.2f, 0.8f, 1.0f, 1.0f), "=== Debug Add Ingredients ===");
+		if (ImGui::Button("Add Egg")) {
+			AddIngredient(IngredientType::Egg, 1.0f);
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Add Green Onion")) {
+			AddIngredient(IngredientType::GreenOnion, 1.0f);
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Add Meat")) {
+			AddIngredient(IngredientType::Meat, 1.0f);
+		}
+
+		if (ImGui::Button("Reset Ingredients & Rice")) {
+			Reset();
+		}
+
+		ImGui::Separator();
+		const char* stateStr = "NotStarted";
+		switch (cookingFriedRice_.GetState()) {
+		case FriedRiceState::NotStarted: stateStr = "NotStarted"; break;
+		case FriedRiceState::Cooking: stateStr = "Cooking"; break;
+		case FriedRiceState::Burned: stateStr = "Burned (Fail)"; break;
+		case FriedRiceState::Completed: stateStr = "Completed"; break;
+		}
+		ImGui::Text("State : %s", stateStr);
 	}
 	ImGui::End();
 #endif
@@ -53,6 +94,15 @@ const CookingFriedRice& IngredientManager::GetCookingFriedRice() const {
 
 CookingFriedRice& IngredientManager::GetCookingFriedRice() {
 	return cookingFriedRice_;
+}
+
+void IngredientManager::AddIngredient(IngredientType type, float amount) {
+	cookingFriedRice_.AddIngredient(type, amount);
+}
+
+void IngredientManager::Reset() {
+	riceObjects_.clear();
+	cookingFriedRice_.Reset();
 }
 
 void IngredientManager::AddRice(const Vector3& spawnPosition) {
