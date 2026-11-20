@@ -2,6 +2,7 @@
 
 #include "LGF/Graphics/Model.h"
 #include "LGF/Math/Vector3.h"
+#include "LGF/Physics.h"
 
 #include "../Calibration/Calibration.h"
 
@@ -18,7 +19,9 @@ public:
 	/// <summary>
 	/// コンストラクタ
 	/// </summary>
-	Wok();
+	explicit Wok(LGF::Physics::PhysicsWorld& physicsWorld);
+
+	~Wok();
 
 	/// <summary>
 	/// 更新処理
@@ -35,6 +38,17 @@ public:
 	/// </summary>
 	void DrawImGuiDebug();
 
+	/// <summary>
+	/// 米の投入位置を取得
+	/// </summary>
+	LGF::Vector3 GetRiceSpawnPosition() const;
+
+private:
+	/// <summary>
+	/// 鍋の形状に物理オブジェクトを追従させる
+	/// </summary>
+	void UpdatePhysicsShape();
+
 private:
 	// =========================================================
 	// Constants
@@ -50,6 +64,8 @@ private:
 	LGF::Model model_{ "../Assets/Models/wok.gltf" }; // モデル
 	LGF::Vector3 position_{0.0f, 0.0f, 0.0f}; // 位置
 	LGF::Vector3 rotation_{0.0f, 0.0f, 0.0f}; // 回転
+	LGF::Physics::PhysicsWorld* physicsWorld_ = nullptr;
+	LGF::Physics::KinematicObjectHandle physicsHandle_{};
 
 	std::unique_ptr<Calibration> calibration_ = nullptr; // キャリブレーション
 

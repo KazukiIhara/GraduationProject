@@ -8,15 +8,33 @@
 #include <algorithm>
 
 #include "Collision/CollisionManager.h"
+#include "Input/XboxController.h"
 
 using namespace LGF;
 
-GamePlayScene::GamePlayScene(const InitData& init) :
-	IScene(init),
-	camera_(15.0f),
-	light_({ 0.5f, -1.0f, 0.35f }, Color::White, 1.5f) {
+namespace {
 
-	camera_.translation = { 0.0f, 7.0f, -20.0f };
+Physics::PhysicsWorldSettings MakePhysicsWorldSettings() {
+	Physics::PhysicsWorldSettings settings{};
+	settings.worldBounds = {
+	    .min = {-100.0f, -10.0f, -100.0f},
+	    .max = {100.0f,  20.0f,  100.0f },
+	};
+	settings.substepCount = 8u;
+	settings.solverIterationCount = 8u;
+	settings.maximumParticleCount = 4096u;
+	settings.maximumColliderCount = 256u;
+	settings.maximumParticleCommandCount = 16384u;
+	settings.linearDamping = 0.2f;
+	return settings;
+}
+
+} // namespace
+
+GamePlayScene::GamePlayScene(const InitData& init)
+    : IScene(init), camera_(15.0f), light_({0.5f, -1.0f, 0.35f}, Color::White, 1.5f), physicsWorld1_(MakePhysicsWorldSettings()), physicsWorld2_(MakePhysicsWorldSettings()) {
+
+	camera_.translation = {0.0f, 7.0f, -20.0f};
 	camera_.yaw = 0.0f;
 	camera_.pitch = 0.3f;
 
@@ -25,26 +43,46 @@ GamePlayScene::GamePlayScene(const InitData& init) :
 	// 一応クリア
 	collisionManager->Clear();
 	// タグの登録
-	collisionManager->RegisterTag("Player"); // プレイヤー
-	collisionManager->RegisterTag("Solid"); // 固体（プレイヤーとの押し戻しを行うオブジェクト）
+	collisionManager->RegisterTag("Player");            // プレイヤー
+	collisionManager->RegisterTag("Solid");             // 固体（プレイヤーとの押し戻しを行うオブジェクト）
 	collisionManager->RegisterTag("InteractionSensor"); // インタラクト用センサー（プレイヤーの中華レンジ周辺でのモード切替用）
 
-	player_ = std::make_unique<Player>();
+	player_ = std::make_unique<Player>(physicsWorld2_); // 炒飯と判定を取らないほうのワールドに設定（ステージオブジェクトなど）
 
-	cookingController_ = std::make_unique<CookingController>();
+	floorPhysicsHandle_ = physicsWorld1_.AddStaticObject(
+	    Collision::AABB{
+	        .min = {-20.0f, -0.5f, -20.0f},
+	        .max = {20.0f,  0.0f,  20.0f },
+		},
+	    Physics::StaticObjectOptions{
+	        .material = {.restitution = 0.05f, .friction = 0.9f},
+	        .objectHandle = {1u, 1u},
+	   });
 
-	stageManager_ = std::make_unique<StageManager>();
+	cookingController_ = std::make_unique<CookingController>(physicsWorld1_);
+	ingredientManager_ = std::make_unique<IngredientManager>(physicsWorld1_);
+
+	stageManager_ = std::make_unique<StageManager>("../Assets/Stages/stage.json", physicsWorld1_, physicsWorld2_);
 
 	judgeManager_ = std::make_unique<JudgeManager>();
 }
 
 void GamePlayScene::Update() {
+	if (openUIWorldDemoCommand_.Trigger()) {
+		GetData().previousScene = GetState();
+		ChangeScene(SceneNames::UIWorldDemo);
+		return;
+	}
 	if (Key::L.Trigger()) {
 		ChangeScene(SceneNames::ColliderWorldDemo);
 		return;
 	}
 	if (Key::P.Trigger()) {
 		ChangeScene(SceneNames::PhysicsWorldDemo);
+		return;
+	}
+	if (Key::K.Trigger()) {
+		ChangeScene(SceneNames::SkinningAnimationDemo);
 		return;
 	}
 
@@ -71,7 +109,7 @@ void GamePlayScene::Update() {
 	/* プレイヤー更新 */
 	player_->Update(camera_.yaw);
 	// カメラの位置をプレイヤーに追従させる
-	if (Key::O.Trigger()) { // Oキーで有効状態切替
+	if (Key::Num1.Trigger()) { // Num1キーで有効状態切替
 		isCameraFollowEnabled_ = !isCameraFollowEnabled_;
 	}
 	if (isCameraFollowEnabled_) {
@@ -79,6 +117,11 @@ void GamePlayScene::Update() {
 	}
 	/* 調理器具マネージャーの更新 */
 	cookingController_->Update();
+	/* 食材マネージャーの更新 */
+	ingredientManager_->Update(cookingController_->GetWok().GetRiceSpawnPosition());
+	/* 物理ワールドの更新 */
+	physicsWorld1_.Update(static_cast<float>(System::DeltaTime()));
+	physicsWorld2_.Update(static_cast<float>(System::DeltaTime()));
 	/* ステージオブジェクト管理クラスの更新 */
 	stageManager_->Update();
 	// 審査員マネージャーの更新
@@ -89,14 +132,19 @@ void GamePlayScene::Update() {
 
 #ifdef _DEBUG
 	if (ImGui::Begin("GamePlay Debug")) {
-		// 現在の設定状態
-		ImGui::Text("P : Toggle Mouse Camera"); 
-		ImGui::SameLine();
-		ImGui::Text("[%s]", isMouseCameraEnabled_ ? "Enabled" : "Disabled");
 
-		ImGui::Text("O : Toggle Camera Follow");
+		ImGui::Text("fps : %.2f", ImGui::GetIO().Framerate);
+		ImGui::Separator();
+
+		ImGui::Text("Num1 : Toggle Camera Follow");
 		ImGui::SameLine();
 		ImGui::Text("[%s]", isCameraFollowEnabled_ ? "Enabled" : "Disabled");
+
+		// 現在の設定状態
+		ImGui::Text("Num2 : Toggle Mouse Camera");
+		ImGui::SameLine();
+		ImGui::Text("[%s]", isMouseCameraEnabled_ ? "Enabled" : "Disabled");
+		ImGui::Text("K : Open Skinning Animation Demo");
 
 		ImGui::Separator();
 
@@ -109,6 +157,7 @@ void GamePlayScene::Update() {
 
 	player_->DrawImGuiDebug();
 	cookingController_->DrawImGuiDebug();
+	ingredientManager_->DrawImGuiDebug();
 	stageManager_->DrawImGuiDebug();
 
 	CollisionManager::GetInstance()->DrawImGuiDebug();
@@ -121,13 +170,12 @@ void GamePlayScene::Draw() const {
 	camera_.SetScene();
 	light_.SetScene();
 
-	// グリッドの描画
-	grid_.Draw(Math::MakeTranslateMatrix({ 0.0f, 0.0f, 0.0f }));
-
 	// プレイヤー描画
 	player_->Draw();
 	// 調理器具マネージャーの描画
 	cookingController_->Draw();
+	// 食材マネージャーの描画
+	ingredientManager_->Draw();
 	// ステージオブジェクト管理クラスの描画
 	stageManager_->Draw();
 	// 審査員マネージャーの描画
@@ -137,11 +185,10 @@ void GamePlayScene::Draw() const {
 void GamePlayScene::UpdateCamera() {
 	float yawDelta = 0.0f;
 	float pitchDelta = 0.0f;
+	const float deltaTime = static_cast<float>(System::DeltaTime());
 
-	/* 右スティックによる視点操作 */
-	auto rightJoyCon = JoyCon::Right();
-	if (rightJoyCon.has_value() && rightJoyCon->IsConnected()) {
-		Vector2 rightStick = rightJoyCon->RightStick();
+	auto processStickInput = [&](const Gamepad& gamepad) {
+		Vector2 rightStick = gamepad.RightStick();
 
 		// デッドゾーン処理
 		if (std::abs(rightStick.x) < kDeadZone)
@@ -149,18 +196,29 @@ void GamePlayScene::UpdateCamera() {
 		if (std::abs(rightStick.y) < kDeadZone)
 			rightStick.y = 0.0f;
 
-		yawDelta += rightStick.x * kStickSensitivity * static_cast<float>(System::DeltaTime());
-		pitchDelta -= rightStick.y * kStickSensitivity * static_cast<float>(System::DeltaTime());
+		yawDelta += rightStick.x * kStickSensitivity * deltaTime;
+		pitchDelta -= rightStick.y * kStickSensitivity * deltaTime;
+	};
+
+	/* 右スティックによる視点操作 */
+	auto rightJoyCon = JoyCon::Right();
+	if (rightJoyCon.has_value() && rightJoyCon->IsConnected()) {
+		processStickInput(*rightJoyCon);
+	}
+
+	const auto xboxController = XboxController::Get();
+	if (xboxController.has_value()) {
+		processStickInput(*xboxController);
 	}
 
 	/* マウスによる視点操作（デバッグ） */
-	if (Key::P.Trigger()) { // Pキーで入力有効状態切替
-		isMouseCameraEnabled_ = !isMouseCameraEnabled_; 
+	if (Key::Num2.Trigger()) { // Num2キーで入力有効状態切替
+		isMouseCameraEnabled_ = !isMouseCameraEnabled_;
 	}
 	if (isMouseCameraEnabled_) {
 		Vector2 mouseDelta = Mouse::Delta();
-		yawDelta += mouseDelta.x * kMouseSensitivity * static_cast<float>(System::DeltaTime());
-		pitchDelta += mouseDelta.y * kMouseSensitivity * static_cast<float>(System::DeltaTime());
+		yawDelta += mouseDelta.x * kMouseSensitivity * deltaTime;
+		pitchDelta += mouseDelta.y * kMouseSensitivity * deltaTime;
 	}
 
 	cookingController_->DrawImGuiDebug();

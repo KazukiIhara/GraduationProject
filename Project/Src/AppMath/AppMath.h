@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "LGF/Math/Vector3.h"
+#include "LGF/LGFMath.h"
 
 // =========================================================
 // 数学関数

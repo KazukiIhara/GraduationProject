@@ -6,12 +6,15 @@
 #include "LGF/System.h"
 #include "imgui.h"
 
-#include "DebugDraw/DebugDraw.h"
 #include "Collision/CollisionManager.h"
+#include "DebugDraw/DebugDraw.h"
+#include "Input/XboxController.h"
 
 using namespace LGF;
 
-Player::Player() { Initialize(); }
+Player::Player(LGF::Physics::PhysicsWorld& physicsWorld) : physicsWorld_(physicsWorld){ Initialize(); }
+
+Player::~Player() {}
 
 void Player::Initialize() {
 	// 初期位置
@@ -22,13 +25,20 @@ void Player::Initialize() {
 	options.tag = "Player";
 	options.targetTags = {"Solid", "InteractionSensor"};
 
-	LGF::Collision::AABB colliderAABB{
-		// プレイヤーのサイズに合わせて幅1.0, 高さ2.0のボックスにする
-	    position_ + kColliderMin, 
-		position_ + kColliderMax
-    };
+	LGF::Collision::AABB colliderAABB{// プレイヤーのサイズに合わせて幅1.0, 高さ2.0のボックスにする
+	                                  position_ + kColliderMin, position_ + kColliderMax};
 
 	colliderHandle_ = CollisionManager::GetInstance()->AddCollider(colliderAABB, options);
+
+	// 物理ワールドへの動的オブジェクト登録
+	constexpr ObjectHandle kPlayerObjectHandle{0u, 1u};
+
+	physicsHandle_ = physicsWorld_.AddDynamicObject({
+	    .shape = Collision::Sphere{.center = position_ + kSphereOffset, .radius = kSphereRadius},
+	    .mass = 1.0f,
+	    .material = {.restitution = 0.05f, .friction = 0.9f},
+	    .objectHandle = kPlayerObjectHandle,
+	});
 }
 
 void Player::Update(float cameraYaw) {
@@ -61,6 +71,11 @@ void Player::Update(float cameraYaw) {
 		}
 	}
 
+	const auto xboxController = XboxController::Get();
+	if (xboxController.has_value() && xboxController->Button(GamepadButtonCode::South).Trigger()) {
+		isInteractTriggerd = true;
+	}
+
 	bool wasCookingMode = isCookingMode_; // 前フレームのモード状態を保持
 
 	if (isNearChineseRange_ && isInteractTriggerd) {
@@ -69,7 +84,7 @@ void Player::Update(float cameraYaw) {
 
 	// 料理モードが解除された瞬間の位置変更（ちょっと後ろに配置）
 	if (wasCookingMode && !isCookingMode_) {
-		position_ = {0.0f, 2.0f, -10.0f}; 
+		position_ = {0.0f, 2.0f, -10.0f};
 	}
 
 	if (isCookingMode_) {
@@ -78,45 +93,46 @@ void Player::Update(float cameraYaw) {
 		// 移動処理は行わず、コライダーの位置だけ現在の位置に固定して抜ける
 		LGF::Collision::AABB finalAABB{position_ + kColliderMin, position_ + kColliderMax};
 		CollisionManager::GetInstance()->SetShape(colliderHandle_, finalAABB);
+
+		// 物理ワールド側の球体位置も固定
+		physicsWorld_.SetVelocity(physicsHandle_, {0.0f, 0.0f, 0.0f});
 		return;
 	}
 
 	/* 移動処理 */
 	LGF::Vector3 moveDir = {0.0f, 0.0f, 0.0f};
-	if (ProcessInput(moveDir)) {
-		// カメラのYaw回転行列を作成
-		LGF::Matrix4x4 cameraRotMat = LGF::Math::MakeRotateYMatrix(cameraYaw);
-		// 入力方向をカメラの向き基準のワールド方向へ変換
-		LGF::Vector3 velocity = LGF::Math::TransformNormal(moveDir, cameraRotMat);
-		// プレイヤー自身の向きもカメラの向きに合わせる
-		rotation_.y = cameraYaw;
-		// 正規化してスピードを掛ける
-		velocity = LGF::Math::Normalize(velocity) * kMoveSpeed * static_cast<float>(System::DeltaTime());
-		// 位置を更新
-		position_ += velocity;
+	auto state1 = physicsWorld_.GetState(physicsHandle_);
+
+	if (state1) {
+		if (ProcessInput(moveDir)) {
+			// カメラのYaw回転行列を作成
+			LGF::Matrix4x4 cameraRotMat = LGF::Math::MakeRotateYMatrix(cameraYaw);
+			// 入力方向をカメラの向き基準のワールド方向へ変換
+			LGF::Vector3 velocity = LGF::Math::TransformNormal(moveDir, cameraRotMat);
+			// プレイヤー自身の向きもカメラの向きに合わせる
+			rotation_.y = cameraYaw;
+			// 正規化してスピードを掛ける
+			velocity = LGF::Math::Normalize(velocity) * kMoveSpeed;
+			// 位置を更新
+			position_ += velocity;
+
+			// PhysicsWorld側の動的オブジェクトに速度を設定
+			physicsWorld_.SetVelocity(physicsHandle_, {velocity.x, state1->velocity.y, velocity.z});
+		} else {
+			// 入力が無い場合は水平方向の速度を0にする
+			physicsWorld_.SetVelocity(physicsHandle_, {0.0f, state1->velocity.y, 0.0f});
+		}
+	}
+
+	// PhysicsWorldの更新後に反映された位置をpositionの基準として同期する
+	if (state1) {
+		const auto& sphere1 = std::get<LGF::Collision::Sphere>(state1->shape);
+		position_ = sphere1.center - kSphereOffset;
 	}
 
 	/* コライダー更新処理 */
-	LGF::Collision::AABB updateAABB{
-		position_ + kColliderMin, 
-		position_ + kColliderMax
-	};
+	LGF::Collision::AABB updateAABB{position_ + kColliderMin, position_ + kColliderMax};
 	CollisionManager::GetInstance()->SetShape(colliderHandle_, updateAABB);
-
-	auto applyPushBack = [&](const auto& eventList) {
-		// タグを捜査して押し戻しを行う
-		for (const auto& collision : eventList) {
-			if (collision.tag == "Solid") {
-				position_ -= collision.contact.normal * collision.contact.penetrationDepth;
-			}
-		}
-	};
-
-	applyPushBack(events.enter);
-	applyPushBack(events.stay);
-
-	LGF::Collision::AABB finalAABB{position_ + kColliderMin, position_ + kColliderMax};
-	CollisionManager::GetInstance()->SetShape(colliderHandle_, finalAABB);
 }
 
 void Player::Draw() const {
@@ -134,6 +150,14 @@ void Player::Draw() const {
 			DebugDraw::DrawAABB(std::get<LGF::Collision::AABB>(stateOpt->shape), {0.0f, 1.0f, 0.0f, 1.0f});
 		}
 	}
+
+	// 物理ワールドの球体描画
+	auto state1 = physicsWorld_.GetState(physicsHandle_);
+	if (state1) {
+		const auto& sph = std::get<Collision::Sphere>(state1->shape);
+		DebugDraw::DrawSphere(sph.center, sph.radius, {1.0f, 1.0f, 0.0f, 1.0f});
+	}
+
 #endif
 }
 
@@ -154,10 +178,8 @@ bool Player::ProcessInput(LGF::Vector3& outMoveDir) {
 	outMoveDir = {0.0f, 0.0f, 0.0f};
 	bool isPressed = false;
 
-	/* Joy-Con左スティック操作 */
-	auto leftJoyCon = JoyCon::Left();
-	if (leftJoyCon.has_value() && leftJoyCon->IsConnected()) {
-		Vector2 stick = leftJoyCon->LeftStick();
+	auto processStickInput = [&](const Gamepad& gamepad) {
+		Vector2 stick = gamepad.LeftStick();
 
 		// デッドゾーン処理
 		if (std::abs(stick.x) < kDeadZone)
@@ -170,6 +192,20 @@ bool Player::ProcessInput(LGF::Vector3& outMoveDir) {
 			outMoveDir.z = stick.y;
 			return true;
 		}
+
+		return false;
+	};
+
+	/* Joy-Con左スティック操作 */
+	auto leftJoyCon = JoyCon::Left();
+	if (leftJoyCon.has_value() && processStickInput(*leftJoyCon)) {
+		return true;
+	}
+
+	/* Xboxコントローラー左スティック操作 */
+	const auto xboxController = XboxController::Get();
+	if (xboxController.has_value() && processStickInput(*xboxController)) {
+		return true;
 	}
 
 	/* キーボード操作 */

@@ -68,7 +68,9 @@ private:
 	// Member Variables
 	// =========================================================
 
+	LGF::ModelAnimationPlayOptions opt;
 	LGF::Model model_{ "../Assets/Models/judgeman.gltf" }; // モデル
+	LGF::ModelAnimator modelAnimator_{ model_ };
 	LGF::Vector3 position_{}; // 現在の位置
 	LGF::Vector3 rotation_{}; // 現在の回転
 
