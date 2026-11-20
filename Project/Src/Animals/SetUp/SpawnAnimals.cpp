@@ -5,6 +5,8 @@
 #include "Animals/Deer/Deer.h"
 #include "Animals/Boar/Boar.h"
 
+#include <imgui.h>
+
 void SpawnAnimals::Update() {
 
 	if (keyA_->Press()) {
@@ -91,6 +93,50 @@ void SpawnAnimals::BornAnimals() {
 	}
 }
 
+void SpawnAnimals::BornAnimalsDebug() {
+
+#ifdef _DEBUG
+	std::unique_ptr<BaseAnimal> newAnimal_Debug;
+	std::random_device device_Debug;
+
+	if (ImGui::Begin("SpawnAnimals Debug")) {
+		if (ImGui::Button("Rabbit Spawn")) {
+			newAnimal_Debug = std::move(RandomAnimalsClass(0));
+		}
+		if (ImGui::Button("Deer Spawn")) {
+			newAnimal_Debug = std::move(RandomAnimalsClass(1));
+		}
+		if (ImGui::Button("Boar Spawn")) {
+			newAnimal_Debug = std::move(RandomAnimalsClass(2));
+		}
+	}
+	ImGui::End();
+
+	if (newAnimal_Debug) {
+		std::uniform_real_distribution<float> distPos(-15.0f, 15.0f);
+		std::uniform_int_distribution<int> distSpawn(0, 2);//召喚場所(0:前、1:左、2:右)
+
+		float positionX = 0.0f;
+		float positionZ = 0.0f;
+		if (distSpawn(device_Debug) == 1) {
+			positionX = -15.0f;
+			positionZ = distPos(device_Debug);
+		}
+		else if (distSpawn(device_Debug) == 2) {
+			positionX = 15.0f;
+			positionZ = distPos(device_Debug);
+		}
+		else {
+			positionX = distPos(device_Debug);
+			positionZ = 15.0f;
+		}
+
+		newAnimal_Debug->Init({ positionX,1.0f,positionZ });
+		animals_.push_back(std::move(newAnimal_Debug));
+	}
+
+#endif // _DEBUG
+}
 
 std::unique_ptr<BaseAnimal> SpawnAnimals::RandomAnimalsClass(int level) {
 	//動物の種類

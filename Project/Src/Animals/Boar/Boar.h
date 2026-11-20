@@ -16,5 +16,15 @@ class Boar : public BaseAnimal {
 	/// </summary>
 	/// <param name="target">プレイヤーか炒飯か</param>
 	void Attack(Target target) override;
+
+
+private:
+
+	float tackleTime_ = 0.0f;
+	const float kTackleTimeMax_ = 2.0f;
+
+	LGF::Vector3 tackleStart_{};
+	LGF::Vector3 tackleGoal_{};
+
 };
 
