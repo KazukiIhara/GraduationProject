@@ -8,7 +8,10 @@
 
 StageObject::StageObject(const std::string& modelPath, const StageObjectData& data) : model_(modelPath), position_(data.position), rotation_(data.rotation), scale_(data.scale) {
 	//アニメーションがあるならアニメーターに登録
-	if (std::filesystem::path(model_.GetFilePath()).filename() == "tree_01.gltf") {
+	if (std::filesystem::path(model_.GetFilePath()).filename() == "tree_01.gltf"||
+		std::filesystem::path(model_.GetFilePath()).filename() == "tree_02.gltf"||
+		std::filesystem::path(model_.GetFilePath()).filename() == "grass_01.gltf"
+		) {
 		animator_ = LGF::ModelAnimator(model_);
 		animator_.Play("Idle");
 	}
