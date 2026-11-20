@@ -133,6 +133,9 @@ void GamePlayScene::Update() {
 #ifdef _DEBUG
 	if (ImGui::Begin("GamePlay Debug")) {
 
+		ImGui::Text("fps : %.2f", ImGui::GetIO().Framerate);
+		ImGui::Separator();
+
 		ImGui::Text("Num1 : Toggle Camera Follow");
 		ImGui::SameLine();
 		ImGui::Text("[%s]", isCameraFollowEnabled_ ? "Enabled" : "Disabled");
