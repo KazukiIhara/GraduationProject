@@ -91,21 +91,9 @@ GamePlayScene::~GamePlayScene() {
 }
 
 void GamePlayScene::Update() {
-	if (openUIWorldDemoCommand_.Trigger()) {
+	if (openFeatureShowcaseCommand_.Trigger()) {
 		GetData().previousScene = GetState();
-		ChangeScene(SceneNames::UIWorldDemo);
-		return;
-	}
-	if (Key::L.Trigger()) {
-		ChangeScene(SceneNames::ColliderWorldDemo);
-		return;
-	}
-	if (Key::P.Trigger()) {
-		ChangeScene(SceneNames::PhysicsWorldDemo);
-		return;
-	}
-	if (Key::K.Trigger()) {
-		ChangeScene(SceneNames::SkinningAnimationDemo);
+		ChangeScene(SceneNames::FeatureShowcase);
 		return;
 	}
 
@@ -167,7 +155,7 @@ void GamePlayScene::Update() {
 		ImGui::Text("Num2 : Toggle Mouse Camera");
 		ImGui::SameLine();
 		ImGui::Text("[%s]", isMouseCameraEnabled_ ? "Enabled" : "Disabled");
-		ImGui::Text("K : Open Skinning Animation Demo");
+		ImGui::Text("U : Open Feature Showcase");
 
 		ImGui::Separator();
 
