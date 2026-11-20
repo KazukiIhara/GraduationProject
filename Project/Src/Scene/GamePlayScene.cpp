@@ -1,4 +1,4 @@
-﻿#include "GamePlayScene.h"
+#include "GamePlayScene.h"
 
 #include <imgui.h>
 
@@ -66,6 +66,12 @@ GamePlayScene::GamePlayScene(const InitData& init)
 
 	judgeManager_ = std::make_unique<JudgeManager>();
 
+	// 中華レンジの配置位置を調理システムの火元位置に同期
+	cookingController_->GetCookingSystem().SetHeatSourcePosition(stageManager_->GetChineseRangePosition());
+
+	// 食材マネージャーの炒飯モデルを調理システムに連携（バインド）
+	cookingController_->GetCookingSystem().BindFriedRice(&ingredientManager_->GetCookingFriedRice());
+
 #ifdef _DEBUG
 	postProcessProfile_ = Graphics3D::CreatePostProcessProfile("Default.json");
 	if (Graphics3D::IsValid(postProcessProfile_)) {
@@ -132,8 +138,8 @@ void GamePlayScene::Update() {
 	if (isCameraFollowEnabled_) {
 		camera_.translation = player_->GetEyePosition();
 	}
-	/* 調理器具マネージャーの更新 */
-	cookingController_->Update();
+	/* 調理器具マネージャーの更新（プレイヤーの料理モード状態を伝達） */
+	cookingController_->Update(player_->IsCookingMode());
 	/* 食材マネージャーの更新 */
 	ingredientManager_->Update(cookingController_->GetWok().GetRiceSpawnPosition());
 	/* 物理ワールドの更新 */
@@ -141,8 +147,8 @@ void GamePlayScene::Update() {
 	physicsWorld2_.Update(static_cast<float>(System::DeltaTime()));
 	/* ステージオブジェクト管理クラスの更新 */
 	stageManager_->Update();
-	// 審査員マネージャーの更新
-	judgeManager_->Update(player_.get(), camera_);
+	// 審査員マネージャーの更新（調理システムの評価結果を連動）
+	judgeManager_->Update(player_.get(), camera_, &cookingController_->GetCookingSystem());
 
 	/* コリジョンマネージャー更新 */
 	CollisionManager::GetInstance()->Step();
@@ -176,6 +182,7 @@ void GamePlayScene::Update() {
 	cookingController_->DrawImGuiDebug();
 	ingredientManager_->DrawImGuiDebug();
 	stageManager_->DrawImGuiDebug();
+	judgeManager_->DrawImGuiDebug();
 
 	CollisionManager::GetInstance()->DrawImGuiDebug();
 	DrawScreenEffectDebugWindow();
@@ -239,9 +246,6 @@ void GamePlayScene::UpdateCamera() {
 		yawDelta += mouseDelta.x * kMouseSensitivity * deltaTime;
 		pitchDelta += mouseDelta.y * kMouseSensitivity * deltaTime;
 	}
-
-	cookingController_->DrawImGuiDebug();
-	judgeManager_->DrawImGuiDebug();
 
 	// 最終的なカメラ角度に反映
 	camera_.yaw += yawDelta;

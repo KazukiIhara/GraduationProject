@@ -1,4 +1,4 @@
-﻿#include "StageManager.h"
+#include "StageManager.h"
 
 #include "fstream"
 #include "assert.h"
@@ -94,6 +94,7 @@ void StageManager::Initialize(const std::string& jsonFilePath) {
 			} else if (modelName == "chineseRange") {
 				baseHalfExtents = {1.0f, 1.1f, 1.0f};
 				offsetY = 1.0f;
+				positionChineseRange_ = data.position;
 			} else if (modelName == "farm") {
 				baseHalfExtents = {5.5f, 5.6f, 10.5f};
 				offsetY = 5.6f;
