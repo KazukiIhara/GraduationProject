@@ -1,6 +1,8 @@
 #pragma once
 #include "GameApp.h"
 #include "BaseAnimalState.h"
+#include "LGF/Collision/ColliderWorld.h"
+#include "AppMath/AppMath.h"
 
 enum Target {
 	charhan,
@@ -60,7 +62,7 @@ public:
 	/// <summary>
 	/// 攻撃処理
 	/// </summary>
-	void Attack(Target target);
+	virtual void Attack(Target target) = 0;
 
 	/// <summary>
 	/// 死んだときの処理
@@ -75,10 +77,10 @@ public:
 	bool IsAttackAreaInTarget(Target target);
 
 	/// <summary>
-	/// フラグ_攻撃中であるか
+	/// フラグ_攻撃を終えたか
 	/// </summary>
 	/// <returns></returns>
-	bool IsAttacking() { return isAttack_; }
+	bool IsAttackFinish() { return isAttackFinish_; }
 
 	/// <summary>
 	/// 死亡判定
@@ -89,6 +91,11 @@ public:
 	}
 
 protected:
+	/// <summary>
+	/// 予備動作フラグ
+	/// </summary>
+	/// <returns></returns>
+	bool IsAnticipationTime(Target target, float maxTime);
 
 	LGF::Box3D object_;
 
@@ -109,12 +116,27 @@ protected:
 	float deadAnimationTime_ = 0.0f;
 	const float kDeadAnimationMaxTime_ = 2.0f;
 
+	//当たり判定(body)
+	const LGF::Vector3 kColliderMin = { -1.0f, -1.0f, -1.0f };
+	const LGF::Vector3 kColliderMax = { 1.0f, 1.0f, 1.0f };
+	
+	const LGF::Vector3 kAttackColliderMin = { -1.0f, -0.5f, -1.0f };
+	const LGF::Vector3 kAttackColliderMax = { 1.0f, 0.5f, 1.0f };
+
+	LGF::Collision::ColliderHandle bodyColliderHandle_;// 動物自体
+	LGF::Collision::ColliderHandle attackAreaColliderHandle_;// 攻撃範囲
+	
+	
+	LGF::Vector3 attackPoint_ = AppMath::InvisiblePlace();;
+
+	bool isAttack_ = false;
+	bool isAttackFinish_ = true;
+
 private:
 
 	std::unique_ptr<BaseAnimalState> state_;
 
-	float t = 0.0f;
+	float anticipationTime_ = 0.0f;
 
-	bool isAttack_ = false;
 };
 

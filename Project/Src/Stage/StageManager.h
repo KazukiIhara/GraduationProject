@@ -9,14 +9,14 @@
 // =========================================================
 class StageManager {
 public:
-	StageManager(const std::string& jsonFilePath, LGF::Physics::PhysicsWorld& physicsWorld);
+	StageManager(const std::string& jsonFilePath, LGF::Physics::PhysicsWorld& physicsWorld1, LGF::Physics::PhysicsWorld& physicsWorld2);
 	~StageManager();
 
 	/// <summary>
 	/// 初期化処理
 	/// </summary>
 	/// <param name="colliderWorld"></param>
-	void Initialize(const std::string& jsonFilePath, LGF::Physics::PhysicsWorld& physicsWorld);
+	void Initialize(const std::string& jsonFilePath);
 
 	/// <summary>
 	/// 更新処理
@@ -65,16 +65,19 @@ private:
 	// 中華レンジの位置
 	LGF::Vector3 positionChineseRange_ = { 0.0f, 1.0f, 0.0f };
 
-	LGF::Physics::PhysicsWorld& physicsWorld_;
+	LGF::Physics::PhysicsWorld& physicsWorld1_;
+	LGF::Physics::PhysicsWorld& physicsWorld2_;
 
 	// ステージオブジェクトのリスト
 	std::vector<std::unique_ptr<StageObject>> objects_;
 
 	// 部類オブジェクトハンドル
-	std::vector<LGF::Physics::StaticObjectHandle> staticPhysicsHandles_;
+	std::vector<LGF::Physics::StaticObjectHandle> staticPhysicsHandles1_;
+	std::vector<LGF::Physics::StaticObjectHandle> staticPhysicsHandles2_;
 	
 	// 物理ワールドから取得した静的オブジェクトの状態を保持（デバッグ表示に使用）
-	std::vector<LGF::Physics::StaticObjectState> staticObjectStates_;
+	std::vector<LGF::Physics::StaticObjectState> staticObjectStates1_;
+	std::vector<LGF::Physics::StaticObjectState> staticObjectStates2_;
 	
 	// プレイヤーのインタラクト用センサー
 	LGF::Collision::ColliderHandle colliderHandleInteractionSensor_;

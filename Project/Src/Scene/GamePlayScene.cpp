@@ -14,30 +14,27 @@ using namespace LGF;
 
 namespace {
 
-	Physics::PhysicsWorldSettings MakePhysicsWorldSettings() {
-		Physics::PhysicsWorldSettings settings{};
-		settings.worldBounds = {
-			.min = { -20.0f, -10.0f, -20.0f },
-			.max = { 20.0f, 20.0f, 20.0f },
-		};
-		settings.substepCount = 8u;
-		settings.solverIterationCount = 8u;
-		settings.maximumParticleCount = 4096u;
-		settings.maximumColliderCount = 256u;
-		settings.maximumParticleCommandCount = 16384u;
-		settings.linearDamping = 0.2f;
-		return settings;
-	}
-
+Physics::PhysicsWorldSettings MakePhysicsWorldSettings() {
+	Physics::PhysicsWorldSettings settings{};
+	settings.worldBounds = {
+	    .min = {-100.0f, -10.0f, -100.0f},
+	    .max = {100.0f,  20.0f,  100.0f },
+	};
+	settings.substepCount = 8u;
+	settings.solverIterationCount = 8u;
+	settings.maximumParticleCount = 4096u;
+	settings.maximumColliderCount = 256u;
+	settings.maximumParticleCommandCount = 16384u;
+	settings.linearDamping = 0.2f;
+	return settings;
 }
 
-GamePlayScene::GamePlayScene(const InitData& init) :
-	IScene(init),
-	camera_(15.0f),
-	light_({ 0.5f, -1.0f, 0.35f }, Color::White, 1.5f),
-	physicsWorld_(MakePhysicsWorldSettings()) {
+} // namespace
 
-	camera_.translation = { 0.0f, 7.0f, -20.0f };
+GamePlayScene::GamePlayScene(const InitData& init)
+    : IScene(init), camera_(15.0f), light_({0.5f, -1.0f, 0.35f}, Color::White, 1.5f), physicsWorld1_(MakePhysicsWorldSettings()), physicsWorld2_(MakePhysicsWorldSettings()) {
+
+	camera_.translation = {0.0f, 7.0f, -20.0f};
 	camera_.yaw = 0.0f;
 	camera_.pitch = 0.3f;
 
@@ -46,26 +43,26 @@ GamePlayScene::GamePlayScene(const InitData& init) :
 	// 一応クリア
 	collisionManager->Clear();
 	// タグの登録
-	collisionManager->RegisterTag("Player"); // プレイヤー
-	collisionManager->RegisterTag("Solid"); // 固体（プレイヤーとの押し戻しを行うオブジェクト）
+	collisionManager->RegisterTag("Player");            // プレイヤー
+	collisionManager->RegisterTag("Solid");             // 固体（プレイヤーとの押し戻しを行うオブジェクト）
 	collisionManager->RegisterTag("InteractionSensor"); // インタラクト用センサー（プレイヤーの中華レンジ周辺でのモード切替用）
 
-	player_ = std::make_unique<Player>();
+	player_ = std::make_unique<Player>(physicsWorld2_); // 炒飯と判定を取らないほうのワールドに設定（ステージオブジェクトなど）
 
-	floorPhysicsHandle_ = physicsWorld_.AddStaticObject(
-		Collision::AABB{
-			.min = { -20.0f, -0.5f, -20.0f },
-			.max = { 20.0f, 0.0f, 20.0f },
+	floorPhysicsHandle_ = physicsWorld1_.AddStaticObject(
+	    Collision::AABB{
+	        .min = {-20.0f, -0.5f, -20.0f},
+	        .max = {20.0f,  0.0f,  20.0f },
 		},
-		Physics::StaticObjectOptions{
-			.material = { .restitution = 0.05f, .friction = 0.9f },
-			.objectHandle = { 1u, 1u },
-		});
+	    Physics::StaticObjectOptions{
+	        .material = {.restitution = 0.05f, .friction = 0.9f},
+	        .objectHandle = {1u, 1u},
+	   });
 
-	cookingController_ = std::make_unique<CookingController>(physicsWorld_);
-	ingredientManager_ = std::make_unique<IngredientManager>(physicsWorld_);
+	cookingController_ = std::make_unique<CookingController>(physicsWorld1_);
+	ingredientManager_ = std::make_unique<IngredientManager>(physicsWorld1_);
 
-	stageManager_ = std::make_unique<StageManager>("../Assets/Stages/stage.json", physicsWorld_);
+	stageManager_ = std::make_unique<StageManager>("../Assets/Stages/stage.json", physicsWorld1_, physicsWorld2_);
 
 	judgeManager_ = std::make_unique<JudgeManager>();
 
@@ -129,7 +126,8 @@ void GamePlayScene::Update() {
 	/* 食材マネージャーの更新 */
 	ingredientManager_->Update(cookingController_->GetWok().GetRiceSpawnPosition());
 	/* 物理ワールドの更新 */
-	physicsWorld_.Update(static_cast<float>(System::DeltaTime()));
+	physicsWorld1_.Update(static_cast<float>(System::DeltaTime()));
+	physicsWorld2_.Update(static_cast<float>(System::DeltaTime()));
 	/* ステージオブジェクト管理クラスの更新 */
 	stageManager_->Update();
 	// 審査員マネージャーの更新
@@ -146,7 +144,7 @@ void GamePlayScene::Update() {
 		ImGui::Text("[%s]", isCameraFollowEnabled_ ? "Enabled" : "Disabled");
 
 		// 現在の設定状態
-		ImGui::Text("Num2 : Toggle Mouse Camera"); 
+		ImGui::Text("Num2 : Toggle Mouse Camera");
 		ImGui::SameLine();
 		ImGui::Text("[%s]", isMouseCameraEnabled_ ? "Enabled" : "Disabled");
 		ImGui::Text("K : Open Skinning Animation Demo");
@@ -219,7 +217,7 @@ void GamePlayScene::UpdateCamera() {
 
 	/* マウスによる視点操作（デバッグ） */
 	if (Key::Num2.Trigger()) { // Num2キーで入力有効状態切替
-		isMouseCameraEnabled_ = !isMouseCameraEnabled_; 
+		isMouseCameraEnabled_ = !isMouseCameraEnabled_;
 	}
 	if (isMouseCameraEnabled_) {
 		Vector2 mouseDelta = Mouse::Delta();

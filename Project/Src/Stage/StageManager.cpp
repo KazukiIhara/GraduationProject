@@ -8,8 +8,9 @@
 #include "Collision/CollisionManager.h"
 #include "DebugDraw/DebugDraw.h"
 
-StageManager::StageManager(const std::string& jsonFilePath, LGF::Physics::PhysicsWorld& physicsWorld) : physicsWorld_(physicsWorld) { 
-	Initialize(jsonFilePath, physicsWorld); 
+StageManager::StageManager(const std::string& jsonFilePath, LGF::Physics::PhysicsWorld& physicsWorld1, LGF::Physics::PhysicsWorld& physicsWorld2)
+    : physicsWorld1_(physicsWorld1), physicsWorld2_(physicsWorld2) { 
+	Initialize(jsonFilePath);
 }
 
 StageManager::~StageManager() {}
@@ -21,10 +22,11 @@ void StageManager::Update() {
 	}
 
 	// 毎フレーム、静的オブジェクトの状態を取得（デバッグ用）
-	physicsWorld_.GetStaticObjectStates(staticObjectStates_);
+	physicsWorld1_.GetStaticObjectStates(staticObjectStates1_);
+	physicsWorld2_.GetStaticObjectStates(staticObjectStates2_);
 }
 
-void StageManager::Initialize(const std::string& jsonFilePath, LGF::Physics::PhysicsWorld& physicsWorld) {
+void StageManager::Initialize(const std::string& jsonFilePath) {
 	// JSONファイルを開く
 	std::ifstream file(jsonFilePath);
 	if (!file.is_open()) {
@@ -63,6 +65,8 @@ void StageManager::Initialize(const std::string& jsonFilePath, LGF::Physics::Phy
 			// PhysicsWorldへの静的オブジェクト登録
 			LGF::Vector3 baseHalfExtents{0.5f, 0.5f, 0.5f}; // デフォルト値
 			float offsetY = 0.0f; // Y軸オフセット
+			bool skipPhysics = false; // 物理をスキップするフラグ
+			bool detectFriedRice = false; // 炒飯と判定をとるならtrue
 
 			if (modelName == "ground") {
 				baseHalfExtents = {100.0f, 0.5f, 100.0f};
@@ -82,36 +86,35 @@ void StageManager::Initialize(const std::string& jsonFilePath, LGF::Physics::Phy
 			} else if (modelName == "grass_01") {
 				baseHalfExtents = {1.0f, 1.0f, 1.0f};
 				offsetY = 1.0f;
+				skipPhysics = true; // 物理ワールド登録をスキップ（判定いらないので）
 			} else if (modelName == "chineseRange") {
-				baseHalfExtents = {1.0f, 1.0f, 1.0f};
+				baseHalfExtents = {1.0f, 1.1f, 1.0f};
 				offsetY = 1.0f;
 				positionChineseRange_ = data.position;
 			}
 
-			LGF::Vector3 finalHalfExtents = {
-				baseHalfExtents.x * data.scale.x, 
-				baseHalfExtents.y * data.scale.y, 
-				baseHalfExtents.z * data.scale.z
-			};
+			if (!skipPhysics) {
+				LGF::Vector3 finalHalfExtents = {baseHalfExtents.x * data.scale.x, baseHalfExtents.y * data.scale.y, baseHalfExtents.z * data.scale.z};
 
-			LGF::Vector3 adjustedPosition = {
-				data.position.x, 
-				data.position.y + offsetY * data.scale.y, 
-				data.position.z
-			};
+				LGF::Vector3 adjustedPosition = {data.position.x, data.position.y + offsetY * data.scale.y, data.position.z};
 
-			LGF::Collision::AABB boxShape {
-				.min = adjustedPosition - finalHalfExtents, 
-				.max = adjustedPosition + finalHalfExtents
-            };
+				LGF::Collision::AABB boxShape{.min = adjustedPosition - finalHalfExtents, .max = adjustedPosition + finalHalfExtents};
 
-			LGF::Physics::StaticObjectOptions options{};
-			options.material = {.restitution = 0.1f, .friction = 0.85f};
-			options.objectHandle = {objectIndex++, 1u};
+				LGF::Physics::StaticObjectOptions options{};
+				options.material = {.restitution = 0.1f, .friction = 0.85f};
+				options.objectHandle = {objectIndex++, 1u};
 
-			// 物理ワールドに登録してハンドルを保持
-			auto handle = physicsWorld.AddStaticObject(boxShape, options);
-			staticPhysicsHandles_.push_back(handle);
+				// 物理ワールドに登録してハンドルを保持
+				if (detectFriedRice) {
+					// 炒飯と判定を取るなら1へ登録
+					auto handle = physicsWorld1_.AddStaticObject(boxShape, options);
+					staticPhysicsHandles1_.push_back(handle);
+				} else {
+					// 炒飯と判定を取らないなら2へ登録
+					auto handle = physicsWorld2_.AddStaticObject(boxShape, options);
+					staticPhysicsHandles2_.push_back(handle);
+				}
+			}
 		}
 	}
 
@@ -138,10 +141,16 @@ void StageManager::Draw() {
 	/* コライダーデバッグ描画 */
 
 	// PhysicsWorldに登録されたオブジェクトのコライダー描画
-	for (const auto& state : staticObjectStates_) {
+	for (const auto& state : staticObjectStates1_) {
 		// 形状がAABBの場合
 		if (const auto* aabb = std::get_if<LGF::Collision::AABB>(&state.shape)) {
 			DebugDraw::DrawAABB(*aabb, {0.0f, 1.0f, 1.0f, 1.0f});
+		}
+	}
+	for (const auto& state : staticObjectStates2_) {
+		// 形状がAABBの場合
+		if (const auto* aabb = std::get_if<LGF::Collision::AABB>(&state.shape)) {
+			DebugDraw::DrawAABB(*aabb, {1.0f, 1.0f, 0.0f, 1.0f});
 		}
 	}
 

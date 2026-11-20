@@ -24,5 +24,11 @@ public:
 	/// <param name="t"></param>
 	/// <returns></returns>
 	static LGF::Vector3 Lerp(LGF::Vector3 start, LGF::Vector3 end, float t);
+
+	/// <summary>
+	/// 見えない場所
+	/// </summary>
+	/// <returns></returns>
+	static LGF::Vector3 InvisiblePlace() { return { 0.0f,-100000.0f,0.0f }; }
 };
 

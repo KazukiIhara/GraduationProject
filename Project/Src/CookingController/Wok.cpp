@@ -1,20 +1,61 @@
 #include "Wok.h"
 
+#include "LGF/Parameter.h"
+
 #include "imgui.h"
 
 #include "Input/XboxController.h"
+
+#include <stdexcept>
 
 using namespace LGF;
 
 namespace {
 
-	constexpr Vector3 kWokOuterApexOffset = { 0.0f, -0.37f, 0.0f };
-	constexpr float kWokOuterRadius = 1.1f;
-	constexpr float kWokInnerRadius = 1.0f;
-	constexpr float kWokHeight = 0.75f;
+	constexpr const char* kWokParameterFilePath = "../Assets/Parameters/Wok.json";
 	constexpr float kLiftHeight = 0.5f;
 	constexpr float kTiltAngle = 0.4f;
 	constexpr float kXboxTriggerThreshold = 0.5f;
+
+	struct WokPhysicsParameters {
+		Vector3 outerApexOffset;
+		float outerRadius;
+		float innerRadius;
+		float height;
+		float restitution;
+		float friction;
+	};
+
+	template <class T>
+	T ReadParameter(const ParameterDocument& document, const char* path) {
+		const auto value = document.Get<T>(path);
+		if (!value) {
+			throw std::runtime_error(std::string("Invalid wok parameter: ") + path);
+		}
+		return *value;
+	}
+
+	WokPhysicsParameters LoadWokPhysicsParameters() {
+		ParameterDocument document;
+		const ParameterIoResult result = document.Load(kWokParameterFilePath);
+		if (!result) {
+			throw std::runtime_error(result.message);
+		}
+
+		return WokPhysicsParameters{
+			.outerApexOffset = ReadParameter<Vector3>(document, "Shape/OuterApexOffset"),
+			.outerRadius = ReadParameter<float>(document, "Shape/OuterRadius"),
+			.innerRadius = ReadParameter<float>(document, "Shape/InnerRadius"),
+			.height = ReadParameter<float>(document, "Shape/Height"),
+			.restitution = ReadParameter<float>(document, "Material/Restitution"),
+			.friction = ReadParameter<float>(document, "Material/Friction"),
+		};
+	}
+
+	const WokPhysicsParameters& GetWokPhysicsParameters() {
+		static const WokPhysicsParameters parameters = LoadWokPhysicsParameters();
+		return parameters;
+	}
 
 }
 
@@ -25,10 +66,14 @@ Wok::Wok(Physics::PhysicsWorld& physicsWorld) :
 
 	calibration_ = std::make_unique<Calibration>();
 
+	const WokPhysicsParameters& parameters = GetWokPhysicsParameters();
 	physicsHandle_ = physicsWorld_->AddKinematicObject(
 		Collision::SphericalShellCap{},
 		Physics::KinematicObjectOptions{
-			.material = { .restitution = 0.05f, .friction = 0.8f },
+			.material = {
+				.restitution = parameters.restitution,
+				.friction = parameters.friction,
+			},
 			.objectHandle = { 10u, 1u },
 		});
 	UpdatePhysicsShape();
@@ -138,10 +183,11 @@ void Wok::UpdatePhysicsShape() {
 		return;
 	}
 
+	const WokPhysicsParameters& parameters = GetWokPhysicsParameters();
 	const Matrix4x4 rotationMatrix = Math::MakeRotateMatrix(
 		Math::MakeQuaternion(rotation_));
 	const Vector3 outerApex = position_ + Math::TransformNormal(
-		kWokOuterApexOffset,
+		parameters.outerApexOffset,
 		rotationMatrix);
 	const Vector3 axis = Math::TransformNormal(
 		{ 0.0f, 1.0f, 0.0f },
@@ -152,8 +198,8 @@ void Wok::UpdatePhysicsShape() {
 		Collision::SphericalShellCap{
 			.outerApex = outerApex,
 			.axis = axis,
-			.outerRadius = kWokOuterRadius,
-			.innerRadius = kWokInnerRadius,
-			.height = kWokHeight,
+			.outerRadius = parameters.outerRadius,
+			.innerRadius = parameters.innerRadius,
+			.height = parameters.height,
 		});
 }

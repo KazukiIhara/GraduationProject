@@ -32,6 +32,7 @@ public:
 
 private:
 	LGF::Model model_; // モデル
+	LGF::ModelAnimator animator_;
 	LGF::Vector3 position_; // 位置
 	LGF::Vector3 rotation_; // 回転
 	LGF::Vector3 scale_; // スケール

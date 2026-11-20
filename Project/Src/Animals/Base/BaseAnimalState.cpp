@@ -30,7 +30,8 @@ void AttackCharHanAnimalState::Update() {
 }
 
 std::unique_ptr<BaseAnimalState> AttackCharHanAnimalState::ChangeState() {
-	if (!animal_->IsAttacking() && !animal_->IsAttackAreaInTarget(Target::charhan)) {
+	//攻撃の間合いに炒飯がある時 + 動物が攻撃を終えた場合
+	if (animal_->IsAttackFinish() && !animal_->IsAttackAreaInTarget(Target::charhan)) {
 		return std::make_unique<MoveAnimalState>();//移動状態に戻る
 	}
 	if (animal_->IsDead()) {
@@ -48,7 +49,8 @@ void AttackPlayerAnimalState::Update() {
 }
 
 std::unique_ptr<BaseAnimalState> AttackPlayerAnimalState::ChangeState() {
-	if (!animal_->IsAttacking() && !animal_->IsAttackAreaInTarget(Target::player)) {
+	//攻撃の間合いにプレイヤーがいた時 + 動物が攻撃を終えた場合
+	if (animal_->IsAttackFinish() && !animal_->IsAttackAreaInTarget(Target::player)) {
 		return std::make_unique<MoveAnimalState>();//移動状態に戻る
 	}
 	if (animal_->IsDead()) {

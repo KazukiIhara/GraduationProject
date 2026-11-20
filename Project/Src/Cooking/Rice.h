@@ -8,11 +8,7 @@
 class Rice
 {
 public:
-	Rice(
-		LGF::Physics::PhysicsWorld& physicsWorld,
-		const LGF::Vector3& position,
-		LGF::ObjectHandle objectHandle,
-		LGF::Physics::PhysicsParticleRenderGroupHandle renderGroup);
+	Rice(LGF::Physics::PhysicsWorld& physicsWorld, const LGF::Vector3& position, LGF::ObjectHandle objectHandle, LGF::Physics::PhysicsParticleRenderGroupHandle renderGroup);
 
 	~Rice();
 
