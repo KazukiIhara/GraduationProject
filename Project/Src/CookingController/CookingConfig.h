@@ -65,10 +65,13 @@ struct CookingTuningConfig
 	float ladleSwingThreshold = 0.3f;       // スイング炒め判定閾値
 
 	// -----------------------------------------------------
-	// 5. 香り・動物誘引
+	// 5. 香り・動物出現レベル（等間隔5段階）
 	// -----------------------------------------------------
 	float aromaDecayRate = 0.2f;            // 香りの毎秒自然減衰値
-	float attractMaxRadius = 35.0f;         // 香りMAX時の動物最大誘引半径 (m)
+	float aromaLevelThreshold1 = 20.0f;     // Lv1 -> Lv2 閾値 (デフォルト: 20)
+	float aromaLevelThreshold2 = 40.0f;     // Lv2 -> Lv3 閾値 (デフォルト: 40)
+	float aromaLevelThreshold3 = 60.0f;     // Lv3 -> Lv4 閾値 (デフォルト: 60)
+	float aromaLevelThreshold4 = 80.0f;     // Lv4 -> Lv5 閾値 (デフォルト: 80)
 
 	// -----------------------------------------------------
 	// 6. 初期状態パラメータ

@@ -145,22 +145,20 @@ public:
 	void ExtinguishStove() { heatSource_.Extinguish(); }
 
 	/// <summary>
-	/// 動物を引き寄せる匂い・香りの強さを取得 (0.0f ～ 1.0f)
+	/// 香りレベルを取得（1 ～ 5 の等間隔5段階）
+	/// レベルが高いほど、より強くて高ランクの食材を落とす動物が出現する
+	/// Lv1: aroma < 20 (デフォルト)
+	/// Lv2: 20 <= aroma < 40
+	/// Lv3: 40 <= aroma < 60
+	/// Lv4: 60 <= aroma < 80
+	/// Lv5: 80 <= aroma
 	/// </summary>
-	float GetAttractAnimalStrength() const { return parameters_.aroma / 100.0f; }
+	int GetAromaLevel() const;
 
 	/// <summary>
-	/// 香りが届く最大有効半径（メートル）。BaseAnimalの索敵範囲用
+	/// 香りレベルのゼロ始まりインデックスを取得 (0 ～ 4)
 	/// </summary>
-	float GetAttractRadius() const
-	{
-		return config_.attractMaxRadius * GetAttractAnimalStrength();
-	}
-
-	/// <summary>
-	/// 指定座標の動物が炒飯の匂い感知範囲に入っているか判定
-	/// </summary>
-	bool IsAnimalAttracted(const LGF::Vector3& animalPos) const;
+	int GetAromaLevelIndex() const { return GetAromaLevel() - 1; }
 
 	/// <summary>
 	/// 評論家による現在の炒飯の評価を取得
