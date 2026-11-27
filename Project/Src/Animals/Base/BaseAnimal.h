@@ -15,7 +15,7 @@ enum Target {
 class BaseAnimal {
 public:
 	
-	~BaseAnimal();
+	virtual ~BaseAnimal();
 
 	/// <summary>
 	/// コンストラクタ

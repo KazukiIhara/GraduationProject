@@ -32,7 +32,6 @@ void SpawnAnimals::Update() {
 
 	animals_.remove_if([](std::unique_ptr<BaseAnimal>& animal) {
 		if (animal->IsDelete()) {
-			animal.reset();
 			return true;
 		}
 		return false; 
