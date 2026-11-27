@@ -18,21 +18,23 @@ namespace {
 
 }
 
-Ladle::Ladle() {
-	position_ = kBasePosition;
-	rotation_ = kBaseRotation;
+Ladle::Ladle() { 
+	basePosition_ = kBasePosition; 
+	baseRotation_ = kBaseRotation;
+	position_ = basePosition_;
+	rotation_ = baseRotation_;
 }
 
 void Ladle::Update() {
-	// コントローラー入力操作
-	ControllerInput();
+	// コントローラー入力操作（仮実装のため一時的にコメントアウト）
+	/*ControllerInput();*/
 
-	float targetZ = kBasePosition.z + currentSwingOffsetZ_;
+	float targetZ = basePosition_.z + currentSwingOffsetZ_;
 
-	// 位置の補間
-	position_.x = AppMath::Lerp(position_.x, kBasePosition.x, 0.2f);
-	position_.y = AppMath::Lerp(position_.y, kBasePosition.y, 0.2f);
-	position_.z = AppMath::Lerp(position_.z, targetZ, 0.2f);
+	// 位置・回転の補間
+	constexpr float kFollowLerpRate = 0.3f;
+	position_ = AppMath::Lerp(position_, {basePosition_.x, basePosition_.y, targetZ}, kFollowLerpRate);
+	rotation_ = AppMath::Lerp(rotation_, baseRotation_, kFollowLerpRate);
 }
 
 void Ladle::Draw() const {
@@ -48,6 +50,15 @@ void Ladle::Draw() const {
 		options.color = Color::White;
 
 		model_.Draw(worldMatrix, options);
+	}
+}
+
+void Ladle::SetBaseTransform(const LGF::Vector3& basePos, const LGF::Vector3& baseRot, bool snapImmediate) {
+	basePosition_ = basePos;
+	baseRotation_ = baseRot;
+	if (snapImmediate) {
+		position_ = basePosition_;
+		rotation_ = baseRotation_;
 	}
 }
 

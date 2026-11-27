@@ -24,8 +24,13 @@ public:
 	/// <summary>
 	/// 更新処理
 	/// </summary>
-	/// <param name="isCookingMode">プレイヤーが調理場に立っているか（料理モード中か）</param>
-	void Update(bool isCookingMode = true);
+	void Update(
+	    bool isCookingMode = true, 
+		bool justEnteredCookingMode = false, 
+		const LGF::Vector3& leftHandPos = {0.0f, 2.5f, 0.0f}, 
+		const LGF::Vector3& rightHandPos = {0.15f, 3.0f, -0.15f},
+	    const LGF::Vector3& playerRot = {0.0f, 0.0f, 0.0f}
+	);
 
 	/// <summary>
 	/// 描画処理
@@ -104,5 +109,7 @@ private:
 	// 直前の鍋振り状態（トリガー検知用）
 	bool prevWokShaking_ = false;
 	float prevLadleOffsetZ_ = 0.0f;
+
+
 };
 

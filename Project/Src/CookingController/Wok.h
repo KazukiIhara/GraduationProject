@@ -79,6 +79,20 @@ public:
 	/// </summary>
 	LGF::Vector3 GetRiceSpawnPosition() const;
 
+	/// <summary>
+	/// ベース位置の設定
+	/// </summary>
+	/// <param name="basePos"></param>
+	/// <param name="baseRot"></param>
+	/// <param name="snapImmediate"></param>
+	void SetBaseTransform(const LGF::Vector3& basePos, const LGF::Vector3& baseRot, bool snapImmediate = false);
+
+	/// <summary>
+	/// 鍋振り許可フラグの設定
+	/// </summary>
+	/// <param name="canShake"></param>
+	void SetCanShake(bool canShake) { canShake_ = canShake; }
+		 
 private:
 	/// <summary>
 	/// 鍋の形状に物理オブジェクトを追従させる
@@ -100,6 +114,10 @@ private:
 	LGF::Model model_{ "../Assets/Models/wok.gltf" }; // モデル
 	LGF::Vector3 position_{0.0f, 0.0f, 0.0f}; // 位置
 	LGF::Vector3 rotation_{0.0f, 0.0f, 0.0f}; // 回転
+
+	LGF::Vector3 basePosition_{0.0f, 0.0f, 0.0f}; // ベース位置
+	LGF::Vector3 baseRotation_{0.0f, 0.0f, 0.0f}; // ベース回転
+
 	LGF::Physics::PhysicsWorld* physicsWorld_ = nullptr;
 	LGF::Physics::KinematicObjectHandle physicsHandle_{};
 
@@ -109,5 +127,6 @@ private:
 	const float animationDuration_ = 0.5f; // アニメーションの再生時間（秒）
 	float animationTime_ = 0.0f; // アニメーションの経過時間（秒）
 
+	bool canShake_ = false; // 鍋振りの許可（料理中のみ許可する）
 };
 

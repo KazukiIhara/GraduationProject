@@ -65,6 +65,24 @@ public:
 	/// <returns></returns>
 	bool IsCookingMode() const { return isCookingMode_; }
 
+	/// <summary>
+	/// 調理モードに入った瞬間を検知
+	/// </summary>
+	/// <returns></returns>
+	bool JustEnteredCookingMode() const { return justEnteredCookingMode_; }
+
+	/// <summary>
+	/// 左手部分のワールド位置を取得（中華鍋の位置設定に使用）
+	/// </summary>
+	/// <returns></returns>
+	LGF::Vector3 GetLeftHandWorldPosition() const;
+
+	/// <summary>
+	/// 右手部分のワールド位置を取得（おたまの位置設定に使用）
+	/// </summary>
+	/// <returns></returns>
+	LGF::Vector3 GetRightHandWorldPosition() const;
+
 private:
 	// =========================================================
 	// Internal Methods
@@ -92,6 +110,10 @@ private:
 	const float kSphereRadius = 1.0f;
 	const LGF::Vector3 kSphereOffset = {0.0f, -1.0f, 0.0f}; // 球体オフセット
 
+	const LGF::Vector3 kCookingWarpPosition = {0.0f, 2.0f, -2.0f}; // 調理モード時の固定位置
+	const LGF::Vector3 kLeftHandOffset = {-1.1f, 1.0f, 1.3f}; // 左手オフセット（中華鍋基準位置として使用）
+	const LGF::Vector3 kRightHandOffset = {0.8f, 1.4f, 1.7f}; // 右手オフセット（おたま基準位置として使用）
+
 	// =========================================================
 	// Member Variables
 	// =========================================================
@@ -107,4 +129,5 @@ private:
 
 	bool isNearChineseRange_ = false; // 中華レンジの範囲内にいるか
 	bool isCookingMode_ = false; // 料理モード中かどうか（移動不可・視点移動不可）
+	bool justEnteredCookingMode_ = false; // 調理モードに入った瞬間の判定
 };

@@ -76,19 +76,22 @@ void Player::Update(float cameraYaw) {
 		isInteractTriggerd = true;
 	}
 
-	bool wasCookingMode = isCookingMode_; // 前フレームのモード状態を保持
+	justEnteredCookingMode_ = false;
 
+	bool wasCookingMode = isCookingMode_; // 前フレームのモード状態を保持
 	if (isNearChineseRange_ && isInteractTriggerd) {
 		isCookingMode_ = !isCookingMode_;
 	}
 
 	// 料理モードが解除された瞬間の位置変更（ちょっと後ろに配置）
-	if (wasCookingMode && !isCookingMode_) {
-		position_ = {0.0f, 2.0f, -10.0f};
+	if (!wasCookingMode && isCookingMode_) {
+		justEnteredCookingMode_ = true;
+		position_ = kCookingWarpPosition;
+		rotation_.y = 0.0f;
 	}
 
 	if (isCookingMode_) {
-		position_ = {0.0f, 2.0f, -2.0f}; // プレイヤーの位置を固定
+		position_ = kCookingWarpPosition;
 
 		// 移動処理は行わず、コライダーの位置だけ現在の位置に固定して抜ける
 		LGF::Collision::AABB finalAABB{position_ + kColliderMin, position_ + kColliderMax};
@@ -172,6 +175,16 @@ void Player::DrawImGuiDebug() {
 
 	ImGui::End();
 #endif
+}
+
+LGF::Vector3 Player::GetLeftHandWorldPosition() const { 
+	const LGF::Matrix4x4 rotMat = LGF::Math::MakeRotateYMatrix(rotation_.y); 
+	return position_ + LGF::Math::TransformNormal(kLeftHandOffset, rotMat);
+}
+
+LGF::Vector3 Player::GetRightHandWorldPosition() const { 
+	LGF::Matrix4x4 rotMat = LGF::Math::MakeRotateYMatrix(rotation_.y); 
+	return position_ + LGF::Math::TransformNormal(kRightHandOffset, rotMat);
 }
 
 bool Player::ProcessInput(LGF::Vector3& outMoveDir) {
