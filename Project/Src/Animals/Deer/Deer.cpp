@@ -3,39 +3,6 @@
 
 using namespace LGF;
 
-void Deer::Init(const LGF::Vector3& spownPos) {
-	position_ = spownPos;
-	moveSpeed_ = 3.0f;
-	hp_ = 400;
-
-	object_ = LGF::Model{ "../Assets/Models/Deer.gltf" };
-	animator = LGF::ModelAnimator(object_);
-	animator.Play("Deer.gltf");
-
-	LGF::Collision::ColliderOptions bodyOptions{};
-	bodyOptions.tag = "Deer_body";
-	//bodyOptions.targetTags = { "","" };
-
-	LGF::Collision::AABB bodyCollisionAABB{
-		position_ + kColliderMin,
-		position_ + kColliderMax
-	};
-
-	bodyColliderHandle_ = CollisionManager::GetInstance()->AddCollider(bodyCollisionAABB, bodyOptions);
-
-	LGF::Collision::ColliderOptions attackAreaOptions{};
-	attackAreaOptions.tag = "Deer_attackArea";
-	//attackAreaOptions.targetTags = { "Player" };
-
-	LGF::Collision::AABB attackAreaCollisionAABB{
-		attackPoint_ + kColliderMin,
-		attackPoint_ + kColliderMax,
-	};
-
-	attackAreaColliderHandle_ = CollisionManager::GetInstance()->AddCollider(attackAreaCollisionAABB, attackAreaOptions);
-
-}
-
 void Deer::Move() {
 	//炒飯との位置関係
 	LGF::Vector3 differenceCharHan = chaHanPosition_ - position_;//ターゲットと現在位置の差分ベクトル

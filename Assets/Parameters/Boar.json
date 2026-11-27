@@ -1,0 +1,30 @@
+{
+  "collision_attack": {
+    "type": "Vec3",
+    "value": {
+      "x": 1.0,
+      "y": 1.0,
+      "z": 1.5
+    }
+  },
+  "collision_body": {
+    "type": "Vec3",
+    "value": {
+      "x": 1.0,
+      "y": 1.0,
+      "z": 1.5
+    }
+  },
+  "hp": {
+    "type": "Int32",
+    "value": 400
+  },
+  "moveSpeed": {
+    "type": "Float",
+    "value": 3.0
+  },
+  "name": {
+    "type": "String",
+    "value": "Boar.gltf"
+  }
+}

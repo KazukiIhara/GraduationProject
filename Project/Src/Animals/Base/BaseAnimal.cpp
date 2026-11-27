@@ -3,7 +3,53 @@
 #include "DebugDraw/DebugDraw.h"
 #include "Collision/CollisionManager.h"
 
+#include "LGF/Parameter.h"
+
 using namespace LGF;
+
+BaseAnimal::~BaseAnimal() {}
+
+void BaseAnimal::Init(const std::string& name, const LGF::Vector3& spownPos) {
+	position_ = spownPos;
+
+	ParameterDocument document;
+	const ParameterIoResult result = document.Load("../Assets/Parameters/" + name + ".json");
+
+	if (!result) {
+		throw std::runtime_error(result.message);
+	}
+
+	object_ = LGF::Model{"../Assets/Models/" + *document.Get<std::string>("name")};
+	animator_ = LGF::ModelAnimator(object_);
+	animator_.Play("Walk");
+	
+	hp_ = *document.Get<int32_t>("hp");
+	moveSpeed_ = *document.Get<float>("moveSpeed");
+
+
+	LGF::Collision::ColliderOptions bodyOptions{};
+	bodyOptions.tag = name + "_body";
+	//bodyOptions.targetTags = { "","" };
+
+	LGF::Collision::AABB bodyCollisionAABB{
+		position_ + *document.Get<Vector3>("collision_body"),
+		position_ + *document.Get<Vector3>("collision_body")
+	};
+
+	bodyColliderHandle_ = CollisionManager::GetInstance()->AddCollider(bodyCollisionAABB, bodyOptions);
+
+	LGF::Collision::ColliderOptions attackAreaOptions{};
+	attackAreaOptions.tag = name + "_attackArea";
+	//attackAreaOptions.targetTags = { "Player" };
+
+	LGF::Collision::AABB attackAreaCollisionAABB{
+		attackPoint_ + *document.Get<Vector3>("collision_attack"),
+		attackPoint_ + *document.Get<Vector3>("collision_attack")
+	};
+
+
+	attackAreaColliderHandle_ = CollisionManager::GetInstance()->AddCollider(attackAreaCollisionAABB, attackAreaOptions);
+}
 
 void BaseAnimal::Update() {
 
@@ -34,18 +80,29 @@ void BaseAnimal::Update() {
 		state_ = std::make_unique<MoveAnimalState>();
 	}
 
+	if (animator_.IsValid()) {
+		animator_.Update((float)System::DeltaTime());
+	}
+
 	state_->SetBaseAnimal(this);
 	state_->Update();
 
 	state_ = state_->ChangeState();
-
-
-	animator.Update((float)System::DeltaTime());
 }
 
 void BaseAnimal::Draw() {
 	Matrix4x4 worldMatrix = Math::MakeAffineMatrix(Vector3{ 1.0f,1.0f,1.0f }, Math::MakeQuaternion(rotate_), position_);
-	object_.Draw(worldMatrix, animator);
+	
+	// 描画オプション
+	LGF::ModelDrawOptions options{};
+	options.color = LGF::Color::White;
+	
+	if (animator_.IsValid()) {
+		object_.Draw(worldMatrix, animator_,options);
+	}
+	else {
+		object_.Draw(worldMatrix, options);
+	}
 
 #ifdef _DEBUG
 	// コライダーデバッグ描画
@@ -114,7 +171,6 @@ void BaseAnimal::Dead() {
 
 	if(IsDelete()) {
 		DropFoodManager::GetInstance()->ActivationDropFood(position_);
-
 	}
 }
 

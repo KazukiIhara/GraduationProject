@@ -2,14 +2,11 @@
 #include "Animals/Base/BaseAnimal.h"
 
 /// <summary>
-/// 動物　-ウサギ-
+/// 動物 -ウサギ-
 /// </summary>
 class Rabbit final : public BaseAnimal {
 public:
-	/// <summary>
-	/// 初期化処理
-	/// </summary>
-	void Init(const LGF::Vector3& spownPos)override;
+
 	/// <summary>
 	/// 移動方法
 	/// </summary>
