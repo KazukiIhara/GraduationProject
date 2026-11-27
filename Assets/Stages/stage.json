@@ -1,6 +1,6 @@
 {
     "stage_name": "stage",
-    "object_count": 150,
+    "object_count": 156,
     "objects": [
         {
             "type": "Environment",
@@ -2806,6 +2806,120 @@
             "rotation": [
                 -0.0,
                 -0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        {
+            "type": "Environment",
+            "name": "mushroom_01",
+            "position": [
+                5.7454,
+                0.0,
+                1.8224
+            ],
+            "rotation": [
+                -0.0,
+                -1.5708,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        {
+            "type": "Environment",
+            "name": "mushroom_01",
+            "position": [
+                15.2485,
+                0.0,
+                5.1961
+            ],
+            "rotation": [
+                -0.0,
+                -0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        {
+            "type": "Environment",
+            "name": "mushroom_01",
+            "position": [
+                7.2623,
+                0.0,
+                14.9207
+            ],
+            "rotation": [
+                -0.0,
+                -1.4656,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        {
+            "type": "Environment",
+            "name": "mushroom_01",
+            "position": [
+                23.5981,
+                0.0,
+                -5.8507
+            ],
+            "rotation": [
+                -0.0,
+                2.5175,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        {
+            "type": "Environment",
+            "name": "mushroom_01",
+            "position": [
+                26.4868,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                -0.0,
+                -0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        {
+            "type": "Environment",
+            "name": "mushroom_01",
+            "position": [
+                11.6453,
+                0.0,
+                -3.7834
+            ],
+            "rotation": [
+                -0.0,
+                0.761,
                 0.0
             ],
             "scale": [

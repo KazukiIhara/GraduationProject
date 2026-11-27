@@ -210,6 +210,20 @@ class VIEW3D_PT_stage_manager_panel(bpy.types.Panel):
         op.model_name = "tree_02"
         op.category = "Environment"
 
+        # 木の幹01配置ボタン
+        row = layout.row()
+        op = row.operator(STAGE_OT_spawn_model.bl_idname, text="木の幹01を配置")
+        op.sub_dir = "environment/tree_trunk_01"
+        op.model_name = "tree_trunk_01"
+        op.category = "Environment"
+
+        # 丸太01配置ボタン
+        row = layout.row()
+        op = row.operator(STAGE_OT_spawn_model.bl_idname, text="丸太01を配置")
+        op.sub_dir = "environment/log_01"
+        op.model_name = "log_01"
+        op.category = "Environment"
+
         # 岩01配置ボタン
         row = layout.row()
         op = row.operator(STAGE_OT_spawn_model.bl_idname, text="岩01を配置")
@@ -224,6 +238,13 @@ class VIEW3D_PT_stage_manager_panel(bpy.types.Panel):
         op.model_name = "grass_01"
         op.category = "Environment"
 
+        # キノコ01配置ボタン
+        row = layout.row()
+        op = row.operator(STAGE_OT_spawn_model.bl_idname, text="キノコ01を配置")
+        op.sub_dir = "environment/mushroom_01"
+        op.model_name = "mushroom_01"
+        op.category = "Environment"
+
         ### 家具モデル
 
         # 中華レンジ配置ボタン
@@ -233,6 +254,15 @@ class VIEW3D_PT_stage_manager_panel(bpy.types.Panel):
         op.model_name = "chineseRange"
         op.category = "Furniture"
 
+        ### 建造物モデル
+
+        # 農作業小屋配置ボタン
+        row = layout.row()
+        op = row.operator(STAGE_OT_spawn_model.bl_idname, text="農作業小屋を配置")
+        op.sub_dir = "structure/farm"
+        op.model_name = "farm"
+        op.category = "Structure"
+        
         layout.separator()
         layout.label(text="データ出力:")
         layout.operator(EXPORT_OT_stage_json.bl_idname, icon='EXPORT', text="JSONをエクスポート")
