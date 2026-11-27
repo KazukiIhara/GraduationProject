@@ -1,12 +1,24 @@
 {
   "Aroma": {
-    "attractMaxRadius": {
-      "type": "Float",
-      "value": 35.0
-    },
     "decayRate": {
       "type": "Float",
       "value": 0.20000000298023224
+    },
+    "levelThreshold1": {
+      "type": "Float",
+      "value": 20.0
+    },
+    "levelThreshold2": {
+      "type": "Float",
+      "value": 40.0
+    },
+    "levelThreshold3": {
+      "type": "Float",
+      "value": 60.0
+    },
+    "levelThreshold4": {
+      "type": "Float",
+      "value": 80.0
     }
   },
   "Heat": {

@@ -140,18 +140,14 @@ void CookingSystem::ProcessLadleSwing(float swingDeltaZ, float deltaTime)
 	}
 }
 
-bool CookingSystem::IsAnimalAttracted(const LGF::Vector3& animalPos) const
+int CookingSystem::GetAromaLevel() const
 {
-	float radius = GetAttractRadius();
-	if (radius <= 0.1f) return false;
-
-	// 中華レンジ（炒飯）の位置からの水平距離 (XZ平面)
-	const auto& stovePos = heatSource_.GetPosition();
-	float dx = animalPos.x - stovePos.x;
-	float dz = animalPos.z - stovePos.z;
-	float distSq = dx * dx + dz * dz;
-
-	return distSq <= (radius * radius);
+	float aroma = parameters_.aroma;
+	if (aroma < config_.aromaLevelThreshold1) return 1;
+	if (aroma < config_.aromaLevelThreshold2) return 2;
+	if (aroma < config_.aromaLevelThreshold3) return 3;
+	if (aroma < config_.aromaLevelThreshold4) return 4;
+	return 5;
 }
 
 void CookingSystem::OnWokShake(float shakeIntensity)
@@ -611,7 +607,7 @@ void CookingSystem::DrawImGuiStatus()
 		ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "Added Ingredients: None");
 	}
 	ImGui::Text("Heat Exposure Timer: %.2f sec (Grace: %.1f sec)", heatExposureTimer_, config_.burnGraceTime);
-	ImGui::Text("Attract Radius: %.1f m (Max: %.1f m)", GetAttractRadius(), config_.attractMaxRadius);
+	ImGui::Text("Aroma Level: [Lv.%d / 5] (Aroma: %.1f)", GetAromaLevel(), parameters_.aroma);
 
 	// VFX/SE状態
 	ImGui::Text("VFX Steam: %.2f | Smoke: %.2f", GetSteamIntensity(), GetSmokeIntensity());
@@ -715,10 +711,14 @@ void CookingSystem::DrawImGuiTuningConfig()
 			ImGui::TreePop();
 		}
 
-		// 5. 香り
-		if (ImGui::TreeNode("5. Aroma & Attraction")) {
+		// 5. 香り・動物出現レベル
+		if (ImGui::TreeNode("5. Aroma & Levels (5 Steps)")) {
 			ImGui::DragFloat("Aroma Decay Rate (/s)", &config_.aromaDecayRate, 0.05f, 0.0f, 5.0f, "%.2f");
-			ImGui::DragFloat("Max Attract Radius (m)", &config_.attractMaxRadius, 1.0f, 5.0f, 100.0f, "%.1f");
+			ImGui::DragFloat("Lv1 -> Lv2 Threshold", &config_.aromaLevelThreshold1, 1.0f, 0.0f, 100.0f, "%.1f");
+			ImGui::DragFloat("Lv2 -> Lv3 Threshold", &config_.aromaLevelThreshold2, 1.0f, 0.0f, 100.0f, "%.1f");
+			ImGui::DragFloat("Lv3 -> Lv4 Threshold", &config_.aromaLevelThreshold3, 1.0f, 0.0f, 100.0f, "%.1f");
+			ImGui::DragFloat("Lv4 -> Lv5 Threshold", &config_.aromaLevelThreshold4, 1.0f, 0.0f, 100.0f, "%.1f");
+			ImGui::Text("Current Aroma Level: Lv.%d / 5", GetAromaLevel());
 			ImGui::TreePop();
 		}
 

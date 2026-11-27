@@ -114,9 +114,12 @@ bool CookingTuningConfig::SaveToFile(const std::filesystem::path& path) const
 	doc.Set("Ladle/swingSpeedScale", ladleSwingSpeedScale);
 	doc.Set("Ladle/swingThreshold", ladleSwingThreshold);
 
-	// 5. 香り・動物誘引
+	// 5. 香り・動物出現レベル
 	doc.Set("Aroma/decayRate", aromaDecayRate);
-	doc.Set("Aroma/attractMaxRadius", attractMaxRadius);
+	doc.Set("Aroma/levelThreshold1", aromaLevelThreshold1);
+	doc.Set("Aroma/levelThreshold2", aromaLevelThreshold2);
+	doc.Set("Aroma/levelThreshold3", aromaLevelThreshold3);
+	doc.Set("Aroma/levelThreshold4", aromaLevelThreshold4);
 
 	// 6. 初期値
 	doc.Set("Initial/fluffiness", initFluffiness);
@@ -217,9 +220,12 @@ bool CookingTuningConfig::LoadFromFile(const std::filesystem::path& path)
 	ladleSwingSpeedScale = doc.GetOr<float>("Ladle/swingSpeedScale", ladleSwingSpeedScale);
 	ladleSwingThreshold = doc.GetOr<float>("Ladle/swingThreshold", ladleSwingThreshold);
 
-	// 5. 香り・動物誘引
+	// 5. 香り・動物出現レベル
 	aromaDecayRate = doc.GetOr<float>("Aroma/decayRate", aromaDecayRate);
-	attractMaxRadius = doc.GetOr<float>("Aroma/attractMaxRadius", attractMaxRadius);
+	aromaLevelThreshold1 = doc.GetOr<float>("Aroma/levelThreshold1", aromaLevelThreshold1);
+	aromaLevelThreshold2 = doc.GetOr<float>("Aroma/levelThreshold2", aromaLevelThreshold2);
+	aromaLevelThreshold3 = doc.GetOr<float>("Aroma/levelThreshold3", aromaLevelThreshold3);
+	aromaLevelThreshold4 = doc.GetOr<float>("Aroma/levelThreshold4", aromaLevelThreshold4);
 
 	// 6. 初期値
 	initFluffiness = doc.GetOr<float>("Initial/fluffiness", initFluffiness);
