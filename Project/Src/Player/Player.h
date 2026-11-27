@@ -75,13 +75,13 @@ public:
 	/// 左手部分のワールド位置を取得（中華鍋の位置設定に使用）
 	/// </summary>
 	/// <returns></returns>
-	LGF::Vector3 GetLeftHandWorldPosition() const;
+	LGF::Vector3 GetLeftHandWorldPosition(float cameraPitch = 0.0f) const;
 
 	/// <summary>
 	/// 右手部分のワールド位置を取得（おたまの位置設定に使用）
 	/// </summary>
 	/// <returns></returns>
-	LGF::Vector3 GetRightHandWorldPosition() const;
+	LGF::Vector3 GetRightHandWorldPosition(float cameraPitch = 0.0f) const;
 
 private:
 	// =========================================================
@@ -111,8 +111,8 @@ private:
 	const LGF::Vector3 kSphereOffset = {0.0f, -1.0f, 0.0f}; // 球体オフセット
 
 	const LGF::Vector3 kCookingWarpPosition = {0.0f, 2.0f, -2.0f}; // 調理モード時の固定位置
-	const LGF::Vector3 kLeftHandOffset = {-1.1f, 1.0f, 1.3f}; // 左手オフセット（中華鍋基準位置として使用）
-	const LGF::Vector3 kRightHandOffset = {0.8f, 1.4f, 1.7f}; // 右手オフセット（おたま基準位置として使用）
+	const LGF::Vector3 kLeftHandOffset = {-1.1f, 1.0f, 0.8f}; // 左手オフセット（中華鍋基準位置として使用）
+	const LGF::Vector3 kRightHandOffset = {0.7f, 1.4f, 1.7f}; // 右手オフセット（おたま基準位置として使用）
 
 	// =========================================================
 	// Member Variables
