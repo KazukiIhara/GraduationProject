@@ -60,6 +60,14 @@ public:
 		return (kMaxForwardLimit > 0.0f) ? (currentSwingOffsetZ_ / kMaxForwardLimit) : 0.0f;
 	}
 
+	/// <summary>
+	/// ベース位置の設定
+	/// </summary>
+	/// <param name="basePos"></param>
+	/// <param name="baseRot"></param>
+	/// <param name="snapImmediate"></param>
+	void SetBaseTransform(const LGF::Vector3& basePos, const LGF::Vector3& baseRot, bool snapImmediate = false);
+
 private:
 	// =========================================================
 	// Internal Methods
@@ -89,6 +97,9 @@ private:
 	LGF::Model model_{ "../Assets/Models/ladle.gltf" }; // モデル
 	LGF::Vector3 position_{}; // 現在の位置
 	LGF::Vector3 rotation_{}; // 現在の回転
+
+	LGF::Vector3 basePosition_{0.0f, 0.0f, 0.0f}; // ベース位置
+	LGF::Vector3 baseRotation_{0.0f, 0.0f, 0.0f}; // ベース回転
 
 	// 動作用パラメーター
 	float currentSwingOffsetZ_ = 0.0f; // 前後のスイングによるオフセット

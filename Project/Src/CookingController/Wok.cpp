@@ -8,6 +8,8 @@
 
 #include <stdexcept>
 
+#include "AppMath/AppMath.h"
+
 using namespace LGF;
 
 namespace {
@@ -61,8 +63,10 @@ namespace {
 
 Wok::Wok(Physics::PhysicsWorld& physicsWorld) :
 	physicsWorld_(&physicsWorld) {
-	position_ = kBasePosition;
-	rotation_ = kBaseRotation;
+	basePosition_ = kBasePosition;
+	baseRotation_ = kBaseRotation;
+	position_ = basePosition_;
+	rotation_ = baseRotation_;
 
 	calibration_ = std::make_unique<Calibration>();
 
@@ -94,9 +98,15 @@ void Wok::Update() {
 		DeadZoneType::Large);
 
 	// アニメーション未稼働＆上下判定取得したら
-	if (!isAnimationPlaying_ &&
+	if (canShake_ && !isAnimationPlaying_ &&
 		(isJoyConShakeTriggered || isXboxShakeTriggered)) {
 		isAnimationPlaying_ = true;
+		animationTime_ = 0.0f;
+	}
+
+	// 鍋振り許可が降りていなければアニメーションを強制ストップ
+	if (!canShake_) {
+		isAnimationPlaying_ = false;
 		animationTime_ = 0.0f;
 	}
 
@@ -112,8 +122,8 @@ void Wok::Update() {
 		progress = std::min(progress, 1.0f);
 
 		// 初期位置・初期回転
-		position_ = kBasePosition;
-		rotation_ = kBaseRotation;
+		position_ = basePosition_;
+		rotation_ = baseRotation_;
 
 		// 0 → 1 → 0 の上下移動
 		position_.y = kBasePosition.y + kLiftHeight * std::sin(
@@ -132,6 +142,11 @@ void Wok::Update() {
 			position_ = kBasePosition;
 			rotation_ = kBaseRotation;
 		}
+	} else {
+		// 通常時は線形補間で追従
+		constexpr float kFollowLerpRate = 0.25f;
+		position_ = AppMath::Lerp(position_, basePosition_, kFollowLerpRate);
+		rotation_ = AppMath::Lerp(rotation_, baseRotation_, kFollowLerpRate);
 	}
 
 	UpdatePhysicsShape();
@@ -176,6 +191,16 @@ Vector3 Wok::GetRiceSpawnPosition() const {
 	return position_ + Math::TransformNormal(
 		{ 0.0f, 0.65f, 0.0f },
 		rotationMatrix);
+}
+
+void Wok::SetBaseTransform(const LGF::Vector3& basePos, const LGF::Vector3& baseRot, bool snapImmediate) {
+	basePosition_ = basePos;
+	baseRotation_ = baseRot;
+	if (snapImmediate) {
+		position_ = basePosition_;
+		rotation_ = baseRotation_;
+		UpdatePhysicsShape();
+	}
 }
 
 void Wok::UpdatePhysicsShape() {

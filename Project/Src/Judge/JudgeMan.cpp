@@ -65,16 +65,24 @@ void JudgeMan::Update(const Player* player, const LGF::DebugCamera3D& camera, Co
 					// ランクに応じたリアクション
 					switch (latestEvaluation_.grade) {
 					case CookingParameters::JudgeGrade::S_Rank: // Sランク（絶品・黄金炒飯）
-						selectedGroup = "demoA";
+						selectedGroup = "rateS";
 						break;
 					case CookingParameters::JudgeGrade::A_Rank:   // Aランク（美味）
-						selectedGroup = "demoB";
+						selectedGroup = "rateA";
 						break;
 					case CookingParameters::JudgeGrade::B_Rank:  // Bランク（合格）
+						selectedGroup = "rateB";
+						break;
 					case CookingParameters::JudgeGrade::C_Rank:  // Cランク（不合格・焦げ）
+						selectedGroup = "rateC";
+						break;
 					default:
 						selectedGroup = "demoC";
 						break;
+					}
+					if (ConversationData::rating.count(selectedGroup))
+					{
+						message_->RegisterConversationData({ ConversationData::rating.at(selectedGroup) });
 					}
 				} else {
 					hasEvaluation_ = false;
@@ -84,11 +92,12 @@ void JudgeMan::Update(const Player* player, const LGF::DebugCamera3D& camera, Co
 					std::mt19937 randomEngine(seedGenerator());
 					int randomIndex = std::uniform_int_distribution<int>(0, static_cast<int>(group.size()) - 1)(randomEngine);
 					selectedGroup = group[randomIndex];
+					if (ConversationData::demos.count(selectedGroup))
+					{
+						message_->RegisterConversationData({ ConversationData::demos.at(selectedGroup) });
+					}
 				}
 
-				if (ConversationData::demos.count(selectedGroup)) {
-					message_->RegisterConversationData({ ConversationData::demos.at(selectedGroup) });
-				}
 			}
 		}
 		else {
