@@ -4,6 +4,7 @@
 #include "CookingConfig.h"
 #include "HeatSource.h"
 #include "LGF/Math/Vector3.h"
+#include "LGF/Audio.h"
 
 class Wok;
 
@@ -18,7 +19,7 @@ public:
 	// =========================================================
 
 	CookingSystem();
-	~CookingSystem() = default;
+	~CookingSystem();
 
 	/// <summary>
 	/// リセット処理（初期状態に戻す）
@@ -265,6 +266,32 @@ private:
 	/// </summary>
 	void UpdateAroma(float deltaTime);
 
+
+	// -----------------------------------------------------
+	// 効果音（SE）
+	// -----------------------------------------------------
+
+	/// <summary>
+	/// 効果音（SE）の初期化
+	/// </summary>
+	void InitializeAudio();
+
+	/// <summary>
+	/// 効果音（SE）の更新
+	/// </summary>
+	void UpdateAudio();
+
+	/// <summary>
+	/// 効果音（SE）の停止
+	/// </summary>
+	void StopAllAudio();
+
+	/// <summary>
+	/// 鍋振り単発再生
+	/// </summary>
+	void PlayShakeSE(float intensity);
+
+
 	// -----------------------------------------------------
 	// ImGui 分割描画ヘルパー
 	// -----------------------------------------------------
@@ -299,4 +326,9 @@ private:
 	// デバッグ用フラグ
 	bool isDebugPause_ = false;                 // シミュレーション一時停止（パラメータ固定・手動観察用）
 	bool isDebugForceCookingStation_ = false;   // 強制的に調理場にいる扱いにする（遠隔テスト用）
+
+	// サウンド（SE）
+	LGF::Audio stoveSe_;   // ChineseRangeSE.mp3（中華レンジの火炎ループ音）
+	LGF::Audio cookingSe_; // CookingSE.mp3（炒飯の炒めループ音）
+	LGF::Audio shakeSe_;   // nabefuri.mp3（鍋振り単発音）
 };

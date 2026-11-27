@@ -150,6 +150,13 @@ bool CookingTuningConfig::SaveToFile(const std::filesystem::path& path) const
 	doc.Set("Judge/scoreDelicious", static_cast<int32_t>(judge.scoreDelicious));
 	doc.Set("Judge/scoreAcceptable", static_cast<int32_t>(judge.scoreAcceptable));
 
+	// 9. サウンド（SE）設定
+	doc.Set("Sound/enabled", seEnabled);
+	doc.Set("Sound/masterVolume", seMasterVolume);
+	doc.Set("Sound/stoveVolume", seStoveVolume);
+	doc.Set("Sound/cookingVolume", seCookingVolume);
+	doc.Set("Sound/shakeVolume", seShakeVolume);
+
 	auto res = doc.Save(path);
 	if (!res.succeeded) {
 		std::filesystem::path altPath = (path.string().rfind("../", 0) == 0)
@@ -273,6 +280,13 @@ bool CookingTuningConfig::LoadFromFile(const std::filesystem::path& path)
 	judge.scoreMasterpiece = doc.GetOr<int32_t>("Judge/scoreMasterpiece", judge.scoreMasterpiece);
 	judge.scoreDelicious = doc.GetOr<int32_t>("Judge/scoreDelicious", judge.scoreDelicious);
 	judge.scoreAcceptable = doc.GetOr<int32_t>("Judge/scoreAcceptable", judge.scoreAcceptable);
+
+	// 9. サウンド（SE）設定
+	seEnabled = doc.GetOr<bool>("Sound/enabled", seEnabled);
+	seMasterVolume = doc.GetOr<float>("Sound/masterVolume", seMasterVolume);
+	seStoveVolume = doc.GetOr<float>("Sound/stoveVolume", seStoveVolume);
+	seCookingVolume = doc.GetOr<float>("Sound/cookingVolume", seCookingVolume);
+	seShakeVolume = doc.GetOr<float>("Sound/shakeVolume", seShakeVolume);
 
 	return true;
 }

@@ -4,6 +4,7 @@
 #include <imgui.h>
 #include <cmath>
 #include <algorithm>
+#include <filesystem>
 #include "LGF/System.h"
 
 namespace {
@@ -11,6 +12,19 @@ namespace {
 	constexpr float kBurntDegradationThreshold = 30.0f;    // 焦げによる劣化開始閾値 (%)
 	constexpr float kBurntAromaPenaltyRate = 1.0f;        // 焦げによる香り低下速度
 	constexpr float kBurntFluffinessPenaltyRate = 0.8f;   // 焦げによるパラパラ度低下速度
+
+	std::filesystem::path ResolveSoundPath(const char* fileName)
+	{
+		std::filesystem::path p1 = std::filesystem::absolute(std::filesystem::path("../Assets/Sounds") / fileName);
+		if (std::filesystem::exists(p1)) {
+			return p1;
+		}
+		std::filesystem::path p2 = std::filesystem::absolute(std::filesystem::path("Assets/Sounds") / fileName);
+		if (std::filesystem::exists(p2)) {
+			return p2;
+		}
+		return p1;
+	}
 }
 
 CookingSystem::CookingSystem()
@@ -19,11 +33,20 @@ CookingSystem::CookingSystem()
 	if (!config_.LoadFromFile()) {
 		config_.SaveToFile();
 	}
+	InitializeAudio();
 	Reset();
+}
+
+CookingSystem::~CookingSystem()
+{
+	StopAllAudio();
 }
 
 void CookingSystem::Reset()
 {
+	cookingSe_.Stop();
+	shakeSe_.Stop();
+
 	parameters_ = CookingParameters{};
 	parameters_.fluffiness = 0.0f;
 	parameters_.aroma = 0.0f;
@@ -75,6 +98,7 @@ void CookingSystem::Update(
 
 	// デバッグ用一時停止が有効な場合はシミュレーションの進行を止める
 	if (isDebugPause_) {
+		UpdateAudio();
 		return;
 	}
 
@@ -123,6 +147,9 @@ void CookingSystem::Update(
 			boundFriedRice_->SetState(FriedRiceState::Cooking);
 		}
 	}
+
+	// 6. 効果音（SE）の再生・音量更新
+	UpdateAudio();
 }
 
 void CookingSystem::ProcessLadleSwing(float swingDeltaZ, float deltaTime)
@@ -231,6 +258,9 @@ void CookingSystem::OnWokShake(WokShakeDirection direction, float intensity)
 
 	// パラメータをクランプ
 	parameters_.ClampAll();
+
+	// 鍋振りSEの再生
+	PlayShakeSE(intensity);
 }
 
 void CookingSystem::OnLadleStir(float stirIntensity)
@@ -508,6 +538,96 @@ void CookingSystem::UpdateAroma(float deltaTime)
 	}
 }
 
+void CookingSystem::InitializeAudio()
+{
+	stoveSe_ = LGF::Audio(ResolveSoundPath("ChineseRangeSE.mp3"));
+	stoveSe_.SetLoop(true);
+
+	cookingSe_ = LGF::Audio(ResolveSoundPath("CookingSE.mp3"));
+	cookingSe_.SetLoop(true);
+
+	shakeSe_ = LGF::Audio(ResolveSoundPath("nabefuri.mp3"));
+	shakeSe_.SetLoop(false);
+}
+
+void CookingSystem::StopAllAudio()
+{
+	stoveSe_.Stop();
+	cookingSe_.Stop();
+	shakeSe_.Stop();
+}
+
+void CookingSystem::UpdateAudio()
+{
+	if (!config_.seEnabled || isDebugPause_) {
+		if (stoveSe_.IsPlaying()) stoveSe_.Pause();
+		if (cookingSe_.IsPlaying()) cookingSe_.Pause();
+		return;
+	}
+
+	// 1. 中華レンジ燃焼音（ChineseRangeSE.mp3）
+	if (heatSource_.IsActive()) {
+		float attenuation = 1.0f;
+		if (!isCookingMode_) {
+			if (boundWok_) {
+				const auto& wokPos = boundWok_->GetPosition();
+				const auto& stovePos = heatSource_.GetPosition();
+				float dx = wokPos.x - stovePos.x;
+				float dz = wokPos.z - stovePos.z;
+				float dist = std::sqrt(dx * dx + dz * dz);
+				constexpr float kMinDist = 2.0f;
+				constexpr float kMaxDist = 35.0f;
+				attenuation = 1.0f - std::clamp((dist - kMinDist) / (kMaxDist - kMinDist), 0.0f, 1.0f);
+			} else {
+				attenuation = 0.25f;
+			}
+		}
+
+		float vol = std::clamp(config_.seMasterVolume * config_.seStoveVolume * attenuation, 0.0f, 1.0f);
+		if (vol > 0.005f) {
+			stoveSe_.SetVolume(vol);
+			stoveSe_.Play();
+		} else if (stoveSe_.IsPlaying()) {
+			stoveSe_.Pause();
+		}
+	} else {
+		if (stoveSe_.IsPlaying()) {
+			stoveSe_.Pause();
+		}
+	}
+
+	// 2. 炒飯の炒め音（CookingSE.mp3）
+	if (IsSizzling()) {
+		float tempFactor = std::clamp((parameters_.temperature - 60.0f) / 70.0f, 0.35f, 1.0f);
+		float moistFactor = (parameters_.moisture >= 5.0f || ladleStirStrength_ > 0.05f) ? 1.0f : 0.65f;
+		float vol = std::clamp(config_.seMasterVolume * config_.seCookingVolume * tempFactor * moistFactor, 0.0f, 1.0f);
+		cookingSe_.SetVolume(vol);
+		cookingSe_.Play();
+	} else {
+		if (cookingSe_.IsPlaying()) {
+			cookingSe_.Pause();
+		}
+	}
+}
+
+void CookingSystem::PlayShakeSE(float intensity)
+{
+	if (!config_.seEnabled || !shakeSe_.IsValid()) {
+		return;
+	}
+
+	// Strong(デフォルト1.5)を1.0基準に正規化し、聴感上で弱・中・強が明確に分かれる2次カーブにする
+	// Weak(0.5)->約0.24, Medium(1.0)->約0.53, Strong(1.5)->1.00
+	float maxCoeff = std::max(config_.strengthStrongCoeff, 0.01f);
+	float t = std::clamp(intensity / maxCoeff, 0.0f, 1.0f);
+	float strengthFactor = std::clamp(0.15f + 0.85f * (t * t), 0.15f, 1.0f);
+
+	float vol = std::clamp(config_.seMasterVolume * config_.seShakeVolume * strengthFactor, 0.0f, 1.0f);
+	shakeSe_.Stop();
+	shakeSe_.SetVolume(vol);
+	shakeSe_.Play();
+}
+
 float CookingSystem::GetSteamIntensity() const
 {
 	// 100℃未満、または水分が完全にゼロの場合は湯気が出ない
@@ -544,8 +664,8 @@ float CookingSystem::GetSmokeIntensity() const
 
 bool CookingSystem::IsSizzling() const
 {
-	// 加熱中で、鍋の温度が90℃以上、かつ水分が残っていれば炒め音が鳴る
-	return isHeating_ && (parameters_.temperature >= 90.0f) && (parameters_.moisture >= 3.0f) && (parameters_.burnt < 75.0f);
+	// 加熱中で、米が入っており、鍋が温まっていれば炒め音が鳴る
+	return isHeating_ && (parameters_.riceAmount > 0.0f) && (parameters_.temperature >= 60.0f);
 }
 
 bool CookingSystem::IsBurningAlert() const
@@ -611,8 +731,9 @@ void CookingSystem::DrawImGuiStatus()
 
 	// VFX/SE状態
 	ImGui::Text("VFX Steam: %.2f | Smoke: %.2f", GetSteamIntensity(), GetSmokeIntensity());
-	ImGui::Text("SE Sizzle: [%s] | Burning Alert: [%s]",
-		IsSizzling() ? "PLAYING" : "off",
+	ImGui::Text("SE Stove: [%s] | Cooking: [%s] | Burning Alert: [%s]",
+		stoveSe_.IsPlaying() ? "PLAYING" : "off",
+		cookingSe_.IsPlaying() ? "PLAYING" : "off",
 		IsBurningAlert() ? "ALERT!" : "off");
 }
 
@@ -760,6 +881,33 @@ void CookingSystem::DrawImGuiTuningConfig()
 			ImGui::DragInt("S Rank Score", &config_.judge.scoreMasterpiece, 1, 50, 100);
 			ImGui::DragInt("A Rank Score", &config_.judge.scoreDelicious, 1, 40, 95);
 			ImGui::DragInt("B Rank Score", &config_.judge.scoreAcceptable, 1, 20, 80);
+			ImGui::TreePop();
+		}
+
+		// 9. サウンド（SE）
+		if (ImGui::TreeNode("9. Sound Effects (SE)")) {
+			if (ImGui::Checkbox("SE Enabled", &config_.seEnabled)) {
+				UpdateAudio();
+			}
+			ImGui::SliderFloat("Master Volume", &config_.seMasterVolume, 0.0f, 1.0f, "%.2f");
+			ImGui::SliderFloat("Stove SE Volume", &config_.seStoveVolume, 0.0f, 1.0f, "%.2f");
+			ImGui::SliderFloat("Cooking SE Volume", &config_.seCookingVolume, 0.0f, 1.0f, "%.2f");
+			ImGui::SliderFloat("Shake SE Volume", &config_.seShakeVolume, 0.0f, 1.0f, "%.2f");
+			ImGui::Text("Loaded: Stove[%s] Cooking[%s] Shake[%s]",
+				stoveSe_.IsValid() ? "OK" : "NG",
+				cookingSe_.IsValid() ? "OK" : "NG",
+				shakeSe_.IsValid() ? "OK" : "NG");
+			if (ImGui::Button("Test Weak")) {
+				PlayShakeSE(config_.strengthWeakCoeff);
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Test Med")) {
+				PlayShakeSE(config_.strengthMediumCoeff);
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Test Strong")) {
+				PlayShakeSE(config_.strengthStrongCoeff);
+			}
 			ImGui::TreePop();
 		}
 	}

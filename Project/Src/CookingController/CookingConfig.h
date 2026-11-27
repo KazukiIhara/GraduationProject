@@ -115,6 +115,15 @@ struct CookingTuningConfig
 	JudgeConfig judge;
 
 	// -----------------------------------------------------
+	// 9. サウンド（SE）設定
+	// -----------------------------------------------------
+	bool seEnabled = true;                  // クッキングSE再生の有効フラグ
+	float seMasterVolume = 1.0f;            // クッキングSEマスター音量 (0.0f ～ 1.0f)
+	float seStoveVolume = 0.6f;             // 中華レンジ火炎SE基準音量 (ChineseRangeSE.mp3)
+	float seCookingVolume = 0.75f;          // 炒めSE基準音量 (CookingSE.mp3)
+	float seShakeVolume = 0.9f;             // 鍋振りSE基準音量 (nabefuri.mp3)
+
+	// -----------------------------------------------------
 	// 外部ファイル読み書き
 	// -----------------------------------------------------
 	bool LoadFromFile(const std::filesystem::path& path = "../Assets/Parameters/CookingConfig.json");

@@ -237,6 +237,28 @@
       "value": 0.15000000596046448
     }
   },
+  "Sound": {
+    "cookingVolume": {
+      "type": "Float",
+      "value": 0.75
+    },
+    "enabled": {
+      "type": "Bool",
+      "value": true
+    },
+    "masterVolume": {
+      "type": "Float",
+      "value": 1.0
+    },
+    "shakeVolume": {
+      "type": "Float",
+      "value": 0.8999999761581421
+    },
+    "stoveVolume": {
+      "type": "Float",
+      "value": 0.6000000238418579
+    }
+  },
   "WokShake": {
     "aromaVertical": {
       "type": "Float",
