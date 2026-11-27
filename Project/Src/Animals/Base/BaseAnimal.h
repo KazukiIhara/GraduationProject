@@ -14,11 +14,16 @@ enum Target {
 /// </summary>
 class BaseAnimal {
 public:
+	
+	virtual ~BaseAnimal();
+
 	/// <summary>
-	/// 初期化処理
+	/// コンストラクタ
 	/// </summary>
-	/// <param name="spownPos">召喚場所</param>
-	virtual void Init(const LGF::Vector3& spownPos) = 0;
+	/// <param name="name">動物の名前</param>
+	/// <param name="spownPos">召喚位置</param>
+	void Init(const std::string& name,const LGF::Vector3& spownPos);
+
 	/// <summary>
 	/// 更新処理
 	/// </summary>
@@ -43,7 +48,7 @@ public:
 	/// 消滅処理
 	/// </summary>
 	/// <returns>死んだアニメーションのMax値を超えた</returns>
-	bool IsDelete() {
+	bool IsDelete() const {
 		return deadAnimationTime_ >= kDeadAnimationMaxTime_;
 	}
 
@@ -104,7 +109,7 @@ protected:
 
 
 	LGF::Model object_;
-	LGF::ModelAnimator animator{};
+	LGF::ModelAnimator animator_;
 
 	LGF::Vector3 position_;
 	LGF::Vector3 rotate_;
@@ -114,7 +119,7 @@ protected:
 	LGF::Vector3 chaHanPosition_;//炒飯の位置
 	LGF::Vector3 playerPosition_;//プレイヤーの位置
 
-	int hp_ = 500;//体力
+	int32_t hp_ = 500;//体力
 
 	float attackRadius_ = 3.0f;//範囲に入ったら攻撃する
 

@@ -2,40 +2,6 @@
 #include "Collision/CollisionManager.h"
 using namespace LGF;
 
-void Boar::Init(const LGF::Vector3& spownPos) {
-	position_ = spownPos;
-	moveSpeed_ = 2.0f;
-	hp_ = 700;
-
-	object_ = LGF::Model{"../Assets/Models/Boar.gltf" };
-	animator = LGF::ModelAnimator(object_);
-	animator.Play("../Assets/Models/Boar.gltf");
-
-	LGF::Collision::ColliderOptions bodyOptions{};
-	bodyOptions.tag = "Boar_body";
-	//bodyOptions.targetTags = { "","" };
-
-	LGF::Collision::AABB bodyCollisionAABB{
-		position_ + kColliderMin,
-		position_ + kColliderMax
-	};
-
-	bodyColliderHandle_ = CollisionManager::GetInstance()->AddCollider(bodyCollisionAABB, bodyOptions);
-
-	LGF::Collision::ColliderOptions attackAreaOptions{};
-	attackAreaOptions.tag = "Boar_attackArea";
-	//attackAreaOptions.targetTags = { "Player" };
-
-	LGF::Collision::AABB attackAreaCollisionAABB{
-		attackPoint_ + kColliderMin,
-		attackPoint_ + kColliderMax,
-	};
-
-
-	attackAreaColliderHandle_ = CollisionManager::GetInstance()->AddCollider(attackAreaCollisionAABB, attackAreaOptions);
-
-}
-
 void Boar::Move() {
 	//炒飯との位置関係
 	LGF::Vector3 differenceCharHan = chaHanPosition_ - position_;//ターゲットと現在位置の差分ベクトル

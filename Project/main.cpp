@@ -54,7 +54,7 @@ void Main() {
 	sceneManager.Register<PhysicsWorldDemoScene>(SceneNames::PhysicsWorldDemo);
 	sceneManager.Register<UIWorldDemoScene>(SceneNames::UIWorldDemo);
 	sceneManager.Register<SkinningAnimationDemoScene>(SceneNames::SkinningAnimationDemo);
-	sceneManager.Change(SceneNames::GamePlayScene);
+	sceneManager.Change(SceneNames::AnimalTest);
 
 	while (System::Update()) {
 		sceneManager.Update();

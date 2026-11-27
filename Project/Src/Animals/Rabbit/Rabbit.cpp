@@ -4,39 +4,6 @@
 
 using namespace LGF;
 
-void Rabbit::Init(const LGF::Vector3& spownPos) {
-	position_ = spownPos;
-	moveSpeed_ = 2.0f;
-	hp_ = 600;
-
-	object_ = LGF::Model{ "../Assets/Models/Rabbit.gltf" };
-	animator = LGF::ModelAnimator(object_);
-	animator.Play("../Assets/Models/Rabbit.gltf");
-
-	LGF::Collision::ColliderOptions bodyOptions{};
-	bodyOptions.tag = "Rabbit_body";
-	//bodyOptions.targetTags = { "","" };
-
-	LGF::Collision::AABB bodyCollisionAABB{
-		position_ + kColliderMin,
-		position_ + kColliderMax
-	};
-
-	bodyColliderHandle_ = CollisionManager::GetInstance()->AddCollider(bodyCollisionAABB, bodyOptions);
-
-	LGF::Collision::ColliderOptions attackAreaOptions{};
-	attackAreaOptions.tag = "Rabbit_attackArea";
-	//attackAreaOptions.targetTags = { "Player" };
-
-	LGF::Collision::AABB attackAreaCollisionAABB{
-		attackPoint_ + kColliderMin,
-		attackPoint_ + kColliderMax,
-	};
-
-	
-	attackAreaColliderHandle_ = CollisionManager::GetInstance()->AddCollider(attackAreaCollisionAABB, attackAreaOptions);
-}
-
 void Rabbit::Move() {
 	jumpDelayTimer_ += (float)LGF::System::DeltaTime();
 	if (jumpDelayTimer_ <= kJumpDelayTimeFinish_) {

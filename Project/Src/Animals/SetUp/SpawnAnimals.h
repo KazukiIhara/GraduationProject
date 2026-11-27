@@ -3,6 +3,10 @@
 #include "Animals/Base/BaseAnimal.h"
 #include "LGF/Input.h"
 
+#include "Animals/Rabbit/Rabbit.h"
+#include "Animals/Deer/Deer.h"
+#include "Animals/Boar/Boar.h"
+
 /// <summary>
 /// 動物を召喚する
 /// </summary>
@@ -31,7 +35,7 @@ public:
 
 private:
 
-	std::unique_ptr<BaseAnimal> RandomAnimalsClass(int a);
+	void RandomAnimalsClass(int a, std::random_device& device);
 
 private:
 
@@ -42,6 +46,17 @@ private:
 		rabbit,   //兎
 		deer,     //鹿
 		boar      //猪
+	};
+
+	struct AnimalData {
+		std::string name;
+		std::function<std::unique_ptr<BaseAnimal>()> animalClass;
+	};
+
+	std::unordered_map<int, AnimalData> animalData_ = {
+		{ AnimalLevel::rabbit, AnimalData{ "Rabbit", []() { return std::make_unique<Rabbit>(); } } },
+		{ AnimalLevel::deer, AnimalData{ "Deer", []() { return std::make_unique<Deer>(); } } },
+		{ AnimalLevel::boar, AnimalData{ "Boar", []() { return std::make_unique<Boar>(); } } },
 	};
 
 	//動物たちクラス
