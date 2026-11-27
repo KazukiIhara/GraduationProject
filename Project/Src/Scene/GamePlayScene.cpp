@@ -113,7 +113,7 @@ void GamePlayScene::Update() {
 		// 料理モード中はカメラ固定
 		camera_.translation = {0.0f, 4.7f, -2.6f};
 		camera_.yaw = 0.0f;
-		camera_.pitch = 0.7f;
+		camera_.pitch = 0.8f;
 	}
 	prevCookingMode = currentCookingMode;
 
@@ -127,7 +127,13 @@ void GamePlayScene::Update() {
 		camera_.translation = player_->GetEyePosition();
 	}
 	/* 調理器具マネージャーの更新（プレイヤーの料理モード状態を伝達） */
-	cookingController_->Update(player_->IsCookingMode());
+	cookingController_->Update(
+		player_->IsCookingMode(), 
+		player_->JustEnteredCookingMode(), 
+		player_->GetLeftHandWorldPosition(), 
+		player_->GetRightHandWorldPosition(), 
+		player_->GetRotation()
+	);
 	/* 食材マネージャーの更新 */
 	ingredientManager_->Update(cookingController_->GetWok().GetRiceSpawnPosition());
 	/* 物理ワールドの更新 */

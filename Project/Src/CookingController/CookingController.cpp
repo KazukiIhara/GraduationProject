@@ -13,7 +13,21 @@ CookingController::CookingController(LGF::Physics::PhysicsWorld& physicsWorld) {
 	prevLadleOffsetZ_ = 0.0f;
 }
 
-void CookingController::Update(bool isCookingMode) {
+void CookingController::Update(
+    bool isCookingMode, bool justEnteredCookingMode, const LGF::Vector3& leftHandPos, const LGF::Vector3& rightHandPos,const LGF::Vector3& playerRot) {
+	// 料理モード中のみ鍋振り許可（移動中は不可）
+	wok_->SetCanShake(isCookingMode);
+
+	// 調理中は固定位置
+	if (justEnteredCookingMode) {
+		wok_->SetBaseTransform({0.0f, 2.5f, 0.0f}, {0.0f, 0.0f, 0.0f}, true);
+		ladle_->SetBaseTransform({0.15f, 3.0f, -0.15f}, {-1.35f, 0.0f, -0.25f}, true);
+	// 調理中でなければ両手位置に追従
+	} else if (!isCookingMode) {
+		wok_->SetBaseTransform(leftHandPos, {0.0f, playerRot.y, 0.0f}, false);
+		ladle_->SetBaseTransform(rightHandPos, {-1.35f, playerRot.y, -0.25f}, false);
+	}
+
 	// 各調理器具の更新
 	wok_->Update();
 	ladle_->Update();
