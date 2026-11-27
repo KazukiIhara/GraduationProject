@@ -65,6 +65,8 @@ GamePlayScene::GamePlayScene(const InitData& init)
 	stageManager_ = std::make_unique<StageManager>("../Assets/Stages/stage.json", physicsWorld1_, physicsWorld2_);
 
 	judgeManager_ = std::make_unique<JudgeManager>();
+
+	spawnAnimals_ = std::make_unique<SpawnAnimals>();
 }
 
 void GamePlayScene::Update() {
@@ -126,6 +128,8 @@ void GamePlayScene::Update() {
 	stageManager_->Update();
 	// 審査員マネージャーの更新
 	judgeManager_->Update(player_.get(), camera_);
+	// 敵召喚マネージャー更新
+	spawnAnimals_->Update();
 
 	/* コリジョンマネージャー更新 */
 	CollisionManager::GetInstance()->Step();
@@ -180,6 +184,8 @@ void GamePlayScene::Draw() const {
 	stageManager_->Draw();
 	// 審査員マネージャーの描画
 	judgeManager_->Draw();
+	// 敵召喚マネージャーの描画
+	spawnAnimals_->Draw();
 }
 
 void GamePlayScene::UpdateCamera() {

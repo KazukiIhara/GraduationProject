@@ -22,19 +22,9 @@ AnimalTestScene::AnimalTestScene(const InitData& init)
 
 	spawnAnimals_ = std::make_unique<SpawnAnimals>();
 
-#ifdef _DEBUG
-	isDebug = true;
-#endif // _DEBUG
 }
 
 void AnimalTestScene::Update() {
-
-	if (isDebug) {
-		spawnAnimals_->BornAnimalsDebug();
-	}
-	else {
-		spawnAnimals_->BornAnimals();
-	}
 
 	spawnAnimals_->Update();
 

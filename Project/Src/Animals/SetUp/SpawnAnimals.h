@@ -16,12 +16,14 @@ public:
 	/// <summary>
 	/// 更新処理
 	/// </summary>
-	void Update();
+	void Update(const LGF::Vector3& playerPosition, const LGF::Vector3& charHanPosition);
 
 	/// <summary>
 	/// 描画処理
 	/// </summary>
 	void Draw();
+
+private:
 
 	/// <summary>
 	/// 召喚処理
@@ -33,8 +35,7 @@ public:
 	/// </summary>
 	void BornAnimalsDebug();
 
-private:
-
+	
 	void RandomAnimalsClass(int a, std::random_device& device);
 
 private:
@@ -66,23 +67,12 @@ private:
 
 	const uint32_t kMaxAnimalSpawn_ = 10;//動物最大配置数
 
+	//デバッグ版処理(任意に敵を召喚できる処理)
+	bool isDebug = false;
+
 	// -- ↓ 試し　プレイヤーできたら消す --
-
-
-	LGF::Vector3 charHanPos = { 0,1.0f,0 };//ターゲット位置
-	LGF::Vector3 playerPos = { 2.0f,1.0f,0 };//ターゲット位置
-
-	LGF::Box3D targeetPointer_{ 0.5f,2.0f,0.5f };//可視化ターゲット
-	LGF::Box3D playerPointer_{ 1.0f,1.5f,1.0f };//可視化プレイヤー
 
 	float playerArea_ = 5.0f;//プレイヤーの間合い
 	float charHanArea_ = 5.0f;//炒飯の間合い
-
-	//操作キー
-	std::unique_ptr<LGF::KeyButton> keyA_ = std::make_unique<LGF::KeyButton>(LGF::KeyCode::A);
-	std::unique_ptr<LGF::KeyButton> keyD_ = std::make_unique<LGF::KeyButton>(LGF::KeyCode::D);
-	std::unique_ptr<LGF::KeyButton> keyW_ = std::make_unique<LGF::KeyButton>(LGF::KeyCode::W);
-	std::unique_ptr<LGF::KeyButton> keyS_ = std::make_unique<LGF::KeyButton>(LGF::KeyCode::S);
-	std::unique_ptr<LGF::KeyButton> keySpace_ = std::make_unique<LGF::KeyButton>(LGF::KeyCode::Space);
 };
 

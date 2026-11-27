@@ -10,6 +10,7 @@
 #include "Cooking/IngredientManager.h"
 #include "Stage/StageManager.h"
 #include "judge/JudgeManager.h"
+#include "Animals/SetUp/SpawnAnimals.h"
 
 // =========================================================
 // ゲームプレイシーンクラス
@@ -66,6 +67,9 @@ private:
 	std::unique_ptr<StageManager> stageManager_;
 	// 審査員マネージャー
 	std::unique_ptr<JudgeManager> judgeManager_;
+
+	// 敵召喚処理(マネージャー)
+	std::unique_ptr<SpawnAnimals> spawnAnimals_;
 
 	// マウス入力による視点操作の有効状態
 	bool isMouseCameraEnabled_ = false;

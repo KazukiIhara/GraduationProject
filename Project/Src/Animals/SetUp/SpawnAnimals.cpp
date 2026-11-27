@@ -4,27 +4,25 @@
 #include <imgui.h>
 #include <memory>
 
-void SpawnAnimals::Update() {
+void SpawnAnimals::Update(const LGF::Vector3& playerPosition, const LGF::Vector3& charHanPosition) {
 
-	if (keyA_->Press()) {
-		playerPos.x -= 2.0f * (float)LGF::System::DeltaTime();
-	}
-	else if (keyD_->Press()) {
-		playerPos.x += 2.0f * (float)LGF::System::DeltaTime();
-	}
+#ifdef _DEBUG
 
-	if (keyW_->Press()) {
-		playerPos.z += 2.0f * (float)LGF::System::DeltaTime();
-	}
-	else if (keyS_->Press()) {
-		playerPos.z -= 2.0f * (float)LGF::System::DeltaTime();
-	}
+	isDebug = true;
 
+#endif // _DEBUG
+
+	if (isDebug) {
+		BornAnimalsDebug();
+	}
+	else {
+		BornAnimals();
+	}
 
 	for (auto& animal : animals_) {
-		animal->SetCharHanPosition(charHanPos);
-		animal->SetPlayerPosition(playerPos);
-		if (keySpace_->Press()) { 
+		animal->SetCharHanPosition(charHanPosition);
+		animal->SetPlayerPosition(playerPosition);
+		if (LGF::Key::Space.Press()) {
 			animal->Damage();// とりあえずspaceでダメージを食らう判定をとっている
 		}
 		animal->Update();
@@ -39,13 +37,10 @@ void SpawnAnimals::Update() {
 }
 
 void SpawnAnimals::Draw() {
+	//動物敵 描画処理
 	for (auto& animal : animals_) {
 		animal->Draw();
 	}
-
-	//ターゲット位置
-	targeetPointer_.Draw(LGF::Math::MakeAffineMatrix({ 0.5f,2.0f,0.5f }, { 0,0,0 }, charHanPos));
-	playerPointer_.Draw(LGF::Math::MakeAffineMatrix({ 1.0f,1.5f,1.0f }, { 0,0,0 }, playerPos));
 }
 
 void SpawnAnimals::BornAnimals() {
