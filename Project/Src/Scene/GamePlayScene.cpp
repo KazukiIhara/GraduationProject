@@ -130,8 +130,8 @@ void GamePlayScene::Update() {
 	cookingController_->Update(
 		player_->IsCookingMode(), 
 		player_->JustEnteredCookingMode(), 
-		player_->GetLeftHandWorldPosition(), 
-		player_->GetRightHandWorldPosition(), 
+		player_->GetLeftHandWorldPosition(camera_.pitch), 
+		player_->GetRightHandWorldPosition(camera_.pitch), 
 		player_->GetRotation()
 	);
 	/* 食材マネージャーの更新 */

@@ -17,6 +17,8 @@ void CookingController::Update(
     bool isCookingMode, bool justEnteredCookingMode, const LGF::Vector3& leftHandPos, const LGF::Vector3& rightHandPos,const LGF::Vector3& playerRot) {
 	// 料理モード中のみ鍋振り許可（移動中は不可）
 	wok_->SetCanShake(isCookingMode);
+	// 移動モード中のみ攻撃許可（料理中は不可）
+	ladle_->SetCanAttack(!isCookingMode);
 
 	// 調理中は固定位置
 	if (justEnteredCookingMode) {

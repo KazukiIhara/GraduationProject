@@ -177,14 +177,18 @@ void Player::DrawImGuiDebug() {
 #endif
 }
 
-LGF::Vector3 Player::GetLeftHandWorldPosition() const { 
+LGF::Vector3 Player::GetLeftHandWorldPosition(float cameraPitch) const { 
 	const LGF::Matrix4x4 rotMat = LGF::Math::MakeRotateYMatrix(rotation_.y); 
-	return position_ + LGF::Math::TransformNormal(kLeftHandOffset, rotMat);
+	LGF::Vector3 offset = kLeftHandOffset;
+	offset.y += std::sinf(cameraPitch) * 1.2f;
+	return position_ + LGF::Math::TransformNormal(offset, rotMat);
 }
 
-LGF::Vector3 Player::GetRightHandWorldPosition() const { 
+LGF::Vector3 Player::GetRightHandWorldPosition(float cameraPitch) const { 
 	LGF::Matrix4x4 rotMat = LGF::Math::MakeRotateYMatrix(rotation_.y); 
-	return position_ + LGF::Math::TransformNormal(kRightHandOffset, rotMat);
+	LGF::Vector3 offset = kRightHandOffset;
+	offset.y += std::sinf(cameraPitch) * 1.2f;
+	return position_ + LGF::Math::TransformNormal(offset, rotMat);
 }
 
 bool Player::ProcessInput(LGF::Vector3& outMoveDir) {
