@@ -23,6 +23,7 @@ JudgeMan::JudgeMan() {
 
 	//アニメーション初期化
 	modelAnimator_.Play("Idle", opt);
+	modelEatingAnimator_.Play("Eat", optEating);
 
 }
 
@@ -111,6 +112,7 @@ void JudgeMan::Update(const Player* player, const LGF::DebugCamera3D& camera, Co
 
 	//アニメーション更新
 	modelAnimator_.Update((float)System::DeltaTime());
+	modelEatingAnimator_.Update((float)System::DeltaTime());
 
 }
 
@@ -127,6 +129,21 @@ void JudgeMan::Draw() const {
 		options.color = Color::White;
 
 		model_.Draw(worldMatrix,modelAnimator_, options);
+	}
+
+	//食事中審査員のモデル描画
+	if (modelEating_.IsValid()) {
+		Vector3 position = position_ + Vector3{0, 0, 10};
+		Matrix4x4 worldMatrix = Math::MakeAffineMatrix(
+			{ 1.0f, 1.0f, 1.0f },
+			Math::MakeQuaternion(rotation_),
+			position
+		);
+
+		ModelDrawOptions options{};
+		options.color = Color::White;
+
+		modelEating_.Draw(worldMatrix, modelEatingAnimator_, options);
 	}
 	
 	// メッセージの描画

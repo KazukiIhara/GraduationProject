@@ -76,9 +76,15 @@ private:
 	// Member Variables
 	// =========================================================
 
+
 	LGF::ModelAnimationPlayOptions opt;
-	LGF::Model model_{ "../Assets/Models/judgeman.gltf" }; // モデル
+	LGF::Model model_{ "../Assets/Models/judgeman/normal/judgeman.gltf" }; // モデル
 	LGF::ModelAnimator modelAnimator_{ model_ };
+
+	LGF::ModelAnimationPlayOptions optEating;
+	LGF::Model modelEating_{ "../Assets/Models/judgeman/eating/judgeman_Eating.gltf" }; // 食べるモデル
+	LGF::ModelAnimator modelEatingAnimator_{ modelEating_ };
+
 	LGF::Vector3 position_{}; // 現在の位置
 	LGF::Vector3 rotation_{}; // 現在の回転
 
